@@ -45,13 +45,15 @@
         const delay = number(el, 'data-env-delay', 0, 5);
         const duration = number(el, 'data-env-duration', text ? 0.8 : 0.6, 5);
         const type = el.getAttribute('data-env-text') || 'lines';
+        const requestedEffect = el.getAttribute('data-env-text-effect');
+        const effect = ['fade', 'up', 'scale'].includes(requestedEffect) ? requestedEffect : 'up';
         // Preserve nested link/control semantics by animating these texts as a block.
         const interactive = el.querySelector('a, button, input, select, textarea, [tabindex]');
         if (text && SplitText && !interactive && ['lines', 'words', 'chars'].includes(type)) {
           let split;
           split = SplitText.create(el, {
             type: type === 'chars' ? 'words,chars' : type,
-            mask: type === 'lines' ? 'lines' : undefined,
+            mask: type === 'lines' && effect === 'up' ? 'lines' : undefined,
             autoSplit: true,
             aria: 'auto',
             onSplit(self) {
@@ -59,7 +61,8 @@
               const defaultStagger = type === 'chars' ? 0.018 : type === 'words' ? 0.045 : 0.1;
               const stagger = number(el, 'data-env-stagger', defaultStagger, 1);
               return gsap.from(targets, {
-                yPercent: type === 'lines' ? 110 : 65,
+                ...(effect === 'up' ? { yPercent: type === 'lines' ? 110 : 65 } : {}),
+                ...(effect === 'scale' ? { scale: 0.98 } : {}),
                 opacity: 0,
                 duration,
                 delay,
@@ -85,7 +88,11 @@
           timeline.from(el, { scale: 0.99, duration: 0.75, ease: 'power3.out' }, 0.2);
           timeline.from(el, { opacity: 0, duration: 0.5, ease: 'none' }, 0.2);
         } else {
-          timeline.from(el, { y: 24, opacity: 0, duration, ease: 'power2.out' });
+          timeline.from(el, {
+            ...(!text || effect === 'up' ? { y: 24 } : {}),
+            ...(text && effect === 'scale' ? { scale: 0.98 } : {}),
+            opacity: 0, duration, ease: 'power2.out'
+          });
         }
       });
     }

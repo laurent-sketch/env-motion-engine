@@ -75,3 +75,19 @@ it('restores split markup after completion and preserves nested links via a bloc
   expect(create).toHaveBeenCalledOnce();
   expect(document.querySelector('a')?.getAttribute('aria-hidden')).toBeNull();
 });
+
+it.each(['fade', 'up', 'scale'])('applies the %s text variant without adding unwanted movement', async effect => {
+  const from = vi.spyOn(gsap, 'from');
+  const create = vi.fn((el: HTMLElement, options: { onSplit(self: { words: Element[] }): gsap.core.Tween }) => {
+    options.onSplit({ words: [el] });
+    return { revert: vi.fn() };
+  });
+  vi.stubGlobal('SplitText', { create });
+  vi.spyOn(gsap, 'registerPlugin').mockImplementation(() => {});
+  const f = await setup(`<h2 data-env-text="words" data-env-text-effect="${effect}">Title</h2>`);
+  f.enter(document.querySelector('h2')!);
+  const vars = from.mock.calls.at(-1)![1];
+  expect(vars.opacity).toBe(0);
+  expect(vars.yPercent).toBe(effect === 'up' ? 65 : undefined);
+  expect(vars.scale).toBe(effect === 'scale' ? 0.98 : undefined);
+});
