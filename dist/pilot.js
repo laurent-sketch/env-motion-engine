@@ -1,100 +1,118 @@
-import { c as A } from "./index-9UII6FTU.js";
-const x = {
+import { createEngine as h } from "./env-motion.js";
+function x() {
+  return document.readyState === "complete" ? Promise.resolve() : new Promise((d) => {
+    const n = () => {
+      document.removeEventListener("DOMContentLoaded", n), window.removeEventListener("load", n), d();
+    };
+    document.addEventListener("DOMContentLoaded", n, { once: !0 }), window.addEventListener("load", n, { once: !0 });
+  });
+}
+const P = {
   name: "pilot-faq",
-  mount({ root: f, signal: l, cleanup: p }) {
-    for (const a of f.querySelectorAll(".faq-bloc")) {
-      const d = [...a.querySelectorAll(".faq-item[data-faq]")], n = [...a.querySelectorAll(".img-faq-content[data-faq-content]")], s = ["class", "role", "tabindex", "aria-expanded"], c = [...d, ...n].map((t) => ({
-        element: t,
-        values: s.map((o) => t.getAttribute(o))
+  mount({ root: d, signal: n, cleanup: m }) {
+    for (const u of d.querySelectorAll(".faq-bloc")) {
+      const s = [...u.querySelectorAll(".faq-item[data-faq]")], l = [...u.querySelectorAll(".img-faq-content[data-faq-content]")], a = ["class", "role", "tabindex", "aria-expanded"], c = [...s, ...l].map((e) => ({
+        element: e,
+        values: a.map((i) => e.getAttribute(i))
       }));
-      p(() => c.forEach(({ element: t, values: o }) => s.forEach((r, g) => {
-        const m = o[g];
-        m === null ? t.removeAttribute(r) : t.setAttribute(r, m);
+      m(() => c.forEach(({ element: e, values: i }) => a.forEach((r, p) => {
+        const w = i[p];
+        w === null ? e.removeAttribute(r) : e.setAttribute(r, w);
       })));
-      const u = (t) => {
-        d.forEach((o) => {
-          const r = o.dataset.faq === t;
-          o.classList.toggle("active", r), o.setAttribute("aria-expanded", String(r));
-        }), n.forEach((o) => o.classList.toggle("active", o.dataset.faqContent === t));
+      const f = (e) => {
+        s.forEach((i) => {
+          const r = i.dataset.faq === e;
+          i.classList.toggle("active", r), i.setAttribute("aria-expanded", String(r));
+        }), l.forEach((i) => i.classList.toggle("active", i.dataset.faqContent === e));
       };
-      for (const t of d)
-        t.matches("button, a[href], input, select, textarea") || (t.setAttribute("role", "button"), t.setAttribute("tabindex", "0"), t.addEventListener("keydown", (r) => {
-          r.target !== t || !["Enter", " "].includes(r.key) || (r.preventDefault(), u(t.dataset.faq));
-        }, { signal: l })), t.addEventListener("click", () => u(t.dataset.faq), { signal: l });
-      d.length && u(d[0].dataset.faq);
+      for (const e of s)
+        e.matches("button, a[href], input, select, textarea") || (e.setAttribute("role", "button"), e.setAttribute("tabindex", "0"), e.addEventListener("keydown", (r) => {
+          r.target !== e || !["Enter", " "].includes(r.key) || (r.preventDefault(), f(e.dataset.faq));
+        }, { signal: n })), e.addEventListener("click", () => f(e.dataset.faq), { signal: n });
+      s.length && f(s[0].dataset.faq);
     }
   }
 };
-function O(f) {
-  return { name: "pilot-testimonials", mount({ root: l, reducedMotion: p, signal: a, cleanup: d }) {
-    for (const n of l.querySelectorAll(".testimonial-section")) {
-      const s = n.querySelector(".testimonial-swiper"), c = s?.querySelector(".swiper-wrapper"), u = n.querySelector(".max-w-global"), t = n.querySelector(".swiper-button-next"), o = n.querySelector(".swiper-button-prev");
-      if (!s || !c || !u || !t || !o)
+function L(d) {
+  return { name: "pilot-testimonials", mount({ root: n, reducedMotion: m, signal: u, cleanup: s }) {
+    for (const l of n.querySelectorAll(".testimonial-section")) {
+      const a = l.querySelector(".testimonial-swiper"), c = a?.querySelector(".swiper-wrapper"), f = l.querySelector(".max-w-global"), e = l.querySelector(".swiper-button-next"), i = l.querySelector(".swiper-button-prev");
+      if (!a || !c || !f || !e || !i)
         throw new Error("[ENV] Incomplete testimonial markup");
-      if (s.swiper)
+      if (a.swiper)
         throw new Error("[ENV] Swiper already initialized: remove the old testimonial script first");
       if (typeof ResizeObserver > "u") throw new Error("[ENV] ResizeObserver required");
-      let r, g, m, e, w = !0;
-      const h = c.getAttribute("style");
-      d(() => {
-        w = !1, r !== void 0 && cancelAnimationFrame(r), clearTimeout(g), m?.disconnect(), e && !e.destroyed && e.destroy(!0, !0), h === null ? c.removeAttribute("style") : c.setAttribute("style", h);
+      let r, p, w, t, g = !0;
+      const b = c.getAttribute("style");
+      s(() => {
+        g = !1, r !== void 0 && cancelAnimationFrame(r), clearTimeout(p), w?.disconnect(), t && !t.destroyed && t.destroy(!0, !0), b === null ? c.removeAttribute("style") : c.setAttribute("style", b);
       });
-      const b = () => Math.max(u.getBoundingClientRect().left - s.getBoundingClientRect().left, 0), y = () => Math.max(s.getBoundingClientRect().right - t.getBoundingClientRect().right, 0), E = (i) => {
-        i.snapGrid.length && (i.snapGrid[i.snapGrid.length - 1] = Math.max(i.virtualSize - i.width - Number(i.params.slidesOffsetAfter || 0), 0));
-      }, v = (i) => {
+      const E = () => Math.max(f.getBoundingClientRect().left - a.getBoundingClientRect().left, 0), y = () => Math.max(a.getBoundingClientRect().right - e.getBoundingClientRect().right, 0), S = (o) => {
+        o.snapGrid.length && (o.snapGrid[o.snapGrid.length - 1] = Math.max(o.virtualSize - o.width - Number(o.params.slidesOffsetAfter || 0), 0));
+      }, v = (o) => {
         r !== void 0 && cancelAnimationFrame(r), r = requestAnimationFrame(() => {
-          r = void 0, w && i();
+          r = void 0, g && o();
         });
       }, q = () => {
-        if (!w || !e || e.destroyed) return;
-        const i = e.activeIndex, S = e.isEnd;
-        e.params.slidesOffsetBefore = b(), e.params.slidesOffsetAfter = y(), e.updateSize(), e.updateSlides(), E(e), e.updateProgress(), e.updateSlidesClasses(), v(() => {
-          !e || e.destroyed || (e.slideTo(S ? Math.max(e.slides.length - 1, 0) : i, 0, !1), e.updateProgress(), e.updateSlidesClasses(), e.navigation.update());
+        if (!g || !t || t.destroyed) return;
+        const o = t.activeIndex, A = t.isEnd;
+        t.params.slidesOffsetBefore = E(), t.params.slidesOffsetAfter = y(), t.updateSize(), t.updateSlides(), S(t), t.updateProgress(), t.updateSlidesClasses(), v(() => {
+          !t || t.destroyed || (t.slideTo(A ? Math.max(t.slides.length - 1, 0) : o, 0, !1), t.updateProgress(), t.updateSlidesClasses(), t.navigation.update());
         });
       };
-      Object.assign(c.style, { margin: "0", width: "100%", maxWidth: "none" }), e = new f(s, {
+      Object.assign(c.style, { margin: "0", width: "100%", maxWidth: "none" }), t = new d(a, {
         direction: "horizontal",
         slidesPerView: "auto",
         slidesPerGroup: 1,
         slidesPerGroupAuto: !1,
         spaceBetween: 16,
-        slidesOffsetBefore: b(),
+        slidesOffsetBefore: E(),
         slidesOffsetAfter: y(),
-        speed: p ? 0 : 700,
+        speed: m ? 0 : 700,
         grabCursor: !0,
         loop: !1,
         rewind: !1,
         freeMode: !1,
         allowTouchMove: !0,
         simulateTouch: !0,
-        navigation: { nextEl: t, prevEl: o },
-        on: { init(i) {
-          E(i), v(() => {
-            i.slideTo(0, 0, !1), i.navigation.update();
+        navigation: { nextEl: e, prevEl: i },
+        on: { init(o) {
+          S(o), v(() => {
+            o.slideTo(0, 0, !1), o.navigation.update();
           });
         } }
-      }), m = new ResizeObserver(() => v(q)), [s, u, n].forEach((i) => m.observe(i)), window.addEventListener("resize", () => {
-        clearTimeout(g), g = setTimeout(q, 100);
-      }, { signal: a });
+      }), w = new ResizeObserver(() => v(q)), [a, f, l].forEach((o) => w.observe(o)), window.addEventListener("resize", () => {
+        clearTimeout(p), p = setTimeout(q, 100);
+      }, { signal: u });
     }
   } };
 }
-async function R(f) {
-  if (f.legacyScriptsRemoved !== !0) throw new Error("[ENV] Remove the legacy FAQ and testimonial scripts before migration");
-  document.readyState === "loading" && await new Promise((a) => {
-    document.addEventListener("DOMContentLoaded", () => a(), { once: !0 });
-  });
-  const l = document.querySelector("[data-env-page]");
-  if (!l) return;
-  const p = [x];
-  if (l.querySelector(".testimonial-section")) {
-    const a = f.Swiper ?? window.Swiper;
-    if (!a) throw new Error("[ENV] Swiper 12 must load before the pilot module");
-    p.push(O(a));
+async function C(d) {
+  if (d.legacyScriptsRemoved !== !0) throw new Error("[ENV] Remove the legacy FAQ and testimonial scripts before migration");
+  await x();
+  const n = document.querySelector("[data-env-page]");
+  if (!n) return;
+  const m = window.gsap, u = [P];
+  if (n.querySelector(".testimonial-section")) {
+    const s = d.Swiper ?? window.Swiper;
+    if (!s) throw new Error("[ENV] Swiper 12 must load before the pilot module");
+    u.push(L(s));
   }
-  return A({ pages: [], modules: p });
+  if (d.navigation && ["/", "/about"].includes(location.pathname)) {
+    const { createWebflowNavigation: s, certifiedPaths: l } = await import("./navigation-rfmZzrDj.js"), a = window.Webflow;
+    if (!a?.require) throw Error("[ENV] Webflow runtime not ready");
+    let c;
+    try {
+      c = await s(a, location.pathname);
+    } catch (p) {
+      return console.warn("[ENV] Navigation guard: using native navigation", p), h({ pages: [], modules: u, gsap: m });
+    }
+    const { default: f } = await import("./index.modern-BbQw0Nll.js"), i = a.require("spline")?.createInstance ? l : l.filter((p) => p !== "/"), r = await h({ container: "[data-env-shell]", pages: i, modules: u, gsap: m, adapter: c, transitionOffset: 0 });
+    return r.swup?.use(new f({ animateScroll: { betweenPages: !1, samePageWithHash: !1, samePage: !1 } })), r;
+  }
+  return h({ pages: [], modules: u, gsap: m });
 }
 export {
-  R as createPilotEngine
+  C as createPilotEngine
 };
 //# sourceMappingURL=pilot.js.map

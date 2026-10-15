@@ -1,4 +1,4 @@
-import { g as a } from "./index-9UII6FTU.js";
+import a from "./index-CPGkGNo2.js";
 const v = { name: "reveal", mount({ root: o, reducedMotion: c, cleanup: n }) {
   if (c) return;
   const s = a.context(() => {
@@ -14,4 +14,4 @@ const v = { name: "reveal", mount({ root: o, reducedMotion: c, cleanup: n }) {
 export {
   v as reveal
 };
-//# sourceMappingURL=reveal-4E4QmLe5.js.map
+//# sourceMappingURL=reveal-CMooUES2.js.map
