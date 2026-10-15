@@ -34,13 +34,26 @@
       return;
     }
     const SplitText = window.SplitText;
+    const ScrollTrigger = window.ScrollTrigger;
     if (SplitText) gsap.registerPlugin(SplitText);
+    if (ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
     context = gsap.context(() => {});
 
-    function play(el) {
-      seen.add(el);
+    function play(el, scrub = false) {
+      if (!scrub) seen.add(el);
       observer.unobserve(el);
       context.add(() => {
+        const scroll = scrub ? {
+          trigger: el,
+          start: () => `top ${number(el, 'data-env-scroll-start', 85, 100)}%`,
+          end: () => {
+            const start = number(el, 'data-env-scroll-start', 85, 100);
+            const end = number(el, 'data-env-scroll-end', 35, 100);
+            return `top ${Math.max(0, Math.min(end, start - 1))}%`;
+          },
+          scrub: true,
+          invalidateOnRefresh: true
+        } : undefined;
         const text = el.hasAttribute('data-env-text');
         const delay = number(el, 'data-env-delay', 0, 5);
         const duration = number(el, 'data-env-duration', text ? 0.8 : 0.6, 5);
@@ -65,10 +78,12 @@
                 ...(effect === 'scale' ? { scale: 0.98 } : {}),
                 opacity: 0,
                 duration,
-                delay,
-                ease: 'power3.out',
+                delay: scrub ? 0 : delay,
+                ease: scrub ? 'none' : 'power3.out',
+                ...(scrub ? { scrollTrigger: scroll } : {}),
                 stagger: { each: stagger, amount: Math.min(stagger * Math.max(targets.length - 1, 0), 1.2) },
                 onComplete() {
+                  if (scrub) return; // Keep split targets alive for reverse scrolling.
                   // Restore original markup after the reveal, including natural line wrapping.
                   queueMicrotask(() => {
                     if (!split || !splits.has(split)) return;
@@ -83,15 +98,15 @@
           return;
         }
         const scale = !text && el.dataset.envReveal === 'fade-scale';
-        const timeline = gsap.timeline({ delay });
+        const timeline = gsap.timeline({ delay: scrub ? 0 : delay, ...(scrub ? { scrollTrigger: scroll } : {}) });
         if (scale) {
-          timeline.from(el, { scale: 0.99, duration: 0.75, ease: 'power3.out' }, 0.2);
-          timeline.from(el, { opacity: 0, duration: 0.5, ease: 'none' }, 0.2);
+          timeline.from(el, { scale: 0.99, duration: 0.75, ease: scrub ? 'none' : 'power3.out' }, scrub ? 0 : 0.2);
+          timeline.from(el, { opacity: 0, duration: 0.5, ease: 'none' }, scrub ? 0 : 0.2);
         } else {
           timeline.from(el, {
             ...(!text || effect === 'up' ? { y: 24 } : {}),
             ...(text && effect === 'scale' ? { scale: 0.98 } : {}),
-            opacity: 0, duration, ease: 'power2.out'
+            opacity: 0, duration, ease: scrub ? 'none' : 'power2.out'
           });
         }
       });
@@ -104,10 +119,15 @@
     }, { threshold: 0 });
 
     document.querySelectorAll('[data-env-reveal], [data-env-text]').forEach(el => {
-      if (seen.has(el) || el.closest('[data-env-ignore], .w-slider, .swiper-initialized')) return;
+      const scrub = el.getAttribute('data-env-trigger') === 'scrub';
+      if ((!scrub && seen.has(el)) || el.closest('[data-env-ignore], .w-slider, .swiper-initialized')) return;
       // Avoid compounded transforms/opacity on an animated ancestor and its text.
       if (el.parentElement?.closest('[data-env-reveal], [data-env-text]')) return;
-      observer.observe(el);
+      if (scrub && ScrollTrigger) play(el, true);
+      else {
+        if (scrub) console.warn('[ENV Animations] ScrollTrigger unavailable; using a one-time reveal.', el);
+        observer.observe(el);
+      }
     });
   }
 

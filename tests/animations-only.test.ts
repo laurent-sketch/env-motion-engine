@@ -91,3 +91,46 @@ it.each(['fade', 'up', 'scale'])('applies the %s text variant without adding unw
   expect(vars.yPercent).toBe(effect === 'up' ? 65 : undefined);
   expect(vars.scale).toBe(effect === 'scale' ? 0.98 : undefined);
 });
+
+it('keeps scrub text split after completion so reversing remains possible', async () => {
+  const revert = vi.fn();
+  const originalFrom = gsap.from;
+  const from = vi.spyOn(gsap, 'from').mockImplementation((targets, vars) => {
+    const { scrollTrigger, ...rest } = vars;
+    return originalFrom(targets, { ...rest, paused: true });
+  });
+  const create = vi.fn((el: HTMLElement, options: { onSplit(self: { words: Element[] }): gsap.core.Tween }) => {
+    el.innerHTML = '<span>Text</span>';
+    options.onSplit({ words: [...el.children] });
+    return { revert };
+  });
+  vi.stubGlobal('SplitText', { create });
+  vi.stubGlobal('ScrollTrigger', {});
+  vi.spyOn(gsap, 'registerPlugin').mockImplementation(() => {});
+  const f = await setup('<h2 data-env-text="words" data-env-text-effect="fade" data-env-trigger="scrub">Text</h2>');
+  expect(f.observe).not.toHaveBeenCalled();
+  const vars = from.mock.calls.at(-1)![1];
+  const trigger = vars.scrollTrigger as { scrub: boolean; start(): string; end(): string };
+  expect(trigger.scrub).toBe(true);
+  expect(trigger.start()).toBe('top 85%');
+  expect(trigger.end()).toBe('top 35%');
+  expect(vars.ease).toBe('none');
+  const tween = from.mock.results.at(-1)!.value as gsap.core.Tween;
+  tween.progress(1);
+  await Promise.resolve();
+  expect(revert).not.toHaveBeenCalled();
+  tween.progress(0.2);
+  expect(document.querySelector('h2 span')).not.toBeNull();
+  api().destroy();
+  expect(revert).toHaveBeenCalledOnce();
+});
+
+it('falls back to a normal reveal when ScrollTrigger is missing', async () => {
+  vi.stubGlobal('ScrollTrigger', undefined);
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  const f = await setup('<p data-env-text data-env-trigger="scrub">Text</p>');
+  expect(warn).toHaveBeenCalled();
+  expect(f.observe).toHaveBeenCalledOnce();
+  f.enter(document.querySelector('p')!);
+  expect(gsap.getTweensOf(document.querySelector('p')!)).toHaveLength(1);
+});

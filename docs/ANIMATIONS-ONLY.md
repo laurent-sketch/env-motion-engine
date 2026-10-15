@@ -20,6 +20,11 @@ Replace COMMIT with the full published commit hash. The script waits for load an
 | `data-env-text-effect` | `scale` | Fade + scale 0.98 → 1; no vertical movement |
 | `data-env-reveal` | `fade-up` | Fade + 24px upward reveal |
 | `data-env-reveal` | `fade-scale` | Original ENV fade + scale 0.99 → 1 |
+| `data-env-trigger` | `scrub` | Progress follows scrolling in both directions |
+
+Without `data-env-trigger="scrub"`, the original one-time reveal remains the default. Scrub works with all text effects and block reveals. It requires global GSAP ScrollTrigger loaded before this file (SD already includes it); if unavailable, the target uses a one-time reveal with a console warning. No automatic dependency download occurs.
+
+Example: add `data-env-text="words"`, `data-env-text-effect="fade"`, and `data-env-trigger="scrub"` to a paragraph. Its animation progresses as the top of the paragraph moves from 85% to 35% of the viewport height and reverses when scrolling back. Optional `data-env-scroll-start="85"` and `data-env-scroll-end="35"` customize those percentages. Keep end smaller than start. Unlike one-time reveals, scrub targets retain their SplitText wrappers to remain reversible; teardown restores the original markup. Delay is ignored in scrub mode, easing is linear, and scroll distance determines the overall playback speed.
 
 Optional attributes: `data-env-delay`, `data-env-duration`, `data-env-stagger` (seconds). Duration controls text/fade-up; fade-scale retains the original two-track timing. Total text stagger is capped at 1.2 seconds. Apply text attributes to an individual heading/paragraph, not a rich-text container. Text containing links or controls animates as a block to preserve their semantics.
 
