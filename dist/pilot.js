@@ -1,106 +1,118 @@
-import { c as A } from "./index-9UII6FTU.js";
+import { createEngine as h } from "./env-motion.js";
 function x() {
-  return document.readyState === "complete" ? Promise.resolve() : new Promise((a) => {
-    const s = () => {
-      document.removeEventListener("DOMContentLoaded", s), window.removeEventListener("load", s), a();
+  return document.readyState === "complete" ? Promise.resolve() : new Promise((d) => {
+    const n = () => {
+      document.removeEventListener("DOMContentLoaded", n), window.removeEventListener("load", n), d();
     };
-    document.addEventListener("DOMContentLoaded", s, { once: !0 }), window.addEventListener("load", s, { once: !0 });
+    document.addEventListener("DOMContentLoaded", n, { once: !0 }), window.addEventListener("load", n, { once: !0 });
   });
 }
-const L = {
+const P = {
   name: "pilot-faq",
-  mount({ root: a, signal: s, cleanup: p }) {
-    for (const d of a.querySelectorAll(".faq-bloc")) {
-      const c = [...d.querySelectorAll(".faq-item[data-faq]")], l = [...d.querySelectorAll(".img-faq-content[data-faq-content]")], n = ["class", "role", "tabindex", "aria-expanded"], u = [...c, ...l].map((t) => ({
-        element: t,
-        values: n.map((i) => t.getAttribute(i))
+  mount({ root: d, signal: n, cleanup: m }) {
+    for (const u of d.querySelectorAll(".faq-bloc")) {
+      const s = [...u.querySelectorAll(".faq-item[data-faq]")], l = [...u.querySelectorAll(".img-faq-content[data-faq-content]")], a = ["class", "role", "tabindex", "aria-expanded"], c = [...s, ...l].map((e) => ({
+        element: e,
+        values: a.map((i) => e.getAttribute(i))
       }));
-      p(() => u.forEach(({ element: t, values: i }) => n.forEach((r, w) => {
-        const m = i[w];
-        m === null ? t.removeAttribute(r) : t.setAttribute(r, m);
+      m(() => c.forEach(({ element: e, values: i }) => a.forEach((r, p) => {
+        const w = i[p];
+        w === null ? e.removeAttribute(r) : e.setAttribute(r, w);
       })));
-      const f = (t) => {
-        c.forEach((i) => {
-          const r = i.dataset.faq === t;
+      const f = (e) => {
+        s.forEach((i) => {
+          const r = i.dataset.faq === e;
           i.classList.toggle("active", r), i.setAttribute("aria-expanded", String(r));
-        }), l.forEach((i) => i.classList.toggle("active", i.dataset.faqContent === t));
+        }), l.forEach((i) => i.classList.toggle("active", i.dataset.faqContent === e));
       };
-      for (const t of c)
-        t.matches("button, a[href], input, select, textarea") || (t.setAttribute("role", "button"), t.setAttribute("tabindex", "0"), t.addEventListener("keydown", (r) => {
-          r.target !== t || !["Enter", " "].includes(r.key) || (r.preventDefault(), f(t.dataset.faq));
-        }, { signal: s })), t.addEventListener("click", () => f(t.dataset.faq), { signal: s });
-      c.length && f(c[0].dataset.faq);
+      for (const e of s)
+        e.matches("button, a[href], input, select, textarea") || (e.setAttribute("role", "button"), e.setAttribute("tabindex", "0"), e.addEventListener("keydown", (r) => {
+          r.target !== e || !["Enter", " "].includes(r.key) || (r.preventDefault(), f(e.dataset.faq));
+        }, { signal: n })), e.addEventListener("click", () => f(e.dataset.faq), { signal: n });
+      s.length && f(s[0].dataset.faq);
     }
   }
 };
-function O(a) {
-  return { name: "pilot-testimonials", mount({ root: s, reducedMotion: p, signal: d, cleanup: c }) {
-    for (const l of s.querySelectorAll(".testimonial-section")) {
-      const n = l.querySelector(".testimonial-swiper"), u = n?.querySelector(".swiper-wrapper"), f = l.querySelector(".max-w-global"), t = l.querySelector(".swiper-button-next"), i = l.querySelector(".swiper-button-prev");
-      if (!n || !u || !f || !t || !i)
+function L(d) {
+  return { name: "pilot-testimonials", mount({ root: n, reducedMotion: m, signal: u, cleanup: s }) {
+    for (const l of n.querySelectorAll(".testimonial-section")) {
+      const a = l.querySelector(".testimonial-swiper"), c = a?.querySelector(".swiper-wrapper"), f = l.querySelector(".max-w-global"), e = l.querySelector(".swiper-button-next"), i = l.querySelector(".swiper-button-prev");
+      if (!a || !c || !f || !e || !i)
         throw new Error("[ENV] Incomplete testimonial markup");
-      if (n.swiper)
+      if (a.swiper)
         throw new Error("[ENV] Swiper already initialized: remove the old testimonial script first");
       if (typeof ResizeObserver > "u") throw new Error("[ENV] ResizeObserver required");
-      let r, w, m, e, v = !0;
-      const h = u.getAttribute("style");
-      c(() => {
-        v = !1, r !== void 0 && cancelAnimationFrame(r), clearTimeout(w), m?.disconnect(), e && !e.destroyed && e.destroy(!0, !0), h === null ? u.removeAttribute("style") : u.setAttribute("style", h);
+      let r, p, w, t, g = !0;
+      const b = c.getAttribute("style");
+      s(() => {
+        g = !1, r !== void 0 && cancelAnimationFrame(r), clearTimeout(p), w?.disconnect(), t && !t.destroyed && t.destroy(!0, !0), b === null ? c.removeAttribute("style") : c.setAttribute("style", b);
       });
-      const E = () => Math.max(f.getBoundingClientRect().left - n.getBoundingClientRect().left, 0), b = () => Math.max(n.getBoundingClientRect().right - t.getBoundingClientRect().right, 0), y = (o) => {
+      const E = () => Math.max(f.getBoundingClientRect().left - a.getBoundingClientRect().left, 0), y = () => Math.max(a.getBoundingClientRect().right - e.getBoundingClientRect().right, 0), S = (o) => {
         o.snapGrid.length && (o.snapGrid[o.snapGrid.length - 1] = Math.max(o.virtualSize - o.width - Number(o.params.slidesOffsetAfter || 0), 0));
-      }, g = (o) => {
+      }, v = (o) => {
         r !== void 0 && cancelAnimationFrame(r), r = requestAnimationFrame(() => {
-          r = void 0, v && o();
+          r = void 0, g && o();
         });
-      }, S = () => {
-        if (!v || !e || e.destroyed) return;
-        const o = e.activeIndex, q = e.isEnd;
-        e.params.slidesOffsetBefore = E(), e.params.slidesOffsetAfter = b(), e.updateSize(), e.updateSlides(), y(e), e.updateProgress(), e.updateSlidesClasses(), g(() => {
-          !e || e.destroyed || (e.slideTo(q ? Math.max(e.slides.length - 1, 0) : o, 0, !1), e.updateProgress(), e.updateSlidesClasses(), e.navigation.update());
+      }, q = () => {
+        if (!g || !t || t.destroyed) return;
+        const o = t.activeIndex, A = t.isEnd;
+        t.params.slidesOffsetBefore = E(), t.params.slidesOffsetAfter = y(), t.updateSize(), t.updateSlides(), S(t), t.updateProgress(), t.updateSlidesClasses(), v(() => {
+          !t || t.destroyed || (t.slideTo(A ? Math.max(t.slides.length - 1, 0) : o, 0, !1), t.updateProgress(), t.updateSlidesClasses(), t.navigation.update());
         });
       };
-      Object.assign(u.style, { margin: "0", width: "100%", maxWidth: "none" }), e = new a(n, {
+      Object.assign(c.style, { margin: "0", width: "100%", maxWidth: "none" }), t = new d(a, {
         direction: "horizontal",
         slidesPerView: "auto",
         slidesPerGroup: 1,
         slidesPerGroupAuto: !1,
         spaceBetween: 16,
         slidesOffsetBefore: E(),
-        slidesOffsetAfter: b(),
-        speed: p ? 0 : 700,
+        slidesOffsetAfter: y(),
+        speed: m ? 0 : 700,
         grabCursor: !0,
         loop: !1,
         rewind: !1,
         freeMode: !1,
         allowTouchMove: !0,
         simulateTouch: !0,
-        navigation: { nextEl: t, prevEl: i },
+        navigation: { nextEl: e, prevEl: i },
         on: { init(o) {
-          y(o), g(() => {
+          S(o), v(() => {
             o.slideTo(0, 0, !1), o.navigation.update();
           });
         } }
-      }), m = new ResizeObserver(() => g(S)), [n, f, l].forEach((o) => m.observe(o)), window.addEventListener("resize", () => {
-        clearTimeout(w), w = setTimeout(S, 100);
-      }, { signal: d });
+      }), w = new ResizeObserver(() => v(q)), [a, f, l].forEach((o) => w.observe(o)), window.addEventListener("resize", () => {
+        clearTimeout(p), p = setTimeout(q, 100);
+      }, { signal: u });
     }
   } };
 }
-async function R(a) {
-  if (a.legacyScriptsRemoved !== !0) throw new Error("[ENV] Remove the legacy FAQ and testimonial scripts before migration");
+async function C(d) {
+  if (d.legacyScriptsRemoved !== !0) throw new Error("[ENV] Remove the legacy FAQ and testimonial scripts before migration");
   await x();
-  const s = document.querySelector("[data-env-page]");
-  if (!s) return;
-  const p = [L];
-  if (s.querySelector(".testimonial-section")) {
-    const d = a.Swiper ?? window.Swiper;
-    if (!d) throw new Error("[ENV] Swiper 12 must load before the pilot module");
-    p.push(O(d));
+  const n = document.querySelector("[data-env-page]");
+  if (!n) return;
+  const m = window.gsap, u = [P];
+  if (n.querySelector(".testimonial-section")) {
+    const s = d.Swiper ?? window.Swiper;
+    if (!s) throw new Error("[ENV] Swiper 12 must load before the pilot module");
+    u.push(L(s));
   }
-  return A({ pages: [], modules: p });
+  if (d.navigation && ["/", "/about"].includes(location.pathname)) {
+    const { createWebflowNavigation: s, certifiedPaths: l } = await import("./navigation-rfmZzrDj.js"), a = window.Webflow;
+    if (!a?.require) throw Error("[ENV] Webflow runtime not ready");
+    let c;
+    try {
+      c = await s(a, location.pathname);
+    } catch (p) {
+      return console.warn("[ENV] Navigation guard: using native navigation", p), h({ pages: [], modules: u, gsap: m });
+    }
+    const { default: f } = await import("./index.modern-BbQw0Nll.js"), i = a.require("spline")?.createInstance ? l : l.filter((p) => p !== "/"), r = await h({ container: "[data-env-shell]", pages: i, modules: u, gsap: m, adapter: c, transitionOffset: 0 });
+    return r.swup?.use(new f({ animateScroll: { betweenPages: !1, samePageWithHash: !1, samePage: !1 } })), r;
+  }
+  return h({ pages: [], modules: u, gsap: m });
 }
 export {
-  R as createPilotEngine
+  C as createPilotEngine
 };
 //# sourceMappingURL=pilot.js.map
