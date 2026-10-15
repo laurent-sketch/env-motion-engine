@@ -8,6 +8,7 @@
   let context;
   let disposed = false;
   const splits = new Set();
+  const nativeAnimations = new Set();
   const seen = new WeakSet();
   const media = window.matchMedia('(prefers-reduced-motion: reduce)');
   // Match the approved preview's CSS cubic-bezier(.2, .65, .2, 1),
@@ -32,6 +33,8 @@
 
   function stop() {
     observer?.disconnect();
+    nativeAnimations.forEach(animation => animation.cancel());
+    nativeAnimations.clear();
     context?.revert();
     context = undefined;
     splits.forEach(split => split.revert());
@@ -74,6 +77,26 @@
         const type = el.getAttribute('data-env-text') || 'lines';
         const requestedEffect = el.getAttribute('data-env-text-effect');
         const effect = ['fade', 'up', 'scale'].includes(requestedEffect) ? requestedEffect : 'up';
+        if (!text && !scrub && el.dataset.envReveal === 'fade-up' && typeof el.animate === 'function') {
+          const style = getComputedStyle(el);
+          const baseTransform = style.transform === 'none' ? '' : style.transform;
+          const animation = el.animate([
+            { opacity: 0, transform: `translateY(16px) ${baseTransform}`.trim() },
+            { opacity: style.opacity, transform: baseTransform || 'translateY(0)' }
+          ], {
+            duration: duration * 1000,
+            delay: delay * 1000,
+            easing: 'cubic-bezier(.2,.65,.2,1)',
+            fill: 'backwards'
+          });
+          nativeAnimations.add(animation);
+          const release = () => {
+            nativeAnimations.delete(animation);
+            animation.cancel(); // Release the effect and return to authored CSS.
+          };
+          animation.finished.then(release, () => nativeAnimations.delete(animation));
+          return;
+        }
         // Preserve nested link/control semantics by animating these texts as a block.
         const interactive = el.querySelector('a, button, input, select, textarea, [tabindex]');
         if (text && SplitText && !interactive && ['lines', 'words', 'chars'].includes(type)) {

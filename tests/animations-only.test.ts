@@ -148,3 +148,34 @@ it('matches the approved preview reveal timing, distance and cubic-bezier curve'
   // At Bezier parameter t=.5, x=.275 and y=.74375.
   expect(ease(0.275)).toBeCloseTo(0.74375, 5);
 });
+
+it('uses the native preview animation for fade-up, with delay and authored transform preserved', async () => {
+  const f = await setup('<div data-env-reveal="fade-up" data-env-delay="0.15" style="transform:scale(0.9);opacity:0.8">Block</div>');
+  const el = document.querySelector('div')!;
+  let finish!: () => void;
+  const animation = { finished: new Promise<void>(resolve => { finish = resolve; }), cancel: vi.fn() };
+  const animate = vi.fn(() => animation);
+  Object.defineProperty(el, 'animate', { value: animate });
+  f.enter(el); f.enter(el);
+  expect(animate).toHaveBeenCalledOnce();
+  expect(animate).toHaveBeenCalledWith([
+    { opacity: 0, transform: 'translateY(16px) scale(0.9)' },
+    { opacity: '0.8', transform: 'scale(0.9)' }
+  ], { duration: 750, delay: 150, easing: 'cubic-bezier(.2,.65,.2,1)', fill: 'backwards' });
+  expect(gsap.getTweensOf(el)).toHaveLength(0);
+  finish(); await Promise.resolve();
+  expect(animation.cancel).toHaveBeenCalledOnce();
+  expect(el.style.transform).toBe('scale(0.9)');
+  expect(el.style.opacity).toBe('0.8');
+});
+
+it('cancels native fade-up when the reduced-motion preference changes', async () => {
+  const f = await setup('<div data-env-reveal="fade-up">Block</div>');
+  const el = document.querySelector('div')!;
+  const animation = { finished: new Promise<void>(() => {}), cancel: vi.fn() };
+  Object.defineProperty(el, 'animate', { value: vi.fn(() => animation) });
+  f.enter(el);
+  f.media.matches = true; f.change();
+  expect(animation.cancel).toHaveBeenCalledOnce();
+  expect(el.style.opacity).toBe('');
+});

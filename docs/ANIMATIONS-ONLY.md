@@ -18,7 +18,7 @@ Replace COMMIT with the full published commit hash. The script waits for load an
 | `data-env-text-effect` | `fade` | Opacity only; no movement or scale |
 | `data-env-text-effect` | `up` | Fade + upward movement (default) |
 | `data-env-text-effect` | `scale` | Fade + scale 0.98 → 1; no vertical movement |
-| `data-env-reveal` | `fade-up` | Approved preview reveal: fade + 16px upward reveal, 0.75s, cubic-bezier(.2,.65,.2,1) |
+| `data-env-reveal` | `fade-up` | Native browser preview reveal: fade + 16px upward reveal, 0.75s, cubic-bezier(.2,.65,.2,1) |
 | `data-env-reveal` | `fade-scale` | Original ENV fade + scale 0.99 → 1 |
 | `data-env-trigger` | `scrub` | Progress follows scrolling in both directions |
 
@@ -35,3 +35,5 @@ Targets inside Webflow sliders, initialized Swipers, or `[data-env-ignore]` are 
 `window.ENVAnimations.refresh()` registers newly inserted targets and restores interrupted animations. `window.ENVAnimations.destroy()` removes observers, tweens, splitting, and preference listeners. Refresh does not replay targets already started.
 
 This script does not install dependencies, manage sliders, or intercept links. Unit checks cover initialization, split cleanup, exclusions and reduced-motion cleanup; verify actual typography and animation appearance on each published site.
+
+The classic `fade-up` uses the Web Animations API, matching the approved standalone preview. It respects the existing delay/duration attributes, preserves authored opacity/transforms, and cancels cleanly on refresh, destroy, or reduced-motion changes. It adds no persistent inline styles. GSAP remains responsible for split text, fade-scale and scrub; browsers lacking `Element.animate()` use the GSAP fallback. Overall perceived smoothness still depends on the host page and competing interactions.
