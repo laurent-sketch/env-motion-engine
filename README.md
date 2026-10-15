@@ -1,4 +1,4 @@
-# ENV Motion Engine V1 — prototype 0.1.0
+# ENV Motion Engine V1 — prototype 0.2.0
 
 Bibliothèque TypeScript / ES modules pour Webflow. Développement local indépendant : aucune modification du site pilote, aucun paquet npm publié. Le dépôt de livraison est https://github.com/laurent-sketch/env-motion-engine.
 
@@ -43,3 +43,7 @@ Voir [audit](docs/AUDIT.md). Cette version démontre le moteur ; l’intégratio
 ## Site pilote
 
 Suivre [l’installation progressive](docs/WEBFLOW-INSTALL.md). La première vérification de chargement conserve la navigation native.
+
+## Adaptateur pilote 0.2.0
+
+`createPilotEngine` est disponible depuis `dist/pilot.js`. Il reprend la FAQ et les témoignages existants, avec nettoyage des instances, observers, frames et écouteurs, en réutilisant Swiper déjà chargé. Cette étape conserve la navigation native. Suivre [la migration des widgets](docs/PILOT-MIGRATION.md) avant de remplacer le chargeur Webflow.
