@@ -10,6 +10,20 @@
   const splits = new Set();
   const seen = new WeakSet();
   const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+  // Match the approved preview's CSS cubic-bezier(.2, .65, .2, 1),
+  // solving the curve's x coordinate rather than treating its parameter as time.
+  function previewEase(progress) {
+    if (progress <= 0 || progress >= 1) return Math.max(0, Math.min(1, progress));
+    let low = 0, high = 1;
+    for (let i = 0; i < 20; i++) {
+      const t = (low + high) / 2;
+      const x = 0.6 * t * (1 - t) + t * t * t;
+      if (x < progress) low = t;
+      else high = t;
+    }
+    const t = (low + high) / 2;
+    return 1.95 * (1 - t) * (1 - t) * t + 3 * (1 - t) * t * t + t * t * t;
+  }
   const number = (el, key, fallback, max) => {
     const raw = el.getAttribute(key);
     const value = raw === null || raw.trim() === '' ? NaN : Number(raw);
@@ -56,7 +70,7 @@
         } : undefined;
         const text = el.hasAttribute('data-env-text');
         const delay = number(el, 'data-env-delay', 0, 5);
-        const duration = number(el, 'data-env-duration', text ? 0.8 : 0.6, 5);
+        const duration = number(el, 'data-env-duration', text ? 0.8 : 0.75, 5);
         const type = el.getAttribute('data-env-text') || 'lines';
         const requestedEffect = el.getAttribute('data-env-text-effect');
         const effect = ['fade', 'up', 'scale'].includes(requestedEffect) ? requestedEffect : 'up';
@@ -104,9 +118,9 @@
           timeline.from(el, { opacity: 0, duration: 0.5, ease: 'none' }, scrub ? 0 : 0.2);
         } else {
           timeline.from(el, {
-            ...(!text || effect === 'up' ? { y: 24 } : {}),
+            ...(!text || effect === 'up' ? { y: 16 } : {}),
             ...(text && effect === 'scale' ? { scale: 0.98 } : {}),
-            opacity: 0, duration, ease: scrub ? 'none' : 'power2.out'
+            opacity: 0, duration, ease: scrub ? 'none' : previewEase
           });
         }
       });

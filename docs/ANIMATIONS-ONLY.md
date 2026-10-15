@@ -18,7 +18,7 @@ Replace COMMIT with the full published commit hash. The script waits for load an
 | `data-env-text-effect` | `fade` | Opacity only; no movement or scale |
 | `data-env-text-effect` | `up` | Fade + upward movement (default) |
 | `data-env-text-effect` | `scale` | Fade + scale 0.98 → 1; no vertical movement |
-| `data-env-reveal` | `fade-up` | Fade + 24px upward reveal |
+| `data-env-reveal` | `fade-up` | Approved preview reveal: fade + 16px upward reveal, 0.75s, cubic-bezier(.2,.65,.2,1) |
 | `data-env-reveal` | `fade-scale` | Original ENV fade + scale 0.99 → 1 |
 | `data-env-trigger` | `scrub` | Progress follows scrolling in both directions |
 

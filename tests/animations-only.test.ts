@@ -134,3 +134,17 @@ it('falls back to a normal reveal when ScrollTrigger is missing', async () => {
   f.enter(document.querySelector('p')!);
   expect(gsap.getTweensOf(document.querySelector('p')!)).toHaveLength(1);
 });
+
+it('matches the approved preview reveal timing, distance and cubic-bezier curve', async () => {
+  const f = await setup('<div data-env-reveal="fade-up">Block</div>');
+  const el = document.querySelector('div')!;
+  f.enter(el);
+  const tween = gsap.getTweensOf(el)[0];
+  expect(tween.vars.y).toBe(16);
+  expect(tween.duration()).toBe(0.75);
+  const ease = tween.vars.ease as (progress: number) => number;
+  expect(ease(0)).toBe(0);
+  expect(ease(1)).toBe(1);
+  // At Bezier parameter t=.5, x=.275 and y=.74375.
+  expect(ease(0.275)).toBeCloseTo(0.74375, 5);
+});
