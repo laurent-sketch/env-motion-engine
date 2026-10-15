@@ -1,4 +1,5 @@
 import { createEngine } from '../index';
+import { waitForDeferredScripts } from './ready';
 import { pilotFaq } from './faq';
 import { createTestimonials, type SliderConstructor } from './testimonials';
 
@@ -13,9 +14,7 @@ export interface PilotOptions {
 export async function createPilotEngine(options: PilotOptions) {
   if (options.legacyScriptsRemoved !== true) throw new Error('[ENV] Remove the legacy FAQ and testimonial scripts before migration');
   // Defer until all defer scripts (including the site's Swiper) have executed.
-  if (document.readyState === 'loading') await new Promise<void>(resolve => {
-    document.addEventListener('DOMContentLoaded', () => resolve(), { once: true });
-  });
+  await waitForDeferredScripts();
   const root = document.querySelector<HTMLElement>('[data-env-page]');
   if (!root) return undefined; // /chat has no page container.
   const modules = [pilotFaq];

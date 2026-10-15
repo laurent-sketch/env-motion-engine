@@ -19,3 +19,9 @@ Limites : comportement natif Webflow, Swiper, formulaires, historique de scroll,
 - Home : clic FAQ n°2 et image correspondante, slider passé à 2/6, destruction/remontage, FAQ n°3 activée via Entrée et image correspondante. Une alerte de version Spline préexistante reste présente.
 - Cette vérification est locale : elle ne remplace pas le contrôle après publication Webflow. Pas de transition Swup validée sur le pilote, pas de score PageSpeed mesuré.
 - Les scripts actuels du pilote sont lus via HTTP GET uniquement. Aucune modification ni publication Webflow effectuée par l’agent.
+
+## Correctif d’ordre de chargement
+
+Le contrôle sur le site publié a révélé que le module peut s’exécuter à readyState=interactive avant le script Swiper defer placé plus bas. Le test loading seul était insuffisant. Le module attend désormais DOMContentLoaded ou, si déjà passé, load. Trois tests de régression couvrent interactive, événement déjà passé et document complet (9 tests au total, tous réussis ; build réussi).
+
+Solution immédiate compatible avec le CDN 40e1062b : différer l’appel createPilotEngine jusqu’à window.load (ou appeler immédiatement si readyState=complete). Test navigateur local avec cette version CDN exacte : FAQ n°2 active et slider à 2/6, message de succès sans erreur observée. Aucune correction publiée directement dans Webflow. Recontrôle du site requis après remplacement du chargeur par l’utilisateur.
