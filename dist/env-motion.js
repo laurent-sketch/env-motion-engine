@@ -17,10 +17,10 @@ function F(e, t) {
       return s;
   }
 }
-function R(e, t, i, s = {}) {
+function M(e, t, i, s = {}) {
   if (Array.isArray(t)) {
     for (const w of t)
-      R(e, w, i, s);
+      M(e, w, i, s);
     return;
   }
   const n = t, { signal: o, base: r = document } = s;
@@ -55,7 +55,7 @@ const D = (e, t) => String(e).toLowerCase().replace(/[\s/_.]+/g, "-").replace(/[
   window.history.replaceState(i, "", e);
 }, K = (e, t, i, s) => {
   const n = new AbortController();
-  return s = g({}, s, { signal: n.signal }), R(e, t, i, s), { destroy: () => n.abort() };
+  return s = g({}, s, { signal: n.signal }), M(e, t, i, s), { destroy: () => n.abort() };
 };
 class y extends URL {
   constructor(t, i = document.baseURI) {
@@ -406,15 +406,15 @@ async function it(e, t = {}) {
     await this.hooks.call("visit:end", e, void 0, () => this.classes.clear()), e.state = 7, this.navigating = !1, this.onVisitEnd && (this.onVisitEnd(), this.onVisitEnd = void 0);
   } catch (a) {
     if (!a || a != null && a.aborted) return void e.advance(8);
-    if (e.ignored) return void M.call(this, e);
+    if (e.ignored) return void R.call(this, e);
     await this.hooks.call("visit:fail", e, { error: a }, (c, { error: l }) => {
-      console.error(l), M.call(this, c);
+      console.error(l), R.call(this, c);
     }), e.advance(9);
   } finally {
     delete e.to.document, this.visit === e && (this.navigating = !1);
   }
 }
-function M(e) {
+function R(e) {
   const t = e.to.url + e.to.hash;
   A() === e.to.url ? (window.removeEventListener("popstate", this.handlePopState), window.addEventListener("popstate", () => window.location.assign(t), { once: !0 }), window.history.back()) : window.location.assign(t);
 }
@@ -576,7 +576,7 @@ async function gt(e = {}) {
   const t = e.container ?? "[data-env-page]", i = () => document.querySelector(t);
   if (!i()) throw new Error(`[ENV] Missing container ${t}`);
   const s = e.gsap ?? (await import("./index-CPGkGNo2.js")).gsap, n = [...e.modules ?? []], o = i();
-  (document.documentElement.hasAttribute("data-env-reveal") || o.querySelector("[data-env-reveal]")) && n.push((await import("./reveal-CMooUES2.js")).reveal), (document.documentElement.hasAttribute("data-env-micro") || o.querySelector("[data-env-hover]")) && n.push((await import("./micro-B9Y5l6bO.js")).micro), document.documentElement.hasAttribute("data-env-faq") && n.push((await import("./faq-Cip6y42V.js")).faq);
+  (document.documentElement.hasAttribute("data-env-reveal") || o.querySelector("[data-env-reveal]")) && n.push((await import("./reveal-Bjc2TZu1.js")).createReveal(s)), (document.documentElement.hasAttribute("data-env-micro") || o.querySelector("[data-env-hover]")) && n.push((await import("./micro-B9Y5l6bO.js")).micro), document.documentElement.hasAttribute("data-env-faq") && n.push((await import("./faq-Cip6y42V.js")).faq);
   let a, c, l;
   const h = matchMedia("(prefers-reduced-motion: reduce)");
   let u = !1;

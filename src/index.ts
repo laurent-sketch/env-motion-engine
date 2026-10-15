@@ -24,7 +24,7 @@ export async function createEngine(options: EngineOptions = {}) {
   const gsap=options.gsap ?? (await import('gsap')).gsap;
   const modules=[...(options.modules ?? [])];
   const root=getRoot()!;
-  if(document.documentElement.hasAttribute('data-env-reveal') || root.querySelector('[data-env-reveal]')) modules.push((await import('./modules/reveal')).reveal);
+  if(document.documentElement.hasAttribute('data-env-reveal') || root.querySelector('[data-env-reveal]')) modules.push((await import('./modules/reveal')).createReveal(gsap));
   // Load micro interactions only when a project opts in on its initial page.
   const microEnabled=document.documentElement.hasAttribute('data-env-micro') || !!root.querySelector('[data-env-hover]');
   if(microEnabled) modules.push((await import('./modules/micro')).micro);
