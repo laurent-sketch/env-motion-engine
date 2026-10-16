@@ -171,9 +171,9 @@
   }
   window.ENVNewsMarquee?.destroy?.();
   window.ENVNewsMarquee = {
-    init() { document.querySelectorAll('.swiper-news[data-env-news="marquee"]').forEach(mount); },
-    refresh() { instances.forEach(instance => instance.refresh()); },
-    destroy() { instances.forEach(instance => instance.destroy()); }
+    init(root) { if (root) mount(root); else document.querySelectorAll('.swiper-news[data-env-news="marquee"]').forEach(mount); },
+    refresh(root) { if (root) instances.get(root)?.refresh(); else instances.forEach(instance => instance.refresh()); },
+    destroy(root) { if (root) instances.get(root)?.destroy(); else instances.forEach(instance => instance.destroy()); }
   };
   if (document.readyState === 'complete') window.ENVNewsMarquee.init();
   else window.addEventListener('load', () => window.ENVNewsMarquee?.init(), { once: true });
