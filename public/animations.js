@@ -77,6 +77,27 @@
         const type = el.getAttribute('data-env-text') || 'lines';
         const requestedEffect = el.getAttribute('data-env-text-effect');
         const effect = ['fade', 'up', 'scale'].includes(requestedEffect) ? requestedEffect : 'up';
+        // An explicit stagger turns a block reveal into a direct-child sequence.
+        // Keep text splitting and ordinary block reveals backward compatible.
+        if (!text && el.hasAttribute('data-env-stagger')) {
+          const children = [...el.children].filter(child =>
+            !child.matches('script, style, template, [hidden], [data-env-ignore], .w-slider, .swiper-initialized')
+          );
+          if (!children.length) return;
+          const stagger = number(el, 'data-env-stagger', 0.1, 1);
+          const scale = el.dataset.envReveal === 'fade-scale';
+          const timeline = gsap.timeline({ delay: scrub ? 0 : delay, ...(scrub ? { scrollTrigger: scroll } : {}) });
+          children.forEach((child, index) => {
+            const at = index * stagger + (scale && !scrub ? 0.2 : 0);
+            if (scale) {
+              timeline.from(child, { scale: 0.99, duration, ease: scrub ? 'none' : 'power3.out' }, at);
+              timeline.from(child, { opacity: 0, duration: Math.min(0.5, duration), ease: 'none' }, at);
+            } else {
+              timeline.from(child, { y: 16, opacity: 0, duration, ease: scrub ? 'none' : previewEase }, at);
+            }
+          });
+          return;
+        }
         if (!text && !scrub && el.dataset.envReveal === 'fade-up' && typeof el.animate === 'function') {
           const style = getComputedStyle(el);
           const baseTransform = style.transform === 'none' ? '' : style.transform;

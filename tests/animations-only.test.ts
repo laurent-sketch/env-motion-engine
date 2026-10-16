@@ -179,3 +179,46 @@ it('cancels native fade-up when the reduced-motion preference changes', async ()
   expect(animation.cancel).toHaveBeenCalledOnce();
   expect(el.style.opacity).toBe('');
 });
+
+
+it('staggers direct children from one parent trigger and restores their styles', async () => {
+  const f = await setup('<section data-env-reveal="fade-scale" data-env-stagger="0.1" data-env-delay="0.3" data-env-duration="0.9"><div style="color:red"><span>Nested</span></div><button>Next</button><div data-env-ignore>Skip</div></section>');
+  const parent = document.querySelector('section')!;
+  const [first, second, ignored] = [...parent.children] as HTMLElement[];
+  expect(f.observe).toHaveBeenCalledOnce();
+  f.enter(parent);
+  expect(gsap.getTweensOf(parent)).toHaveLength(0);
+  expect(gsap.getTweensOf(first)).toHaveLength(2);
+  expect(gsap.getTweensOf(second)).toHaveLength(2);
+  expect(gsap.getTweensOf(first.firstElementChild!)).toHaveLength(0);
+  expect(gsap.getTweensOf(ignored)).toHaveLength(0);
+  const a = gsap.getTweensOf(first).find(t => t.vars.scale !== undefined)!;
+  const b = gsap.getTweensOf(second).find(t => t.vars.scale !== undefined)!;
+  expect(a.startTime()).toBeCloseTo(0.2);
+  expect(b.startTime()).toBeCloseTo(0.3);
+  expect(a.parent!.delay()).toBeCloseTo(0.3);
+  expect(a.duration()).toBe(0.9);
+  api().destroy();
+  expect(first.style.color).toBe('red');
+  expect(first.style.opacity).toBe('');
+  expect(second.style.transform).toBe('');
+});
+
+it('keeps ordinary fade-scale on the parent when stagger is absent', async () => {
+  const f = await setup('<section data-env-reveal="fade-scale"><div>Child</div></section>');
+  const parent = document.querySelector('section')!;
+  f.enter(parent);
+  expect(gsap.getTweensOf(parent)).toHaveLength(2);
+  expect(gsap.getTweensOf(parent.firstElementChild!)).toHaveLength(0);
+});
+
+it('supports simultaneous child reveals and reduced-motion cleanup', async () => {
+  const f = await setup('<section data-env-reveal="fade-up" data-env-stagger="0"><div>A</div><div>B</div></section>');
+  const parent = document.querySelector('section')!;
+  f.enter(parent);
+  const children = [...parent.children];
+  const tweens = children.map(el => gsap.getTweensOf(el)[0]);
+  expect(tweens[0].startTime()).toBe(tweens[1].startTime());
+  f.media.matches = true; f.change();
+  children.forEach(el => expect(gsap.getTweensOf(el)).toHaveLength(0));
+});

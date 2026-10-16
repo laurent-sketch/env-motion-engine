@@ -51,3 +51,8 @@ Suivre [l’installation progressive](docs/WEBFLOW-INSTALL.md). La première vé
 ## Navigation progressive 0.3.0
 
 Le pilote peut activer Home ↔ About avec `navigation: true`, après mise à jour de son chargeur. Les autres pages gardent les chargements natifs. Le pont est spécifique aux exports audités ; il synchronise les styles/métadonnées et relance IX2/IX3/navbar/Spline avant les widgets. Il utilise le GSAP global du pilote pour éviter une seconde copie pour les transitions. Voir [activation et limites](docs/PILOT-NAVIGATION.md) et [preuves de vérification](docs/VERIFICATION.md). Aucun changement Webflow n’est déclenché par la fusion GitHub.
+
+
+## Animations Webflow et stagger d'éléments
+
+Le chargeur global et les reveals autonomes sont documentés dans [GLOBAL-LOADER.md](docs/GLOBAL-LOADER.md) et [ANIMATIONS-ONLY.md](docs/ANIMATIONS-ONLY.md). Pour animer les enfants directs d'un bloc, placer `data-env-reveal="fade-scale"` (ou `fade-up`) et `data-env-stagger="0.1"` sur le parent. `data-env-delay` décale la séquence et `data-env-duration` règle la durée par enfant. Sans stagger, le comportement existant du parent est conservé. Les exemples, exclusions, unités et règles de mise à jour du lien CDN sont détaillés dans la documentation des animations.
