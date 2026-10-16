@@ -79,7 +79,7 @@
     if (disposed) return;
     if (!document.querySelector('style[data-env-news-base]')) {
       const el = document.createElement('style'); el.setAttribute('data-env-news-base', '');
-      el.textContent = '.swiper-news[data-env-news="swiper"]{position:relative;overflow:hidden;min-width:0;touch-action:pan-y}.swiper-news[data-env-news="swiper"]>.swiper-wrapper-news{position:relative;display:flex;flex-wrap:nowrap;width:100%;box-sizing:content-box;transition-property:transform;gap:0}.swiper-news[data-env-news="swiper"]>.swiper-wrapper-news>.swiper-slide-news{position:relative;flex-shrink:0;box-sizing:border-box}.swiper-news[data-env-news="swiper"] .swiper-navigation-icon{display:none}';
+      el.textContent = '.swiper-news[data-env-news]{margin:0;padding:0}.swiper-news[data-env-news]>.swiper-wrapper-news{margin:0;padding:0}.swiper-news[data-env-news="swiper"]{position:relative;overflow:hidden;min-width:0;touch-action:pan-y}.swiper-news[data-env-news="swiper"]>.swiper-wrapper-news{position:relative;display:flex;flex-wrap:nowrap;width:100%;box-sizing:content-box;transition-property:transform;gap:0}.swiper-news[data-env-news="swiper"]>.swiper-wrapper-news>.swiper-slide-news{position:relative;flex-shrink:0;box-sizing:border-box}.swiper-news[data-env-news="swiper"] .swiper-navigation-icon{display:none}';
       document.head.append(el);
     }
     document.querySelectorAll('.swiper-news').forEach(root => {

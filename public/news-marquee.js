@@ -23,22 +23,13 @@
     const cssGap = parseFloat(getComputedStyle(track).columnGap);
     const gap = num(root, 'data-env-news-gap', Number.isFinite(cssGap) ? cssGap : 16, 0, 200);
     let clones = [], offsets = [], period = 0, position = 0, target = 0, rate = 0;
-    let raf = 0, last = 0, visible = true, hover = false, focused = false, paused = false;
-    let pointer = null, dragging = false, suppressClick = false, destroyed = false, manualMotion = false;
-    Object.assign(root.style, { overflow: 'hidden', touchAction: 'pan-y pinch-zoom', cursor: 'grab' });
+    let raf = 0, last = 0, visible = true, hover = false, focused = false;
+    let pointer = null, dragging = false, suppressClick = false, destroyed = false;
+    Object.assign(root.style, { margin: '0', padding: '0', overflow: 'hidden', touchAction: 'pan-y pinch-zoom', cursor: 'grab' });
     if (getComputedStyle(root).position === 'static') root.style.position = 'relative';
-    Object.assign(track.style, { display: 'flex', flexWrap: 'nowrap', width: 'max-content', maxWidth: 'none', transition: 'none', willChange: 'transform' });
+    Object.assign(track.style, { margin: '0', padding: '0', display: 'flex', flexWrap: 'nowrap', width: 'max-content', maxWidth: 'none', transition: 'none', willChange: 'transform' });
     track.style.columnGap = `${gap}px`;
     if (oldTab === null) root.setAttribute('tabindex', '0');
-    const pause = document.createElement('button');
-    pause.type = 'button'; pause.className = 'env-news-pause';
-    pause.style.cssText = 'position:absolute;right:12px;bottom:12px;z-index:2;background:#fff;color:#11263a;border:1px solid #ddd;border-radius:24px;padding:8px 14px;font:inherit;cursor:pointer';
-    root.append(pause);
-    function updateButton() {
-      const playing = !paused && (!preference.matches || manualMotion);
-      pause.textContent = playing ? 'Pause' : 'Play';
-      pause.setAttribute('aria-label', playing ? 'Pause automatic news scrolling' : 'Start automatic news scrolling');
-    }
     function clone(card) {
       const copy = card.cloneNode(true);
       copy.setAttribute('data-env-news-clone', ''); copy.setAttribute('aria-hidden', 'true');
@@ -76,7 +67,7 @@
       raf = 0;
       if (destroyed || !visible || document.hidden || !period) { last = 0; return; }
       const dt = last ? Math.min((time - last) / 1000, .05) : 0; last = time;
-      const desired = !paused && (!preference.matches || manualMotion) && !hover && !focused && !dragging ? 1 : 0;
+      const desired = !preference.matches && !hover && !focused && !dragging ? 1 : 0;
       rate += (desired - rate) * (1 - Math.exp(-(desired ? 4 : 7) * dt));
       if (!dragging) target += speed * rate * dt;
       position += (target - position) * (1 - Math.exp(-damping * dt));
@@ -89,7 +80,7 @@
     const on = (type, fn, options = {}) => root.addEventListener(type, fn, { ...options, signal: abort.signal });
     on('mouseenter', () => { hover = true; wake(); }); on('mouseleave', () => { hover = false; wake(); });
     on('focusin', event => {
-      focused = event.target !== pause && !pointer;
+      focused = !pointer;
       const index = cards.findIndex(card => card.contains(event.target));
       if (index >= 0 && !pointer) { position = target = offsets[index] || 0; render(); }
       wake();
@@ -146,11 +137,7 @@
       el.addEventListener('keydown', event => { if (el.tagName !== 'BUTTON' && ['Enter', ' '].includes(event.key)) { event.preventDefault(); el.click(); } }, { signal: abort.signal });
       return { el, attrs };
     }).filter(Boolean);
-    pause.addEventListener('click', () => {
-      if (preference.matches) { manualMotion = !manualMotion; paused = !manualMotion; } else paused = !paused;
-      updateButton(); wake();
-    }, { signal: abort.signal });
-    function changed() { manualMotion = false; rate = 0; position = target; updateButton(); render(); wake(); }
+    function changed() { rate = 0; position = target; render(); wake(); }
     preference.addEventListener('change', changed);
     document.addEventListener('visibilitychange', () => { last = 0; if (document.hidden) { cancelAnimationFrame(raf); raf = 0; } else wake(); }, { signal: abort.signal });
     const resize = new ResizeObserver(measure); resize.observe(root);
@@ -160,13 +147,13 @@
     const instance = { refresh: measure, destroy() {
       if (destroyed) return; destroyed = true; cancelAnimationFrame(raf); abort.abort();
       resize.disconnect(); intersection.disconnect(); preference.removeEventListener('change', changed);
-      clones.forEach(el => el.remove()); pause.remove();
+      clones.forEach(el => el.remove());
       saved.forEach(([el, style]) => style === null ? el.removeAttribute('style') : el.setAttribute('style', style));
       if (oldTab === null) root.removeAttribute('tabindex'); else root.setAttribute('tabindex', oldTab);
       controls.forEach(({ el, attrs }) => attrs.forEach(([attr, value]) => value === null ? el.removeAttribute(attr) : el.setAttribute(attr, value)));
       instances.delete(root);
     } };
-    instances.set(root, instance); updateButton(); measure();
+    instances.set(root, instance); measure();
     document.fonts?.ready.then(() => { if (!destroyed) measure(); });
   }
   window.ENVNewsMarquee?.destroy?.();

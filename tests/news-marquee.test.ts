@@ -34,7 +34,9 @@ it('creates enough seamless copies while excluding duplicates from keyboard navi
   expect(root.querySelectorAll('#original')).toHaveLength(1);
   root.querySelectorAll('[data-env-news-clone] a').forEach(a => { expect(a.getAttribute('tabindex')).toBe('-1'); expect(a.hasAttribute('data-env-reveal')).toBe(false); });
   api().init();
-  expect(root.querySelectorAll('.env-news-pause')).toHaveLength(1);
+  expect(root.querySelectorAll('.env-news-pause')).toHaveLength(0);
+  expect(root.style.margin).toBe('0px');
+  expect(root.style.padding).toBe('0px');
   api().destroy();
   expect(root.querySelectorAll('.swiper-slide-news')).toHaveLength(2);
   expect(root.getAttribute('style')).toBe('color:red');

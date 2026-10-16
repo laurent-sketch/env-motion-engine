@@ -24,3 +24,5 @@ Shared option: `data-env-news-gap` in pixels (Swiper defaults to 16; marquee use
 `window.ENVNews.init()` discovers new containers. `refresh()` remounts current selections, and `destroy()` disconnects mode observers, invalidates pending asynchronous loads and tears down owned drivers. It does not remove globally loaded vendor libraries that may be used elsewhere.
 
 Local comparison page includes Swiper/Marquee controls. Validation: 41 tests pass, including selection, repeated initialization and discarded asynchronous initialization after mode changes. Native browser confirmed Swiper initialization, arrow movement, a return to marquee with one Pause button and the expected copies, and no warning/error logs. Physical mobile/trackpad checks remain to be performed on devices.
+
+Both modes zero margins and paddings on the container and track. Spacing between cards remains controlled by data-env-news-gap. The marquee does not inject a Play/Pause button. Outer section/ancestor spacing is owned by Webflow and is not modified.
