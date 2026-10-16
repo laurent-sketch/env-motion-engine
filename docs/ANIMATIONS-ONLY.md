@@ -73,3 +73,8 @@ La préférence de réduction des animations et la restauration au destroy s'app
 ### Avec le chargeur global
 
 Le chargeur `env.js` récupère `animations.js` dans le même dossier et à la même version GitHub. Pour activer une nouvelle fonctionnalité, remplacer le hash du lien `env.js` par le commit publié qui la contient. Ne pas ajouter un deuxième lien `animations.js` en parallèle. Les anciens liens figés restent sur leur version précédente.
+
+
+### Opacité des liens actifs et inactifs
+
+Conserver l'opacité normale dans le CSS (par exemple `.slider-nav-link { opacity: .3 }` et `.slider-nav-link.active { opacity: 1 }`). Les reveals de groupe capturent l'opacité visible avant de masquer les enfants. À la fin de la séquence, ils restaurent la déclaration inline d'origine (ou retirent celle ajoutée par l'animation) pour laisser les classes actives/hover reprendre la main. Le fade-scale de bloc libère également son opacité. Ne pas définir une opacité initiale de zéro pour préparer le reveal : le script gère le masquage de départ. En mode scrub, l'opacité reste pilotée par la séquence pour permettre le retour arrière.

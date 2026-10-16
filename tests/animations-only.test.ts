@@ -222,3 +222,28 @@ it('supports simultaneous child reveals and reduced-motion cleanup', async () =>
   f.media.matches = true; f.change();
   children.forEach(el => expect(gsap.getTweensOf(el)).toHaveLength(0));
 });
+
+it('finishes every scale group child at its authored opacity', async () => {
+  const f = await setup('<section data-env-reveal="fade-scale" data-env-stagger="0.2"><div>A</div><a style="opacity:0.8">B</a><a>C</a></section>');
+  const parent = document.querySelector('section')!;
+  f.enter(parent);
+  const timeline = gsap.getTweensOf(parent.children[0])[0].parent!;
+  timeline.totalProgress(1);
+  [...parent.children].forEach((el, i) => expect((el as HTMLElement).style.opacity).toBe(i === 1 ? '0.8' : '')); 
+});
+
+it('releases group opacity to current active classes after progressive playback', async () => {
+  const f = await setup('<style>.slide-link{opacity:0.3}.slide-link.active{opacity:1}</style><section data-env-reveal="fade-scale" data-env-stagger="0.2"><a class="slide-link active">A</a><a class="slide-link">B</a><a style="opacity:0.6">C</a></section>');
+  const parent = document.querySelector('section')!;
+  const [a, b, c] = [...parent.children] as HTMLElement[];
+  f.enter(parent);
+  const timeline = gsap.getTweensOf(a)[0].parent!;
+  for (let t = 0; t < 0.5; t += 0.02) timeline.time(t);
+  a.classList.remove('active'); b.classList.add('active');
+  for (let t = 0.5; t < 2; t += 0.02) timeline.time(t);
+  timeline.totalProgress(1);
+  expect(a.style.opacity).toBe(''); expect(b.style.opacity).toBe('');
+  expect(getComputedStyle(a).opacity).toBe('0.3');
+  expect(getComputedStyle(b).opacity).toBe('1');
+  expect(c.style.opacity).toBe('0.6');
+});
