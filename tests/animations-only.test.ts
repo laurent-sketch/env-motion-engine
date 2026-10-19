@@ -179,3 +179,91 @@ it('cancels native fade-up when the reduced-motion preference changes', async ()
   expect(animation.cancel).toHaveBeenCalledOnce();
   expect(el.style.opacity).toBe('');
 });
+
+
+it('staggers direct children from one parent trigger and restores their styles', async () => {
+  const f = await setup('<section data-env-reveal="fade-scale" data-env-stagger="0.1" data-env-delay="0.3" data-env-duration="0.9"><div style="color:red"><span>Nested</span></div><button>Next</button><div data-env-ignore>Skip</div></section>');
+  const parent = document.querySelector('section')!;
+  const [first, second, ignored] = [...parent.children] as HTMLElement[];
+  expect(f.observe).toHaveBeenCalledOnce();
+  f.enter(parent);
+  expect(gsap.getTweensOf(parent)).toHaveLength(0);
+  expect(gsap.getTweensOf(first)).toHaveLength(2);
+  expect(gsap.getTweensOf(second)).toHaveLength(2);
+  expect(gsap.getTweensOf(first.firstElementChild!)).toHaveLength(0);
+  expect(gsap.getTweensOf(ignored)).toHaveLength(0);
+  const a = gsap.getTweensOf(first).find(t => t.vars.scale !== undefined)!;
+  const b = gsap.getTweensOf(second).find(t => t.vars.scale !== undefined)!;
+  expect(a.startTime()).toBeCloseTo(0.2);
+  expect(b.startTime()).toBeCloseTo(0.3);
+  expect(a.parent!.delay()).toBeCloseTo(0.3);
+  expect(a.duration()).toBe(0.9);
+  api().destroy();
+  expect(first.style.color).toBe('red');
+  expect(first.style.opacity).toBe('');
+  expect(second.style.transform).toBe('');
+});
+
+it('keeps ordinary fade-scale on the parent when stagger is absent', async () => {
+  const f = await setup('<section data-env-reveal="fade-scale"><div>Child</div></section>');
+  const parent = document.querySelector('section')!;
+  f.enter(parent);
+  expect(gsap.getTweensOf(parent)).toHaveLength(2);
+  expect(gsap.getTweensOf(parent.firstElementChild!)).toHaveLength(0);
+});
+
+it('supports simultaneous child reveals and reduced-motion cleanup', async () => {
+  const f = await setup('<section data-env-reveal="fade-up" data-env-stagger="0"><div>A</div><div>B</div></section>');
+  const parent = document.querySelector('section')!;
+  f.enter(parent);
+  const children = [...parent.children];
+  const tweens = children.map(el => gsap.getTweensOf(el)[0]);
+  expect(tweens[0].startTime()).toBe(tweens[1].startTime());
+  f.media.matches = true; f.change();
+  children.forEach(el => expect(gsap.getTweensOf(el)).toHaveLength(0));
+});
+
+it('finishes every scale group child at its authored opacity', async () => {
+  const f = await setup('<section data-env-reveal="fade-scale" data-env-stagger="0.2"><div>A</div><a style="opacity:0.8">B</a><a>C</a></section>');
+  const parent = document.querySelector('section')!;
+  f.enter(parent);
+  const timeline = gsap.getTweensOf(parent.children[0])[0].parent!;
+  timeline.totalProgress(1);
+  [...parent.children].forEach((el, i) => expect((el as HTMLElement).style.opacity).toBe(i === 1 ? '0.8' : '')); 
+});
+
+it('releases group opacity to current active classes after progressive playback', async () => {
+  const f = await setup('<style>.slide-link{opacity:0.3}.slide-link.active{opacity:1}</style><section data-env-reveal="fade-scale" data-env-stagger="0.2"><a class="slide-link active">A</a><a class="slide-link">B</a><a style="opacity:0.6">C</a></section>');
+  const parent = document.querySelector('section')!;
+  const [a, b, c] = [...parent.children] as HTMLElement[];
+  f.enter(parent);
+  const timeline = gsap.getTweensOf(a)[0].parent!;
+  for (let t = 0; t < 0.5; t += 0.02) timeline.time(t);
+  a.classList.remove('active'); b.classList.add('active');
+  for (let t = 0.5; t < 2; t += 0.02) timeline.time(t);
+  timeline.totalProgress(1);
+  expect(a.style.opacity).toBe(''); expect(b.style.opacity).toBe('');
+  expect(getComputedStyle(a).opacity).toBe('0.3');
+  expect(getComputedStyle(b).opacity).toBe('1');
+  expect(c.style.opacity).toBe('0.6');
+});
+
+it('uses non-inline group effects so loop copies do not inherit hidden slides', async () => {
+  const f = await setup('<section data-env-reveal="fade-scale" data-env-stagger="0.2"><div style="width:200px">A</div><div>B</div><div data-env-news-clone>Copy</div></section>');
+  const parent = document.querySelector('section')!;
+  const animations = [...parent.children].map(el => {
+    const animation = { finished: new Promise<void>(() => {}), cancel: vi.fn() };
+    const animate = vi.fn(() => animation);
+    Object.defineProperty(el, 'animate', { value: animate });
+    return { animate, animation };
+  });
+  f.enter(parent);
+  expect(animations[0].animate).toHaveBeenCalledOnce();
+  expect(animations[1].animate).toHaveBeenCalledOnce();
+  expect(animations[2].animate).not.toHaveBeenCalled();
+  expect((parent.children[0].cloneNode(true) as HTMLElement).style.opacity).toBe('');
+  expect((parent.children[0].cloneNode(true) as HTMLElement).style.transform).toBe('');
+  expect((animations[1].animate.mock.calls[0] as unknown as [unknown, { delay: number }])[1].delay).toBe(400);
+  api().destroy();
+  expect(animations[0].animation.cancel).toHaveBeenCalled();
+});

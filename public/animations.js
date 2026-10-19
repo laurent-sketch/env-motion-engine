@@ -74,9 +74,67 @@
         const text = el.hasAttribute('data-env-text');
         const delay = number(el, 'data-env-delay', 0, 5);
         const duration = number(el, 'data-env-duration', text ? 0.8 : 0.75, 5);
+        const opacityState = target => ({
+          target, value: target.style.getPropertyValue('opacity'),
+          priority: target.style.getPropertyPriority('opacity'),
+          end: Number(getComputedStyle(target).opacity || '1')
+        });
+        const restoreOpacity = states => {
+          if (scrub) return;
+          states.forEach(({ target, value, priority }) => {
+            if (value) target.style.setProperty('opacity', value, priority);
+            else target.style.removeProperty('opacity');
+          });
+        };
         const type = el.getAttribute('data-env-text') || 'lines';
         const requestedEffect = el.getAttribute('data-env-text-effect');
         const effect = ['fade', 'up', 'scale'].includes(requestedEffect) ? requestedEffect : 'up';
+        // An explicit stagger turns a block reveal into a direct-child sequence.
+        // Keep text splitting and ordinary block reveals backward compatible.
+        if (!text && el.hasAttribute('data-env-stagger')) {
+          const children = [...el.children].filter(child =>
+            !child.matches('script, style, template, [hidden], [data-env-ignore], [data-env-news-clone], .w-slider, .swiper-initialized')
+          );
+          if (!children.length) return;
+          const stagger = number(el, 'data-env-stagger', 0.1, 1);
+          const scale = el.dataset.envReveal === 'fade-scale';
+          // Native effects are not inline styles: marquee clones must never
+          // inherit a half-finished reveal's opacity or transform.
+          if (!scrub && children.every(child => typeof child.animate === 'function')) {
+            const snapshots = children.map(child => {
+              const css = getComputedStyle(child);
+              return { opacity: css.opacity, transform: css.transform === 'none' ? '' : css.transform };
+            });
+            children.forEach((child, index) => {
+              const base = snapshots[index];
+              const end = { opacity: base.opacity, transform: base.transform || 'none' };
+              const start = { opacity: 0, transform: `${scale ? 'scale(0.99)' : 'translateY(16px)'} ${base.transform}`.trim() };
+              const animation = child.animate([start, end], {
+                duration: duration * 1000,
+                delay: (delay + index * stagger + (scale ? 0.2 : 0)) * 1000,
+                easing: 'cubic-bezier(.2,.65,.2,1)', fill: 'backwards'
+              });
+              nativeAnimations.add(animation);
+              animation.finished.then(() => {
+                nativeAnimations.delete(animation); animation.cancel();
+              }, () => nativeAnimations.delete(animation));
+            });
+            return;
+          }
+          const states = children.map(opacityState);
+          const timeline = gsap.timeline({ delay: scrub ? 0 : delay, ...(scrub ? { scrollTrigger: scroll } : {}), onComplete: () => restoreOpacity(states) });
+          children.forEach((child, index) => {
+            const at = index * stagger + (scale && !scrub ? 0.2 : 0);
+            if (scale) {
+              timeline.from(child, { scale: 0.99, duration, ease: scrub ? 'none' : 'power3.out' }, at);
+              timeline.fromTo(child, { opacity: 0 }, { opacity: states[index].end, duration: Math.min(0.5, duration), ease: 'none', immediateRender: true }, at);
+            } else {
+              timeline.from(child, { y: 16, duration, ease: scrub ? 'none' : previewEase }, at);
+              timeline.fromTo(child, { opacity: 0 }, { opacity: states[index].end, duration, ease: scrub ? 'none' : previewEase, immediateRender: true }, at);
+            }
+          });
+          return;
+        }
         if (!text && !scrub && el.dataset.envReveal === 'fade-up' && typeof el.animate === 'function') {
           const style = getComputedStyle(el);
           const baseTransform = style.transform === 'none' ? '' : style.transform;
@@ -135,10 +193,11 @@
           return;
         }
         const scale = !text && el.dataset.envReveal === 'fade-scale';
-        const timeline = gsap.timeline({ delay: scrub ? 0 : delay, ...(scrub ? { scrollTrigger: scroll } : {}) });
+        const blockOpacity = opacityState(el);
+        const timeline = gsap.timeline({ delay: scrub ? 0 : delay, ...(scrub ? { scrollTrigger: scroll } : {}), onComplete: () => restoreOpacity([blockOpacity]) });
         if (scale) {
           timeline.from(el, { scale: 0.99, duration: 0.75, ease: scrub ? 'none' : 'power3.out' }, scrub ? 0 : 0.2);
-          timeline.from(el, { opacity: 0, duration: 0.5, ease: 'none' }, scrub ? 0 : 0.2);
+          timeline.fromTo(el, { opacity: 0 }, { opacity: blockOpacity.end, duration: 0.5, ease: 'none', immediateRender: true }, scrub ? 0 : 0.2);
         } else {
           timeline.from(el, {
             ...(!text || effect === 'up' ? { y: 16 } : {}),
@@ -157,7 +216,7 @@
 
     document.querySelectorAll('[data-env-reveal], [data-env-text]').forEach(el => {
       const scrub = el.getAttribute('data-env-trigger') === 'scrub';
-      if ((!scrub && seen.has(el)) || el.closest('[data-env-ignore], .w-slider, .swiper-initialized')) return;
+      if ((!scrub && seen.has(el)) || el.closest('[data-env-ignore], [data-env-news-clone], .w-slider, .swiper-initialized')) return;
       // Avoid compounded transforms/opacity on an animated ancestor and its text.
       if (el.parentElement?.closest('[data-env-reveal], [data-env-text]')) return;
       if (scrub && ScrollTrigger) play(el, true);

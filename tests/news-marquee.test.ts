@@ -4,7 +4,7 @@ const source = readFileSync('public/news-marquee.js', 'utf8');
 const api = () => (window as Window & { ENVNewsMarquee?: { destroy(): void; init(): void; refresh(): void } }).ENVNewsMarquee!;
 afterEach(() => { api()?.destroy(); vi.restoreAllMocks(); vi.unstubAllGlobals(); document.body.replaceChildren(); });
 function setup(reduced = false, swiper = false) {
-  document.body.innerHTML = '<section><div class="swiper-news" data-env-news="marquee" style="color:red"><div class="swiper-wrapper-news"><article class="swiper-slide-news" id="original" style="width:200px"><a href="#one" data-env-reveal="fade-up">One</a></article><article class="swiper-slide-news" style="width:300px"><a href="#two">Two</a></article></div></div><button class="swiper-button-prev" disabled>Prev</button><button class="swiper-button-next">Next</button></section>';
+  document.body.innerHTML = '<section><div class="swiper-news" data-env-news="marquee" style="color:red"><div class="swiper-wrapper-news"><article class="swiper-slide-news" id="original" style="width:200px"><a href="#one" data-env-reveal="fade-up">One</a><img loading="lazy" src="/one.jpg"></article><article class="swiper-slide-news" style="width:300px"><a href="#two">Two</a></article></div></div><button class="swiper-button-prev" disabled>Prev</button><button class="swiper-button-next">Next</button></section>';
   const root = document.querySelector('.swiper-news') as HTMLElement;
   if (swiper) Object.assign(root, { swiper: { destroyed: false } });
   Object.defineProperty(root, 'clientWidth', { value: 600 });
@@ -81,4 +81,20 @@ it('suppresses the link click after a drag but preserves a subsequent ordinary c
   pointer('pointerdown', 200); pointer('pointermove', 100); pointer('pointerup', 100);
   expect(f.root.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, detail: 1 }))).toBe(false);
   expect(f.root.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, detail: 1 }))).toBe(true);
+});
+
+it('prepares images in loop copies before they reach the viewport', () => {
+  const { root } = setup();
+  expect(root.querySelector('article:not([data-env-news-clone]) img')?.getAttribute('loading')).toBe('lazy');
+  root.querySelectorAll('[data-env-news-clone] img').forEach(img => expect(img.getAttribute('loading')).toBe('eager'));
+});
+
+it('keeps horizontal movement inside a filled loop across large forward and reverse gestures', () => {
+  const f = setup(true);
+  [100000, -200000, 1000, -1000].forEach(deltaX => {
+    f.root.dispatchEvent(new WheelEvent('wheel', { deltaX, cancelable: true }));
+    const x = -Number(f.track.style.transform.match(/translate3d\(([^p]+)px/)![1]);
+    expect(x).toBeGreaterThanOrEqual(0);
+    expect(x).toBeLessThan(540);
+  });
 });

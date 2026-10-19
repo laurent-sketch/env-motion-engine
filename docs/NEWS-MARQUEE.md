@@ -29,3 +29,12 @@ No Play/Pause button is injected. Root and wrapper margins/paddings are set to z
 Responsive measurements resolve authored card widths against the viewport before creating the repeated track. This supports percentage and viewport widths. `window.ENVNewsMarquee.refresh()` remeasures widths; `destroy()` restores authored styles and controls and removes copies/listeners/animation frames. `init()` mounts opted-in uninitialized containers. Adding/removing source cards requires destroy then init.
 
 Local visual comparison: `news-alternative.html` next to the existing prototype, using its assets. Tests cover duplicate semantics/cleanup, autoplay/hover, horizontal wheel, reduced motion, and refusal to override Swiper; native browser drag additionally checked for movement and click suppression. Physical mobile touch and a physical trackpad still need device testing.
+
+
+## Seamless loop and reveal compatibility
+
+Loop clones are prepared at initialization, rather than appended when reaching the last slide. Clone images use `loading="eager"` once News is initialized near the viewport, reusing the originals' image URLs/cache. Originals retain their authored loading policy. Widths and the repeat period use layout measurements instead of reveal-transformed dimensions so that scale/translate effects do not shorten the loop.
+
+Use the matching current `animations.js` with `news-marquee.js` (automatically matched through the pinned `env.js` entry). Group reveals use native animation effects where supported, so cloning a card cannot copy temporary opacity/transform inline styles. Generated clones are excluded from group reveals. An old animations version paired with a new marquee version is not a supported fix for transient hidden copies.
+
+Verification: 53 unit tests including large positive/negative horizontal wheel deltas and clone media readiness; browser fixture with five variable-width cards, stagger on the track, and repeated forward/reverse horizontal scrolling. The production intermittent blank was not captured in a screenshot; these changes address the observed lazy clone media and copyable reveal-style races.
