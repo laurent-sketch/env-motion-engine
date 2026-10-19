@@ -27,3 +27,14 @@ On a local copy of SD's published HTML, retaining the external Webflow runtime a
 Unit checks cover staging, poster retention, nearby vs visible behavior, active hero selection, new source insertion and teardown. Browser speculative loading can race a MutationObserver; zero early downloads on every device/browser is not guaranteed. Real CDN assets, Webflow initialization order, mobile Safari and throttled conditions need preproduction verification. No public staging change has been performed.
 
 After installing and publishing to the same staging URL, verify posters, native cross transitions, manual selection, scroll loading and the absence of concurrent unwanted playback. Then repeat PageSpeed mobile/desktop against the earlier baseline: mobile 73, LCP 3.9s, 44,842KiB; desktop 95, LCP 1.1s, 53,747KiB. Compare resource transfers as well as score. A later partial-load score must not be presented as a guaranteed score gain.
+
+
+## Opt-in hover projects (V2)
+
+Add `data-env-video="hover"` to individual `.project-item` elements that contain `.item-video` and `.cover-project`. Install the updated complete videos.js inline synchronously in head, replacing the old inline interceptor. Do not add a second interceptor or defer it. No env.js update is required for this feature.
+
+Unmarked projects retain the original near-viewport hydration/visible playback. Hero behavior is unchanged. On hover-capable fine-pointer devices, marked projects hydrate only on pointer entry (or keyboard focus-visible), play only while visible and hovered/focused, and pause on exit or page hide. `.is-env-video-playing` is set on actual `playing`, not on pointer entry. The injected scoped cover rule keeps `.cover-project` opaque until then, including during buffering or failures. Existing cover fade transitions remain responsible for timing. Removing the pointer pauses without resetting currentTime, so another hover resumes. A previously hydrated video may continue buffering after pause; there is no promise that leaving aborts network transfer.
+
+On touch/coarse-pointer devices and with reduced motion, hover projects retain their covers and sources stay deferred. The project link remains unchanged: no first-tap interception. Do not set this attribute on projects without a cover. This setting is static at initial capture: set it in the Designer before publishing, rather than toggling via late JS.
+
+Verification: 55 tests, including unchanged unmarked project and hero behavior, opt-in source deferral, readiness-gated cover, late playback after pointerleave, touch and reduced motion. Browser fixture: unmarked video plays on visibility; marked video has no source until pointer entry, reveals cover on actual playback, pauses and restores cover on exit while unmarked video continues.

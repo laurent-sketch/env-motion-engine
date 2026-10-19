@@ -3,8 +3,9 @@ import { afterEach, expect, it, vi } from 'vitest';
 const source = readFileSync('public/videos.js', 'utf8');
 const api = () => (window as Window & { ENVVideos?: { destroy(): void; audit(): {loaded: boolean}[] } }).ENVVideos!;
 afterEach(() => { api()?.destroy(); vi.restoreAllMocks(); vi.unstubAllGlobals(); document.body.replaceChildren(); });
-async function setup() {
+async function setup(hover = false, touch = false) {
   document.body.innerHTML = '<div class="project-item"><div class="item-video w-background-video" data-poster-url="poster.jpg"><video id="project" autoplay loop><source src="project.mp4"></video></div></div><div class="sd-slider"><div class="w-slider-mask"><div class="w-slide"><div class="slide-video w-background-video"><video id="hero" autoplay><source src="hero.mp4"></video></div></div><div class="w-slide" aria-hidden="true"><div class="slide-video w-background-video"><video id="next" autoplay><source src="next.mp4"></video></div></div></div><div class="w-slider-dot w-active"></div><div class="w-slider-dot"></div></div>';
+  if (hover) document.querySelector('.project-item')!.setAttribute('data-env-video', 'hover');
   vi.spyOn(document, 'readyState', 'get').mockReturnValue('complete');
   vi.spyOn(document, 'hidden', 'get').mockReturnValue(false);
   const play = vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue();
@@ -17,7 +18,7 @@ async function setup() {
   });
   let changed!: () => void;
   const media = { matches: false, addEventListener: vi.fn((_n, cb) => { changed = cb; }), removeEventListener: vi.fn() };
-  vi.stubGlobal('matchMedia', () => media);
+  vi.stubGlobal('matchMedia', (query: string) => query.includes('pointer: fine') ? { matches: !touch, addEventListener() {}, removeEventListener() {} } : media);
   new Function(source)(); await Promise.resolve();
   return { play, load, media, changed: () => changed(), enter(i: number, target: Element, visible = true) { ios[i].cb([{ target, isIntersecting: visible }] as IntersectionObserverEntry[], {} as IntersectionObserver); } };
 }
@@ -54,4 +55,33 @@ it('restores deferred markup on destroy and stages dynamically inserted sources'
   api().destroy();
   expect(el.getAttribute('src')).toContain('extra.webm');
   expect(document.querySelector('#project')?.hasAttribute('autoplay')).toBe(true);
+});
+
+
+it('defers opted-in projects until hover and uncovers only after playback starts', async () => {
+  const f = await setup(true), root = document.querySelector('.project-item')!, wrapper = document.querySelector('.item-video')!, video = document.querySelector('#project')!;
+  f.enter(0, wrapper); f.enter(1, wrapper);
+  expect(video.querySelector('source')?.hasAttribute('src')).toBe(false);
+  root.dispatchEvent(new Event('pointerenter'));
+  expect(video.querySelector('source')?.getAttribute('src')).toBe('project.mp4');
+  expect(root.classList.contains('is-env-video-playing')).toBe(false);
+  video.dispatchEvent(new Event('playing'));
+  expect(root.classList.contains('is-env-video-playing')).toBe(true);
+  root.dispatchEvent(new Event('pointerleave'));
+  expect(root.classList.contains('is-env-video-playing')).toBe(false);
+  video.dispatchEvent(new Event('playing'));
+  expect(root.classList.contains('is-env-video-playing')).toBe(false);
+});
+
+it('keeps hover videos unloaded on touch and with reduced motion', async () => {
+  const f = await setup(true, true), root = document.querySelector('.project-item')!, wrapper = document.querySelector('.item-video')!;
+  f.enter(0, wrapper); f.enter(1, wrapper);
+  root.dispatchEvent(new Event('pointerenter'));
+  expect(document.querySelector('#project source')?.hasAttribute('src')).toBe(false);
+  api().destroy();
+  const g = await setup(true);
+  g.media.matches = true;
+  g.enter(1, document.querySelector('.item-video')!);
+  document.querySelector('.project-item')!.dispatchEvent(new Event('pointerenter'));
+  expect(document.querySelector('#project source')?.hasAttribute('src')).toBe(false);
 });

@@ -7,17 +7,21 @@
   if (typeof IntersectionObserver === 'undefined') return;
   const records = new Map(), abort = new AbortController();
   const preference = matchMedia('(prefers-reduced-motion: reduce)');
+  const hoverDevice = matchMedia('(hover: hover) and (pointer: fine)');
+  const coverStyle = document.createElement('style');
+  coverStyle.textContent = '.project-item[data-env-video="hover"]:not(.is-env-video-playing) .cover-project{opacity:1!important}.project-item[data-env-video="hover"].is-env-video-playing .cover-project{opacity:0!important}';
+  document.head.append(coverStyle);
   let ready = false, destroyed = false, near, visible, timer;
   const supported = video => video.closest('.w-background-video') && video.closest('.sd-slider, .item-video');
   const pause = video => { try { video.pause(); } catch (_) {} };
   function allowed(record) {
     if (document.hidden || preference.matches || !record.visible) return false;
     const slider = record.video.closest('.sd-slider');
-    if (!slider) return true;
+    if (!slider) return !record.hoverRoot || (hoverDevice.matches && (record.hovering || record.focused));
     return record.video.closest('.w-slide') === activeSlide(slider);
   }
   function play(record) {
-    if (!record.loaded || !allowed(record)) { pause(record.video); return; }
+    if (!record.loaded || !allowed(record)) { record.hoverRoot?.classList.remove('is-env-video-playing'); pause(record.video); return; }
     const result = record.video.play();
     if (result?.catch) result.catch(() => {});
   }
@@ -27,7 +31,21 @@
     if (!record) {
       record = { video, loaded: false, visible: false, sources: new Map(), direct: null,
         autoplay: video.hasAttribute('autoplay'), preload: video.getAttribute('preload'), aria: video.getAttribute('aria-hidden'), early: false };
+      record.hoverRoot = !video.closest('.sd-slider') ? video.closest('.project-item[data-env-video="hover"]') : null;
+      record.hovering = false; record.focused = false;
       records.set(video, record);
+      if (record.hoverRoot) {
+        const root = record.hoverRoot;
+        const activate = () => { if (allowed(record)) hydrate(record, true); else play(record); };
+        root.addEventListener('pointerenter', event => { if (event.pointerType === 'touch') return; record.hovering = true; activate(); }, { signal: abort.signal });
+        root.addEventListener('pointerleave', () => { record.hovering = false; activate(); }, { signal: abort.signal });
+        root.addEventListener('focusin', event => { record.focused = event.target.matches(':focus-visible'); activate(); }, { signal: abort.signal });
+        root.addEventListener('focusout', event => { if (!root.contains(event.relatedTarget)) { record.focused = false; activate(); } }, { signal: abort.signal });
+        video.addEventListener('playing', () => {
+          if (allowed(record)) root.classList.add('is-env-video-playing'); else play(record);
+        }, { signal: abort.signal });
+        ['pause', 'waiting', 'error', 'emptied'].forEach(type => video.addEventListener(type, () => root.classList.remove('is-env-video-playing'), { signal: abort.signal }));
+      }
       video.removeAttribute('autoplay'); video.preload = 'none'; pause(video);
       video.setAttribute('aria-hidden', 'true'); // Deferred media is represented by its poster, not an empty media control.
       const poster = video.closest('.w-background-video').getAttribute('data-poster-url');
@@ -97,15 +115,15 @@
     ready = true;
     near = new IntersectionObserver(entries => entries.forEach(entry => {
       if (!entry.isIntersecting || preference.matches) return;
-      records.forEach(record => { if (record.region === entry.target && !record.video.closest('.sd-slider')) hydrate(record); });
+      records.forEach(record => { if (record.region === entry.target && !record.video.closest('.sd-slider') && !record.hoverRoot) hydrate(record); });
     }), { rootMargin: '300px 0px', threshold: 0 });
     visible = new IntersectionObserver(entries => {
       entries.forEach(entry => records.forEach(record => {
         if (record.region !== entry.target) return;
         record.visible = entry.isIntersecting;
         if (record.visible && !preference.matches) {
-          if (!record.video.closest('.sd-slider')) hydrate(record, true);
-        } else pause(record.video);
+          if (!record.video.closest('.sd-slider') && (!record.hoverRoot || allowed(record))) hydrate(record, true);
+        } else play(record);
       }));
       syncHero();
     }, { threshold: 0 });
@@ -124,17 +142,19 @@
   observer.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['src', 'autoplay', 'class', 'aria-hidden'] });
   document.querySelectorAll('video').forEach(capture);
   const preferenceChanged = () => {
-    records.forEach(record => { if (record.visible && !document.hidden && !preference.matches && !record.video.closest('.sd-slider')) hydrate(record, true); else play(record); });
+    records.forEach(record => { if (record.visible && !document.hidden && !preference.matches && !record.video.closest('.sd-slider') && (!record.hoverRoot || allowed(record))) hydrate(record, true); else play(record); });
     syncHero();
   };
   preference.addEventListener('change', preferenceChanged);
+  hoverDevice.addEventListener('change', preferenceChanged);
   document.addEventListener('visibilitychange', preferenceChanged, { signal: abort.signal });
   window.ENVVideos = {
     audit() { return [...records.values()].map(r => ({ id: r.video.id, loaded: r.loaded, visible: r.visible, interceptionPossiblyLate: r.early, sources: r.sources.size + Number(!!r.direct) })); },
     destroy() {
       if (destroyed) return; destroyed = true; observer.disconnect(); near?.disconnect(); visible?.disconnect();
-      clearTimeout(timer); abort.abort(); preference.removeEventListener('change', preferenceChanged);
+      clearTimeout(timer); abort.abort(); preference.removeEventListener('change', preferenceChanged); hoverDevice.removeEventListener('change', preferenceChanged); coverStyle.remove();
       records.forEach(record => {
+        record.hoverRoot?.classList.remove('is-env-video-playing');
         if (!record.loaded) { if (record.direct) record.video.src = record.direct; record.sources.forEach((url, source) => source.src = url); }
         if (record.autoplay) record.video.setAttribute('autoplay', '');
         if (record.aria === null) record.video.removeAttribute('aria-hidden'); else record.video.setAttribute('aria-hidden', record.aria);
