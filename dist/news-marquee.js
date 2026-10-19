@@ -38,6 +38,10 @@
         if (el.matches('a,button,input,select,textarea,[tabindex]')) el.setAttribute('tabindex', '-1');
       });
       copy.querySelectorAll('script').forEach(el => el.remove());
+      // Clones are already near the loop seam; do not wait for horizontal
+      // lazy-loading heuristics to fetch their visible media. Cached URLs reuse
+      // the originals' resources.
+      copy.querySelectorAll('img').forEach(img => { img.setAttribute('loading', 'eager'); });
       copy.querySelectorAll('video').forEach(video => { video.removeAttribute('autoplay'); video.pause(); });
       track.append(copy); clones.push(copy); return copy;
     }
@@ -52,11 +56,15 @@
       // Resolve percentage widths against the original viewport before making the track intrinsic.
       track.style.width = '100%';
       saved.slice(2).forEach(([el, style]) => { if (style === null) el.removeAttribute('style'); else el.setAttribute('style', style); el.style.flexShrink = '0'; });
-      const widths = cards.map(el => el.getBoundingClientRect().width);
+      const widths = cards.map(el => {
+        const css = getComputedStyle(el), width = parseFloat(css.width);
+        if (!Number.isFinite(width)) return el.offsetWidth || el.getBoundingClientRect().width;
+        return width + (css.boxSizing === 'border-box' ? 0 : ['paddingLeft', 'paddingRight', 'borderLeftWidth', 'borderRightWidth'].reduce((sum, key) => sum + (parseFloat(css[key]) || 0), 0));
+      });
       track.style.width = 'max-content';
-      cards.forEach((el, i) => { el.style.width = `${widths[i]}px`; el.style.flexShrink = '0'; });
+      cards.forEach((el, i) => { el.style.boxSizing = 'border-box'; el.style.width = `${widths[i]}px`; el.style.flexShrink = '0'; });
       const first = clone(cards[0]);
-      period = first.getBoundingClientRect().left - cards[0].getBoundingClientRect().left;
+      period = first.offsetLeft - cards[0].offsetLeft || first.getBoundingClientRect().left - cards[0].getBoundingClientRect().left;
       if (!(period > 0)) { clones.forEach(el => el.remove()); clones = []; period = 0; return; }
       cards.slice(1).forEach(clone);
       for (let i = 1; i < Math.ceil(root.clientWidth / period) + 1; i++) cards.forEach(clone);

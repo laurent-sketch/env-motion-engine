@@ -247,3 +247,23 @@ it('releases group opacity to current active classes after progressive playback'
   expect(getComputedStyle(b).opacity).toBe('1');
   expect(c.style.opacity).toBe('0.6');
 });
+
+it('uses non-inline group effects so loop copies do not inherit hidden slides', async () => {
+  const f = await setup('<section data-env-reveal="fade-scale" data-env-stagger="0.2"><div style="width:200px">A</div><div>B</div><div data-env-news-clone>Copy</div></section>');
+  const parent = document.querySelector('section')!;
+  const animations = [...parent.children].map(el => {
+    const animation = { finished: new Promise<void>(() => {}), cancel: vi.fn() };
+    const animate = vi.fn(() => animation);
+    Object.defineProperty(el, 'animate', { value: animate });
+    return { animate, animation };
+  });
+  f.enter(parent);
+  expect(animations[0].animate).toHaveBeenCalledOnce();
+  expect(animations[1].animate).toHaveBeenCalledOnce();
+  expect(animations[2].animate).not.toHaveBeenCalled();
+  expect((parent.children[0].cloneNode(true) as HTMLElement).style.opacity).toBe('');
+  expect((parent.children[0].cloneNode(true) as HTMLElement).style.transform).toBe('');
+  expect((animations[1].animate.mock.calls[0] as unknown as [unknown, { delay: number }])[1].delay).toBe(400);
+  api().destroy();
+  expect(animations[0].animation.cancel).toHaveBeenCalled();
+});

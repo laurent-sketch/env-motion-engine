@@ -78,3 +78,8 @@ Le chargeur `env.js` récupère `animations.js` dans le même dossier et à la m
 ### Opacité des liens actifs et inactifs
 
 Conserver l'opacité normale dans le CSS (par exemple `.slider-nav-link { opacity: .3 }` et `.slider-nav-link.active { opacity: 1 }`). Les reveals de groupe capturent l'opacité visible avant de masquer les enfants. À la fin de la séquence, ils restaurent la déclaration inline d'origine (ou retirent celle ajoutée par l'animation) pour laisser les classes actives/hover reprendre la main. Le fade-scale de bloc libère également son opacité. Ne pas définir une opacité initiale de zéro pour préparer le reveal : le script gère le masquage de départ. En mode scrub, l'opacité reste pilotée par la séquence pour permettre le retour arrière.
+
+
+### Group reveals inside a News loop
+
+On browsers with `Element.animate`, non-scrub child groups use native effects with the preview cubic-bezier(.2,.65,.2,1) and `fill: backwards`. The effect disappears on completion, preserving current active/hover CSS. Both fade and movement/scale use `data-env-duration` in this path; the 0.2s fade-scale offset and per-child stagger remain. No temporary inline styles are copied into marquee duplicates. Generated `[data-env-news-clone]` children are excluded. The GSAP fallback retains its two-track fade-scale timing and scrub remains GSAP-controlled.
