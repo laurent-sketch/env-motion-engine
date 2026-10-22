@@ -116,9 +116,19 @@ async function start() {
   if (!window.ENVVideos?.stage || !window.ENVVideos?.release) throw Error('Install the matching SD head block before enabling navigation');
   const runtime = window.Webflow;
   const ix2 = runtime?.require('ix2'), ix3 = runtime?.require('ix3');
-  const native = ['slider', 'navbar', 'dropdown'].map(name => runtime?.require(name)).filter(Boolean);
+  let native;
   if (!ix2?.init || !ix3?.ready) throw Error('Webflow runtime unavailable');
   validate(document, path());
+  if (!runtime.require('slider')?.ready) {
+    const slider = routes['/home-sd'].slider;
+    await script(slider.script);
+    let registered = false;
+    // Activate only the audited slider factory from the official shared chunk.
+    // Loading Work's bootstrap alone does not call this optional factory.
+    window.webpackChunk.push([[`env-sd-slider-${Date.now()}`], {}, require => { require(slider.factory); registered = true; }]);
+    if (!registered || !runtime.require('slider')?.ready) throw Error('Audited slider factory unavailable');
+  }
+  native = ['slider', 'navbar', 'dropdown'].map(name => runtime.require(name)).filter(Boolean);
   // The same site stylesheet is required; otherwise use a full native visit.
   if (JSON.stringify(routes['/home-sd'].sheets) !== JSON.stringify(routes['/work-v2'].sheets)) throw Error('Page stylesheets differ');
   wrap(document);

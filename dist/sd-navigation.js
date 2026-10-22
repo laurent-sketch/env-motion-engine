@@ -206,7 +206,7 @@ const D = /* @__PURE__ */ JSON.parse('{"events":{"e":{"id":"e","name":"","animat
 .navbar-logo-center.is-past-hero .dot-link{
   background-color: var(--nav-dark-blue, #102b46);
 }
-`] },
+`], slider: { script: "https://cdn.prod.website-files.com/68bb0b6fbfff68e3dfd32f3f/js/webflow.schunk.bdf58efcee47c042.js", factory: 4345 } },
   "/work-v2": { page: "6ad887d71c76507742d263fd", site: "68bb0b6fbfff68e3dfd32f3f", scripts: ["https://cdn.prod.website-files.com/68bb0b6fbfff68e3dfd32f3f/js/webflow.schunk.f2efb3c5440a81cf.js", "https://cdn.prod.website-files.com/68bb0b6fbfff68e3dfd32f3f/js/webflow.schunk.32e5e1df00b3654d.js", "https://cdn.prod.website-files.com/68bb0b6fbfff68e3dfd32f3f/js/webflow.schunk.9dfb96661114d3db.js", "https://cdn.prod.website-files.com/68bb0b6fbfff68e3dfd32f3f/js/webflow.schunk.0132d12014b8e989.js", "https://cdn.prod.website-files.com/68bb0b6fbfff68e3dfd32f3f/js/webflow.8ecc2c8d.cf78de7ed6c41dec.js"], sheets: ["https://cdn.prod.website-files.com/68bb0b6fbfff68e3dfd32f3f/css/sd-env-2025-2e4590d75f1a2db700cfbb4c7c1.webflow.shared.07d376b8c.min.css"], styles: [`
   ::selection {
   background: #2f7fff;
@@ -439,9 +439,9 @@ const R = new URL(import.meta.url);
 R.pathname = R.pathname.replace(/[^/]*$/, "");
 const v = () => location.pathname.replace(/\/$/, ""), _ = matchMedia("(prefers-reduced-motion: reduce)"), F = () => document.querySelector("main.main-wrapper");
 let S = () => {
-}, g, T;
+}, g, y;
 const M = /* @__PURE__ */ new Set(), O = () => document.documentElement.classList.remove("env-sd-boot"), k = (e) => new Promise((t) => setTimeout(t, e));
-function y(e, t = !1) {
+function E(e, t = !1) {
   return !t && M.has(e) ? Promise.resolve() : new Promise((i, f) => {
     const a = document.createElement("script");
     a.src = new URL(e, R).href;
@@ -482,17 +482,17 @@ function h() {
     if (e.classList.toggle("is-past-hero", c), !r && c === n) return;
     const w = n === void 0;
     n = c;
-    const E = [i, f], P = E.map((o) => ({ transform: getComputedStyle(o).transform, opacity: getComputedStyle(o).opacity }));
+    const I = [i, f], P = I.map((o) => ({ transform: getComputedStyle(o).transform, opacity: getComputedStyle(o).opacity }));
     d.forEach((o) => o.cancel());
-    const B = E.map((o) => o.style.transform);
-    E.forEach((o) => o.style.transform = "none");
-    const I = i.getBoundingClientRect(), L = f.getBoundingClientRect();
-    E.forEach((o, m) => o.style.transform = B[m]);
+    const B = I.map((o) => o.style.transform);
+    I.forEach((o) => o.style.transform = "none");
+    const T = i.getBoundingClientRect(), L = f.getBoundingClientRect();
+    I.forEach((o, m) => o.style.transform = B[m]);
     const x = [
-      { transform: `translateY(${c ? -I.height * 1.2 : 0}px)`, opacity: c ? 0 : 1 },
-      { transform: `translate(${I.left - L.left}px,${I.top + I.height / 2 - L.top - L.height / 2 + (c ? 0 : I.height * 1.2)}px)`, opacity: c ? 1 : 0 }
+      { transform: `translateY(${c ? -T.height * 1.2 : 0}px)`, opacity: c ? 0 : 1 },
+      { transform: `translate(${T.left - L.left}px,${T.top + T.height / 2 - L.top - L.height / 2 + (c ? 0 : T.height * 1.2)}px)`, opacity: c ? 1 : 0 }
     ];
-    d = E.map((o, m) => o.animate([P[m], x[m]], { duration: w || _.matches ? 0 : 550, easing: "cubic-bezier(.22,1,.36,1)", fill: "forwards" }));
+    d = I.map((o, m) => o.animate([P[m], x[m]], { duration: w || _.matches ? 0 : 550, easing: "cubic-bezier(.22,1,.36,1)", fill: "forwards" }));
   }
   function b() {
     l || (l = !0, requestAnimationFrame(() => {
@@ -515,16 +515,16 @@ async function W() {
   });
   window.addEventListener("env:animations-ready", e, { once: !0 });
   try {
-    await y("animations.js", !0), await Promise.race([t, k(1500)]);
+    await E("animations.js", !0), await Promise.race([t, k(1500)]);
   } finally {
     window.removeEventListener("env:animations-ready", e);
   }
 }
 async function G() {
-  h(), window.ENVVideos?.refresh(), document.querySelector(".hero-wrapper .sd-slider") && await y("hero.js", !0), await W();
+  h(), window.ENVVideos?.refresh(), document.querySelector(".hero-wrapper .sd-slider") && await E("hero.js", !0), await W();
   const e = [...document.querySelectorAll(".swiper-news[data-env-news]")];
   e.length && (g = new IntersectionObserver((t) => {
-    t.some((i) => i.isIntersecting) && (g.disconnect(), y("news.js", !0).catch(console.error));
+    t.some((i) => i.isIntersecting) && (g.disconnect(), E("news.js", !0).catch(console.error));
   }, { rootMargin: "600px" }), e.forEach((t) => g.observe(t)));
 }
 function j() {
@@ -533,7 +533,7 @@ function j() {
   e && window.ENVVideos?.release(e);
 }
 async function V(e, t, i, f) {
-  _.matches || (T = e.animate([{ opacity: t }, { opacity: i }], { duration: f, easing: "ease", fill: "forwards" }), await T.finished.catch(() => {
+  _.matches || (y = e.animate([{ opacity: t }, { opacity: i }], { duration: f, easing: "ease", fill: "forwards" }), await y.finished.catch(() => {
   }));
 }
 async function q() {
@@ -542,14 +542,23 @@ async function q() {
     return;
   }
   if (!window.ENVVideos?.stage || !window.ENVVideos?.release) throw Error("Install the matching SD head block before enabling navigation");
-  const e = window.Webflow, t = e?.require("ix2"), i = e?.require("ix3"), f = ["slider", "navbar", "dropdown"].map((d) => e?.require(d)).filter(Boolean);
+  const e = window.Webflow, t = e?.require("ix2"), i = e?.require("ix3");
+  let f;
   if (!t?.init || !i?.ready) throw Error("Webflow runtime unavailable");
-  if (U(document, v()), JSON.stringify(p["/home-sd"].sheets) !== JSON.stringify(p["/work-v2"].sheets)) throw Error("Page stylesheets differ");
+  if (U(document, v()), !e.require("slider")?.ready) {
+    const d = p["/home-sd"].slider;
+    await E(d.script);
+    let l = !1;
+    if (window.webpackChunk.push([[`env-sd-slider-${Date.now()}`], {}, (s) => {
+      s(d.factory), l = !0;
+    }]), !l || !e.require("slider")?.ready) throw Error("Audited slider factory unavailable");
+  }
+  if (f = ["slider", "navbar", "dropdown"].map((d) => e.require(d)).filter(Boolean), JSON.stringify(p["/home-sd"].sheets) !== JSON.stringify(p["/work-v2"].sheets)) throw Error("Page stylesheets differ");
   if (A(document), document.head.querySelectorAll("style").forEach((d) => {
     p[v()].styles.includes(d.textContent) && (d.dataset.envSdPageStyle = "");
   }), await G(), O(), document.querySelector(".navbar-logo-center")?.setAttribute("data-env-ignore", ""), !window.lenis && !_.matches)
     try {
-      await y("https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js"), window.lenis = new window.Lenis({ duration: 1.2, smoothWheel: !0, easing: (d) => Math.min(1, 1.001 - Math.pow(2, -10 * d)) }), requestAnimationFrame(function d(l) {
+      await E("https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js"), window.lenis = new window.Lenis({ duration: 1.2, smoothWheel: !0, easing: (d) => Math.min(1, 1.001 - Math.pow(2, -10 * d)) }), requestAnimationFrame(function d(l) {
         window.lenis?.raf(l), requestAnimationFrame(d);
       });
     } catch (d) {
@@ -577,7 +586,7 @@ async function q() {
     if (U(b, new URL(d.to.url, location.href).pathname), b.querySelectorAll(".navbar-logo-center a[href]").length !== document.querySelectorAll(".navbar-logo-center a[href]").length) throw Error("Menu structure changed");
     const r = A(b);
     if (r.classList.add("env-sd-pending"), r.querySelector(".w-slider") && !e.require("slider")?.ready) throw Error("Slider runtime unavailable; native visit required");
-    window.lenis?.stop(), j(), f.forEach((c) => c.destroy?.()), t.destroy(), i.destroy(), T?.cancel(), await s(d, l), z(b), f.forEach((c) => c.ready?.()), t.init(N.ix2), await Promise.race([i.ready(), k(4e3).then(() => {
+    window.lenis?.stop(), j(), f.forEach((c) => c.destroy?.()), t.destroy(), i.destroy(), y?.cancel(), await s(d, l), z(b), f.forEach((c) => c.ready?.()), t.init(N.ix2), await Promise.race([i.ready(), k(4e3).then(() => {
       throw Error("Webflow interaction restart timeout");
     })]);
     const u = i.getInstance();
@@ -585,7 +594,7 @@ async function q() {
     u.setFeatures({ timelineGroups: !1 }), u.register(N.interactions, N.timelines), document.documentElement.classList.add("w-mod-ix3");
   }), a.hooks.replace("animation:in:await", async () => {
     const d = document.querySelector("#env-sd-page");
-    await V(d, 0, 1, 350), T?.cancel();
+    await V(d, 0, 1, 350), y?.cancel();
   }), a.hooks.on("page:view", async (d) => {
     try {
       window.lenis?.resize(), window.lenis?.scrollTo(window.scrollY, { immediate: !0, force: !0 }), window.lenis?.start(), await G(), document.querySelector("#env-sd-page")?.classList.remove("env-sd-pending"), !["localhost", "127.0.0.1"].includes(location.hostname) && typeof window.gtag == "function" && window.gtag("event", "page_view", { page_title: document.title, page_location: location.href });
@@ -599,12 +608,12 @@ async function q() {
     }
   });
   const n = () => {
-    O(), window.lenis?.start(), T?.cancel(), document.querySelector("#env-sd-page")?.classList.remove("env-sd-pending");
+    O(), window.lenis?.start(), y?.cancel(), document.querySelector("#env-sd-page")?.classList.remove("env-sd-pending");
   };
   a.hooks.on("visit:fail", n), a.hooks.on("visit:abort", n);
 }
 const C = () => q().catch((e) => {
-  console.error("[ENV SD] Native navigation retained", e), O(), y("env.js").then(() => {
+  console.error("[ENV SD] Native navigation retained", e), O(), E("env.js").then(() => {
     [...document.scripts].some((t) => /const brand =/.test(t.textContent) && !/ENV SD/.test(t.textContent)) || h();
   }).catch((t) => console.error("[ENV SD] Widget fallback failed", t));
 });

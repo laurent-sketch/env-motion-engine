@@ -18,6 +18,15 @@ for (const path of ['/home-sd', '/work-v2']) {
     sheets: [...doc.querySelectorAll('link[rel="stylesheet"]')].map(el => el.href),
     styles: [...doc.querySelectorAll('head style')].map(el => el.textContent) };
 }
+for (const script of routes['/home-sd'].scripts) {
+  const source = await (await fetch(script)).text();
+  if (!source.includes('define("slider"')) continue;
+  const factory = source.match(/\{(\d+):function[^]*?define\("slider"/);
+  if (!factory) throw Error('Slider chunk layout changed');
+  routes['/home-sd'].slider = { script, factory: Number(factory[1]) };
+  break;
+}
+if (!routes['/home-sd'].slider) throw Error('Missing audited slider factory');
 if (configs[0] !== configs[1]) throw Error('Interaction payloads differ; review adapter before certifying');
 await mkdir('src/sd', { recursive: true });
 await writeFile('src/sd/routes.json', JSON.stringify(routes));
