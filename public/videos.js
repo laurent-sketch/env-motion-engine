@@ -33,26 +33,27 @@
         autoplay: video.hasAttribute('autoplay'), preload: video.getAttribute('preload'), aria: video.getAttribute('aria-hidden'), early: false };
       record.hoverRoot = !video.closest('.sd-slider') ? video.closest('.project-item[data-env-video="hover"]') : null;
       record.hovering = false; record.focused = false;
+      record.controller = new AbortController();
       records.set(video, record);
       if (record.hoverRoot) {
         const root = record.hoverRoot;
         const activate = () => { if (allowed(record)) hydrate(record, true); else play(record); };
-        root.addEventListener('pointerenter', event => { if (event.pointerType === 'touch') return; record.hovering = true; activate(); }, { signal: abort.signal });
-        root.addEventListener('pointerleave', () => { record.hovering = false; activate(); }, { signal: abort.signal });
-        root.addEventListener('focusin', event => { record.focused = event.target.matches(':focus-visible'); activate(); }, { signal: abort.signal });
-        root.addEventListener('focusout', event => { if (!root.contains(event.relatedTarget)) { record.focused = false; activate(); } }, { signal: abort.signal });
+        root.addEventListener('pointerenter', event => { if (event.pointerType === 'touch') return; record.hovering = true; activate(); }, { signal: record.controller.signal });
+        root.addEventListener('pointerleave', () => { record.hovering = false; activate(); }, { signal: record.controller.signal });
+        root.addEventListener('focusin', event => { record.focused = event.target.matches(':focus-visible'); activate(); }, { signal: record.controller.signal });
+        root.addEventListener('focusout', event => { if (!root.contains(event.relatedTarget)) { record.focused = false; activate(); } }, { signal: record.controller.signal });
         video.addEventListener('playing', () => {
           if (allowed(record)) root.classList.add('is-env-video-playing'); else play(record);
-        }, { signal: abort.signal });
-        ['pause', 'waiting', 'error', 'emptied'].forEach(type => video.addEventListener(type, () => root.classList.remove('is-env-video-playing'), { signal: abort.signal }));
+        }, { signal: record.controller.signal });
+        ['pause', 'waiting', 'error', 'emptied'].forEach(type => video.addEventListener(type, () => root.classList.remove('is-env-video-playing'), { signal: record.controller.signal }));
       }
       video.removeAttribute('autoplay'); video.preload = 'none'; pause(video);
       video.setAttribute('aria-hidden', 'true'); // Deferred media is represented by its poster, not an empty media control.
       const poster = video.closest('.w-background-video').getAttribute('data-poster-url');
       record.poster = video.getAttribute('poster');
       if (poster && !record.poster) video.poster = poster;
-      video.addEventListener('play', () => { if (!allowed(record)) pause(video); }, { signal: abort.signal });
-      video.addEventListener('loadeddata', () => { play(record); prefetch(); }, { signal: abort.signal });
+      video.addEventListener('play', () => { if (!allowed(record)) pause(video); }, { signal: record.controller.signal });
+      video.addEventListener('loadeddata', () => { play(record); prefetch(); }, { signal: record.controller.signal });
       if (ready) observe(record);
     }
     if (record.loaded) return;
@@ -149,11 +150,22 @@
   hoverDevice.addEventListener('change', preferenceChanged);
   document.addEventListener('visibilitychange', preferenceChanged, { signal: abort.signal });
   window.ENVVideos = {
+    stage(root = document) { root.querySelectorAll('video').forEach(capture); },
+    refresh() { document.querySelectorAll('video').forEach(capture); syncHero(); },
+    release(root) {
+      records.forEach((record, video) => {
+        if (!root.contains(video)) return;
+        record.controller.abort(); pause(video);
+        near?.unobserve?.(record.region); visible?.unobserve?.(record.region);
+        records.delete(video);
+      });
+    },
     audit() { return [...records.values()].map(r => ({ id: r.video.id, loaded: r.loaded, visible: r.visible, interceptionPossiblyLate: r.early, sources: r.sources.size + Number(!!r.direct) })); },
     destroy() {
       if (destroyed) return; destroyed = true; observer.disconnect(); near?.disconnect(); visible?.disconnect();
       clearTimeout(timer); abort.abort(); preference.removeEventListener('change', preferenceChanged); hoverDevice.removeEventListener('change', preferenceChanged); coverStyle.remove();
       records.forEach(record => {
+        record.controller.abort();
         record.hoverRoot?.classList.remove('is-env-video-playing');
         if (!record.loaded) { if (record.direct) record.video.src = record.direct; record.sources.forEach((url, source) => source.src = url); }
         if (record.autoplay) record.video.setAttribute('autoplay', '');

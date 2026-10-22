@@ -1,0 +1,29 @@
+import routes from './routes.json';
+export function wrap(doc) {
+  let root = doc.querySelector('#env-sd-page');
+  if (root) return root;
+  const content = doc.querySelector('main.main-wrapper');
+  if (!content || content.parentElement !== doc.body) throw Error('Unsupported page layout');
+  root = doc.createElement('div'); root.id = 'env-sd-page';
+  content.before(root); root.append(content);
+  const footer = doc.querySelector('body > .section.footer');
+  if (footer) root.append(footer);
+  return root;
+}
+export function validate(doc, pathname) {
+  const record = routes[pathname];
+  if (!record || doc.documentElement.getAttribute('data-wf-site') !== record.site || doc.documentElement.getAttribute('data-wf-page') !== record.page) throw Error('Uncertified page');
+  const scripts = [...doc.scripts].map(s => s.getAttribute('src')).filter(s => s?.includes('/js/webflow.'));
+  if (JSON.stringify(scripts) !== JSON.stringify(record.scripts)) throw Error('Webflow export changed; rebuild SD snapshots');
+  const sheets = [...doc.querySelectorAll('link[rel="stylesheet"]')].map(e => e.getAttribute('href'));
+  if (!record.sheets.every(s => sheets.includes(s))) throw Error('Stylesheets changed');
+  // Unknown inline scripts need a lifecycle adapter rather than blind execution.
+  for (const s of doc.scripts) {
+    if (/env-motion-engine@.*\/dist\/env\.js/.test(s.src)) throw Error('Remove the legacy env.js loader on pilot routes');
+    if (/const brand =/.test(s.textContent) && !/ENV SD/.test(s.textContent)) throw Error('Remove the legacy brand initializer on pilot routes');
+    if (s.src || !s.textContent.trim() || s.type === 'application/ld+json') continue;
+    if (!/w-mod-|google_tags_first_party|dataLayer|ENV Videos|ENV SD|const brand =|ENVSite/.test(s.textContent)) throw Error('Additional inline script needs an adapter');
+  }
+  if (doc.querySelector('.w-form,.w-tabs,[data-animation-type="spline"]')) throw Error('Unsupported page widget');
+  return record;
+}

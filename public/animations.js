@@ -219,7 +219,8 @@
       if ((!scrub && seen.has(el)) || el.closest('[data-env-ignore], [data-env-news-clone], .w-slider, .swiper-initialized')) return;
       // Avoid compounded transforms/opacity on an animated ancestor and its text.
       if (el.parentElement?.closest('[data-env-reveal], [data-env-text]')) return;
-      if (scrub && ScrollTrigger) play(el, true);
+      if (!scrub && el.getBoundingClientRect().bottom > 0 && el.getBoundingClientRect().top < innerHeight) play(el);
+      else if (scrub && ScrollTrigger) play(el, true);
       else {
         if (scrub) console.warn('[ENV Animations] ScrollTrigger unavailable; using a one-time reveal.', el);
         observer.observe(el);
@@ -228,7 +229,7 @@
   }
 
   function ready() {
-    const boot = () => { if (!disposed) start(); };
+    const boot = () => { if (!disposed) { start(); window.dispatchEvent(new Event('env:animations-ready')); } };
     if (document.fonts?.ready) document.fonts.ready.then(boot, boot);
     else boot();
   }

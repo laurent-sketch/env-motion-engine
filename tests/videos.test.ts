@@ -85,3 +85,17 @@ it('keeps hover videos unloaded on touch and with reduced motion', async () => {
   document.querySelector('.project-item')!.dispatchEvent(new Event('pointerenter'));
   expect(document.querySelector('#project source')?.hasAttribute('src')).toBe(false);
 });
+
+it('releases retired page records without restoring sources, and stages the next page', async () => {
+  await setup();
+  const runtime = api() as ReturnType<typeof api> & { release(root: Element): void; stage(root: Element): void };
+  const oldPage = document.querySelector('.project-item')!;
+  runtime.release(oldPage);
+  expect(oldPage.querySelector('source')?.hasAttribute('src')).toBe(false);
+  expect(runtime.audit()).toHaveLength(2);
+  const next = document.createElement('section');
+  next.innerHTML = '<div class="item-video w-background-video"><video><source src="new.mp4"></video></div>';
+  runtime.stage(next);
+  expect(next.querySelector('source')?.hasAttribute('src')).toBe(false);
+  expect(runtime.audit()).toHaveLength(3);
+});
