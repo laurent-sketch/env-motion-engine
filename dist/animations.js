@@ -230,7 +230,13 @@
 
   function ready() {
     const boot = () => { if (!disposed) { start(); window.dispatchEvent(new Event('env:animations-ready')); } };
-    if (document.fonts?.ready) document.fonts.ready.then(boot, boot);
+    // Prefer loaded fonts for line splitting, but never hold the first reveal indefinitely.
+    if (document.fonts?.ready) {
+      let started = false;
+      const finish = () => { if (started) return; started = true; clearTimeout(timeout); boot(); };
+      const timeout = setTimeout(finish, 500);
+      document.fonts.ready.then(finish, finish);
+    }
     else boot();
   }
   window.ENVAnimations?.destroy?.();
@@ -240,10 +246,10 @@
       disposed = true;
       stop();
       media.removeEventListener('change', start);
-      window.removeEventListener('load', ready);
+      document.removeEventListener('DOMContentLoaded', ready);
     }
   };
   media.addEventListener('change', start);
-  if (document.readyState === 'complete') ready();
-  else window.addEventListener('load', ready, { once: true });
+  if (document.readyState !== 'loading') ready();
+  else document.addEventListener('DOMContentLoaded', ready, { once: true });
 })();

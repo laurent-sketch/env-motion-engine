@@ -93,8 +93,10 @@ async function animations() {
 async function mount() {
   menu();
   window.ENVVideos?.refresh();
-  if (document.querySelector('.hero-wrapper .sd-slider')) await script('hero.js', true);
-  await animations();
+  await Promise.all([
+    document.querySelector('.hero-wrapper .sd-slider') ? script('hero.js', true) : Promise.resolve(),
+    animations()
+  ]);
   const roots = [...document.querySelectorAll('.swiper-news[data-env-news]')];
   if (roots.length) {
     newsObserver = new IntersectionObserver(entries => {
@@ -213,4 +215,6 @@ const boot = () => start().catch(error => {
     if (![...document.scripts].some(s => /const brand =/.test(s.textContent) && !/ENV SD/.test(s.textContent))) menu();
   }).catch(error => console.error('[ENV SD] Widget fallback failed', error));
 });
-if (document.readyState === 'complete') boot(); else window.addEventListener('load', boot, { once: true });
+// Webflow's ready queue waits for its modules/DOM, not every image and video.
+window.Webflow = window.Webflow || [];
+window.Webflow.push(boot);

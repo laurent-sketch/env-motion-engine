@@ -16,11 +16,11 @@ The current `/`, `/cookie-policy` and `/privacy-policy` exports belong to the ol
 
 ## Loading and motion
 
-Head preparation prevents initial content flash and fails open after five seconds. Reduced-motion visitors skip entrance/exit fades. The first page waits for animation preparation, then reveals; subsequent pages use the existing reveal system. Lenis remains a singleton. Back/forward scroll is restored. Existing gtag receives a page_view after successful transitions; check analytics settings to avoid automatic duplicate history pageviews.
+Head preparation hides only reveal targets, leaving the menu and media/background visible, and fails open after five seconds. Webflow readiness starts the engine without waiting for window.load; animation preparation starts at DOMContentLoaded and waits at most 500ms for fonts. Hero setup and animation preparation load in parallel. Reduced-motion visitors skip entrance/exit fades. The first page waits for animation preparation, then reveals; subsequent pages use the existing reveal system. Lenis remains a singleton. Back/forward scroll is restored. Existing gtag receives a page_view after successful transitions; check analytics settings to avoid automatic duplicate history pageviews.
 
 ## Validation
 
-63 automated tests and production build pass. Browser fixtures use the published HTML/CSS/fonts/images with a small local video to isolate lifecycle behavior; real video transfer performance and physical-phone touch behavior need separate verification. Installation alone does not rewrite incorrect authored links in Webflow: the persistent menu deliberately adopts those links from each destination.
+64 automated tests and production build pass. Browser fixtures use the published HTML/CSS/fonts/images with a small local video to isolate lifecycle behavior; real video transfer performance and physical-phone touch behavior need separate verification. Installation alone does not rewrite incorrect authored links in Webflow: the persistent menu deliberately adopts those links from each destination.
 
 ## Rollback
 

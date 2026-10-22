@@ -6,6 +6,9 @@ it('prepares initial paint on all routes and fails open', () => {
   vi.useFakeTimers(); vi.stubGlobal('matchMedia', () => ({ matches: false }));
   history.replaceState(null, '', '/home-sd'); new Function(source)();
   expect(document.documentElement.classList.contains('env-sd-boot')).toBe(true);
+  const css = document.head.querySelector('style')!.textContent;
+  expect(css).not.toContain('body{visibility:hidden}');
+  expect(css).toContain('[data-env-reveal]');
   vi.advanceTimersByTime(5000);
   expect(document.documentElement.classList.contains('env-sd-boot')).toBe(false);
 });
