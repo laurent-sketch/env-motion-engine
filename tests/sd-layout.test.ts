@@ -8,6 +8,7 @@ function fixture(path: keyof typeof routes) {
   doc.documentElement.setAttribute('data-wf-page', record.page!);
   record.scripts.forEach(src => { const el = doc.createElement('script'); el.src = src; doc.body.append(el); });
   record.sheets.forEach(href => { const el = doc.createElement('link'); el.rel = 'stylesheet'; el.href = href; doc.head.append(el); });
+  const nav = doc.createElement('nav'); nav.className = 'navbar-logo-center'; doc.body.prepend(nav);
   const main = doc.createElement('main'); main.className = 'main-wrapper'; doc.body.prepend(main);
   return doc;
 }
@@ -55,4 +56,12 @@ it('adopts destination menu colors in both directions without replacing persiste
   expect(live.querySelector('a')).toBe(link);
   expect(link.classList.contains('white')).toBe(true);
   expect(live.querySelector('.dot-link')!.classList.contains('dark')).toBe(false);
+});
+
+it('accepts any internal path sharing a verified runtime and SD layout', () => {
+  const doc = fixture('/work-v2');
+  doc.documentElement.setAttribute('data-wf-page', 'new-project-page');
+  expect(() => validate(doc, '/projects/new-name')).not.toThrow();
+  doc.querySelector('.navbar-logo-center')!.remove();
+  expect(() => validate(doc, '/projects/new-name')).toThrow('shared SD menu');
 });

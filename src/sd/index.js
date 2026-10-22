@@ -2,7 +2,7 @@ import Swup from 'swup';
 import ScrollPlugin from '@swup/scroll-plugin';
 import config from './interactions.json';
 import routes from './routes.json';
-import { wrap, validate, syncMenuVariants } from './layout.js';
+import { wrap, validate, syncMenuVariants, syncMenuImages } from './layout.js';
 
 // Experimental, restricted to the audited Home/Work exports. No fetched JS eval.
 const base = new URL(import.meta.url);
@@ -26,6 +26,7 @@ function script(name, again = false) {
 }
 function metadata(doc) {
   syncMenuVariants(document, doc);
+  syncMenuImages(document, doc);
   const liveLinks = [...document.querySelectorAll('.navbar-logo-center a[href]')];
   const nextLinks = [...doc.querySelectorAll('.navbar-logo-center a[href]')];
   liveLinks.forEach((link, i) => { if (nextLinks[i]) link.setAttribute('href', nextLinks[i].getAttribute('href')); });
@@ -113,13 +114,13 @@ async function fade(el, from, to, duration) {
   await busyAnimation.finished.catch(() => {});
 }
 async function start() {
-  if (window.ENVSD || !routes[path()]) { releaseBoot(); return; }
+  if (window.ENVSD) { releaseBoot(); return; }
   if (!window.ENVVideos?.stage || !window.ENVVideos?.release) throw Error('Install the matching SD head block before enabling navigation');
   const runtime = window.Webflow;
   const ix2 = runtime?.require('ix2'), ix3 = runtime?.require('ix3');
   let native;
   if (!ix2?.init || !ix3?.ready) throw Error('Webflow runtime unavailable');
-  validate(document, path());
+  const profile = validate(document, path());
   if (!runtime.require('slider')?.ready) {
     const slider = routes['/home-sd'].slider;
     await script(slider.script);
@@ -129,11 +130,11 @@ async function start() {
     window.webpackChunk.push([[`env-sd-slider-${Date.now()}`], {}, require => { require(slider.factory); registered = true; }]);
     if (!registered || !runtime.require('slider')?.ready) throw Error('Audited slider factory unavailable');
   }
-  native = ['slider', 'navbar', 'dropdown'].map(name => runtime.require(name)).filter(Boolean);
+  native = ['slider', 'navbar', 'dropdown', 'tabs'].map(name => runtime.require(name)).filter(Boolean);
   // The same site stylesheet is required; otherwise use a full native visit.
   if (JSON.stringify(routes['/home-sd'].sheets) !== JSON.stringify(routes['/work-v2'].sheets)) throw Error('Page stylesheets differ');
   wrap(document);
-  document.head.querySelectorAll('style').forEach(el => { if (routes[path()].styles.includes(el.textContent)) el.dataset.envSdPageStyle = ''; });
+  document.head.querySelectorAll('style').forEach(el => { if (profile.styles.includes(el.textContent)) el.dataset.envSdPageStyle = ''; });
   await mount(); releaseBoot();
   // Keep the menu DOM and do not replay its initial reveal on later visits.
   document.querySelector('.navbar-logo-center')?.setAttribute('data-env-ignore', '');
@@ -147,7 +148,7 @@ async function start() {
   const swup = new Swup({ containers: ['#env-sd-page'], animationSelector: false, cache: false,
     plugins: [new ScrollPlugin({ animateScroll: false })],
     linkSelector: 'a[href]:not([download]):not([target]):not([data-no-swup])',
-    ignoreVisit: (url, { el } = {}) => { const u = new URL(url, location.href); return u.origin !== location.origin || !routes[u.pathname] || !!el?.closest('[data-no-swup]'); }
+    ignoreVisit: (url, { el } = {}) => { const u = new URL(url, location.href); return u.origin !== location.origin || /\.(?:pdf|zip|png|jpe?g|webp|svg|mp4|webm|css|js)$/i.test(u.pathname) || !!el?.closest('[data-no-swup]'); }
   });
   window.ENVSD = { swup, status: 'ready' };
   document.documentElement.setAttribute('data-env-sd-document', crypto.randomUUID());

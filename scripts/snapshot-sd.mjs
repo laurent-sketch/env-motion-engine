@@ -3,7 +3,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { extract } from './snapshot-pilot.mjs';
 const base = 'https://sd-env-2025-2e4590d75f1a2db700cfbb4c7c1.webflow.io';
 const routes = {}, configs = [];
-for (const path of ['/home-sd', '/work-v2']) {
+for (const path of ['/home-sd', '/work-v2', '/home-sd-v2', '/work-v1', '/project-page']) {
   const response = await fetch(base + path); if (!response.ok) throw Error(`Unable to fetch ${path}`);
   const doc = new JSDOM(await response.text()).window.document;
   const scripts = [...doc.scripts].map(s => s.src).filter(s => s.includes('/js/webflow.'));
@@ -27,8 +27,8 @@ for (const script of routes['/home-sd'].scripts) {
   break;
 }
 if (!routes['/home-sd'].slider) throw Error('Missing audited slider factory');
-if (configs[0] !== configs[1]) throw Error('Interaction payloads differ; review adapter before certifying');
+if (configs.some(config => config !== configs[0])) throw Error('Interaction payloads differ; review adapter before certifying');
 await mkdir('src/sd', { recursive: true });
 await writeFile('src/sd/routes.json', JSON.stringify(routes));
 await writeFile('src/sd/interactions.json', configs[0]);
-console.log('SD Home/Work snapshot updated. Rebuild, test and publish a new pinned version.');
+console.log('SD shared pages snapshot updated. Rebuild, test and publish a new pinned version.');
