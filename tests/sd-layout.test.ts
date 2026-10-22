@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { wrap, validate } from '../src/sd/layout.js';
+import { wrap, validate, syncMenuVariants } from '../src/sd/layout.js';
 import routes from '../src/sd/routes.json';
 function fixture(path: keyof typeof routes) {
   const record = routes[path];
@@ -37,4 +37,22 @@ it('rejects leftover legacy initialization and widgets without an adapter', () =
   old.remove();
   const form = doc.createElement('div'); form.className = 'w-form'; doc.body.append(form);
   expect(() => validate(doc, '/home-sd')).toThrow('Unsupported');
+});
+
+it('adopts destination menu colors in both directions without replacing persistent nodes', () => {
+  const live = document.implementation.createHTMLDocument('Home');
+  const work = document.implementation.createHTMLDocument('Work');
+  live.body.innerHTML = '<nav class="navbar-logo-center is-past-hero"><a class="nav-link-sd white w--current"></a><div class="dot-link"></div></nav>';
+  work.body.innerHTML = '<nav class="navbar-logo-center"><a class="nav-link-sd"></a><div class="dot-link dark"></div></nav>';
+  const link = live.querySelector('a')!;
+  syncMenuVariants(live, work);
+  expect(link.classList.contains('white')).toBe(false);
+  expect(link.classList.contains('w--current')).toBe(true);
+  expect(live.querySelector('.dot-link')!.classList.contains('dark')).toBe(true);
+  work.querySelector('a')!.classList.add('white');
+  work.querySelector('.dot-link')!.classList.remove('dark');
+  syncMenuVariants(live, work);
+  expect(live.querySelector('a')).toBe(link);
+  expect(link.classList.contains('white')).toBe(true);
+  expect(live.querySelector('.dot-link')!.classList.contains('dark')).toBe(false);
 });

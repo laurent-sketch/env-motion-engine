@@ -27,3 +27,13 @@ export function validate(doc, pathname) {
   if (doc.querySelector('.w-form,.w-tabs,[data-animation-type="spline"]')) throw Error('Unsupported page widget');
   return record;
 }
+
+// Keep the persistent menu nodes/listeners, but adopt the destination color variants.
+export function syncMenuVariants(live, incoming) {
+  for (const [selector, variant] of [['.nav-link-sd', 'white'], ['.dot-link', 'dark']]) {
+    const current = [...live.querySelectorAll(`.navbar-logo-center ${selector}`)];
+    const next = [...incoming.querySelectorAll(`.navbar-logo-center ${selector}`)];
+    if (current.length !== next.length) throw Error('Menu variants structure changed');
+    current.forEach((el, i) => el.classList.toggle(variant, next[i].classList.contains(variant)));
+  }
+}

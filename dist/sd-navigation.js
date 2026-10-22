@@ -435,9 +435,16 @@ function U(e, t) {
   if (e.querySelector('.w-form,.w-tabs,[data-animation-type="spline"]')) throw Error("Unsupported page widget");
   return i;
 }
+function F(e, t) {
+  for (const [i, f] of [[".nav-link-sd", "white"], [".dot-link", "dark"]]) {
+    const a = [...e.querySelectorAll(`.navbar-logo-center ${i}`)], n = [...t.querySelectorAll(`.navbar-logo-center ${i}`)];
+    if (a.length !== n.length) throw Error("Menu variants structure changed");
+    a.forEach((d, l) => d.classList.toggle(f, n[l].classList.contains(f)));
+  }
+}
 const R = new URL(import.meta.url);
 R.pathname = R.pathname.replace(/[^/]*$/, "");
-const v = () => location.pathname.replace(/\/$/, ""), _ = matchMedia("(prefers-reduced-motion: reduce)"), F = () => document.querySelector("main.main-wrapper");
+const v = () => location.pathname.replace(/\/$/, ""), _ = matchMedia("(prefers-reduced-motion: reduce)"), z = () => document.querySelector("main.main-wrapper");
 let S = () => {
 }, g, y;
 const M = /* @__PURE__ */ new Set(), O = () => document.documentElement.classList.remove("env-sd-boot"), k = (e) => new Promise((t) => setTimeout(t, e));
@@ -455,7 +462,8 @@ function E(e, t = !1) {
     }, a.dataset.envSdModule = e, document.head.append(a);
   });
 }
-function z(e) {
+function W(e) {
+  F(document, e);
   const t = [...document.querySelectorAll(".navbar-logo-center a[href]")], i = [...e.querySelectorAll(".navbar-logo-center a[href]")];
   t.forEach((a, n) => {
     i[n] && a.setAttribute("href", i[n].getAttribute("href"));
@@ -506,7 +514,7 @@ function h() {
     a.abort(), d.forEach((r) => r.cancel());
   };
 }
-async function W() {
+async function j() {
   if (!document.querySelector("[data-env-reveal],[data-env-text]")) return;
   if (!window.gsap) throw Error("GSAP unavailable");
   let e;
@@ -521,13 +529,13 @@ async function W() {
   }
 }
 async function G() {
-  h(), window.ENVVideos?.refresh(), document.querySelector(".hero-wrapper .sd-slider") && await E("hero.js", !0), await W();
+  h(), window.ENVVideos?.refresh(), document.querySelector(".hero-wrapper .sd-slider") && await E("hero.js", !0), await j();
   const e = [...document.querySelectorAll(".swiper-news[data-env-news]")];
   e.length && (g = new IntersectionObserver((t) => {
     t.some((i) => i.isIntersecting) && (g.disconnect(), E("news.js", !0).catch(console.error));
   }, { rootMargin: "600px" }), e.forEach((t) => g.observe(t)));
 }
-function j() {
+function q() {
   S(), g?.disconnect(), document.querySelector(".hero-wrapper")?.__envHeroCleanup?.(), window.ENVAnimations?.destroy(), window.ENVNews?.destroy(), window.ENVNewsMarquee?.destroy();
   const e = document.querySelector("#env-sd-page");
   e && window.ENVVideos?.release(e);
@@ -536,7 +544,7 @@ async function V(e, t, i, f) {
   _.matches || (y = e.animate([{ opacity: t }, { opacity: i }], { duration: f, easing: "ease", fill: "forwards" }), await y.finished.catch(() => {
   }));
 }
-async function q() {
+async function K() {
   if (window.ENVSD || !p[v()]) {
     O();
     return;
@@ -586,7 +594,7 @@ async function q() {
     if (U(b, new URL(d.to.url, location.href).pathname), b.querySelectorAll(".navbar-logo-center a[href]").length !== document.querySelectorAll(".navbar-logo-center a[href]").length) throw Error("Menu structure changed");
     const r = A(b);
     if (r.classList.add("env-sd-pending"), r.querySelector(".w-slider") && !e.require("slider")?.ready) throw Error("Slider runtime unavailable; native visit required");
-    window.lenis?.stop(), j(), f.forEach((c) => c.destroy?.()), t.destroy(), i.destroy(), y?.cancel(), await s(d, l), z(b), f.forEach((c) => c.ready?.()), t.init(N.ix2), await Promise.race([i.ready(), k(4e3).then(() => {
+    window.lenis?.stop(), q(), f.forEach((c) => c.destroy?.()), t.destroy(), i.destroy(), y?.cancel(), await s(d, l), W(b), f.forEach((c) => c.ready?.()), t.init(N.ix2), await Promise.race([i.ready(), k(4e3).then(() => {
       throw Error("Webflow interaction restart timeout");
     })]);
     const u = i.getInstance();
@@ -598,7 +606,7 @@ async function q() {
   }), a.hooks.on("page:view", async (d) => {
     try {
       window.lenis?.resize(), window.lenis?.scrollTo(window.scrollY, { immediate: !0, force: !0 }), window.lenis?.start(), await G(), document.querySelector("#env-sd-page")?.classList.remove("env-sd-pending"), !["localhost", "127.0.0.1"].includes(location.hostname) && typeof window.gtag == "function" && window.gtag("event", "page_view", { page_title: document.title, page_location: location.href });
-      const l = F();
+      const l = z();
       if (l) {
         const s = l.getAttribute("tabindex");
         l.setAttribute("tabindex", "-1"), l.focus({ preventScroll: !0 }), s === null ? l.removeAttribute("tabindex") : l.setAttribute("tabindex", s);
@@ -612,7 +620,7 @@ async function q() {
   };
   a.hooks.on("visit:fail", n), a.hooks.on("visit:abort", n);
 }
-const C = () => q().catch((e) => {
+const C = () => K().catch((e) => {
   console.error("[ENV SD] Native navigation retained", e), O(), E("env.js").then(() => {
     [...document.scripts].some((t) => /const brand =/.test(t.textContent) && !/ENV SD/.test(t.textContent)) || h();
   }).catch((t) => console.error("[ENV SD] Widget fallback failed", t));

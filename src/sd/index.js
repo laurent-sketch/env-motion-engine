@@ -2,7 +2,7 @@ import Swup from 'swup';
 import ScrollPlugin from '@swup/scroll-plugin';
 import config from './interactions.json';
 import routes from './routes.json';
-import { wrap, validate } from './layout.js';
+import { wrap, validate, syncMenuVariants } from './layout.js';
 
 // Experimental, restricted to the audited Home/Work exports. No fetched JS eval.
 const base = new URL(import.meta.url);
@@ -25,6 +25,7 @@ function script(name, again = false) {
   });
 }
 function metadata(doc) {
+  syncMenuVariants(document, doc);
   const liveLinks = [...document.querySelectorAll('.navbar-logo-center a[href]')];
   const nextLinks = [...doc.querySelectorAll('.navbar-logo-center a[href]')];
   liveLinks.forEach((link, i) => { if (nextLinks[i]) link.setAttribute('href', nextLinks[i].getAttribute('href')); });

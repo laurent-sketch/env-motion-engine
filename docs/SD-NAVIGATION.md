@@ -42,3 +42,5 @@ Remettre l'ancien bloc vidéo dans le head et l'ancien couple env.js + script de
 
 - https://swup.js.org/hooks/
 - https://swup.js.org/plugins/scroll-plugin/
+
+Le menu persistant reprend les variantes `.nav-link-sd.white` et `.dot-link.dark` de la page de destination à chaque navigation. Les éléments et leurs écouteurs restent en place ; le changement au scroll via `.is-past-hero` reste actif.
