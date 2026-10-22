@@ -43,6 +43,8 @@
 
   function start() {
     if (disposed) return;
+    const skipLateEntrance = document.documentElement.hasAttribute('data-env-sd-reveal-expired');
+    document.documentElement.removeAttribute('data-env-sd-reveal-expired');
     stop();
     if (media.matches) return;
     const gsap = window.gsap;
@@ -219,7 +221,10 @@
       if ((!scrub && seen.has(el)) || el.closest('[data-env-ignore], [data-env-news-clone], .w-slider, .swiper-initialized')) return;
       // Avoid compounded transforms/opacity on an animated ancestor and its text.
       if (el.parentElement?.closest('[data-env-reveal], [data-env-text]')) return;
-      if (!scrub && el.getBoundingClientRect().bottom > 0 && el.getBoundingClientRect().top < innerHeight) play(el);
+      const visible = el.getBoundingClientRect().bottom > 0 && el.getBoundingClientRect().top < innerHeight;
+      // A fail-open gate already showed this content: never hide it again on late startup.
+      if (skipLateEntrance && visible && !scrub) { seen.add(el); return; }
+      if (!scrub && visible) play(el);
       else if (scrub && ScrollTrigger) play(el, true);
       else {
         if (scrub) console.warn('[ENV Animations] ScrollTrigger unavailable; using a one-time reveal.', el);

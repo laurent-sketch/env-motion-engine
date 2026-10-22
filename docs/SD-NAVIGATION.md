@@ -20,8 +20,10 @@ Head preparation hides only reveal targets, leaving the menu and media/backgroun
 
 ## Validation
 
-64 automated tests and production build pass. Browser fixtures use the published HTML/CSS/fonts/images with a small local video to isolate lifecycle behavior; real video transfer performance and physical-phone touch behavior need separate verification. Installation alone does not rewrite incorrect authored links in Webflow: the persistent menu deliberately adopts those links from each destination.
+68 automated tests and production build pass. Browser fixtures use the published HTML/CSS/fonts/images with a small local video to isolate lifecycle behavior; real video transfer performance and physical-phone touch behavior need separate verification. Installation alone does not rewrite incorrect authored links in Webflow: the persistent menu deliberately adopts those links from each destination.
 
 ## Rollback
 
 Replace the global module loader with the former ENV/brand loader and remove Head boot preparation. Preserve the video interceptor if still wanted. Republish the site.
+
+The native-navigation fallback keeps the Head reveal gate until `env:animations-ready`. If initialization or the watchdog times out, visible reveal targets are shown once and skipped by a late entrance instead of being hidden again. Verified with a frame audit of the hero logo in normal and forced-fallback fixtures; neither was visible before animation preparation.

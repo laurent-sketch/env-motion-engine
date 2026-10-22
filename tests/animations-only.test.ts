@@ -274,3 +274,11 @@ it('starts at DOM readiness without waiting for images/window load', async () =>
   await setup('<h2 data-env-reveal="fade-up">Ready</h2>', false, 'interactive');
   expect(listener).toHaveBeenCalledOnce();
 });
+
+it('does not replay an above-fold entrance after the head watchdog already showed it', async () => {
+  document.documentElement.setAttribute('data-env-sd-reveal-expired', '');
+  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({ top: 20, bottom: 80, height: 60 } as DOMRect);
+  await setup('<h2 data-env-reveal="fade-up">Already visible</h2>');
+  expect(gsap.getTweensOf(document.querySelector('h2'))).toHaveLength(0);
+  expect(document.documentElement.hasAttribute('data-env-sd-reveal-expired')).toBe(false);
+});

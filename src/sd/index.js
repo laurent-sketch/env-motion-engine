@@ -2,6 +2,7 @@ import Swup from 'swup';
 import ScrollPlugin from '@swup/scroll-plugin';
 import config from './interactions.json';
 import routes from './routes.json';
+import { runFallback } from './boot.js';
 import { wrap, validate, syncMenuVariants, syncMenuImages } from './layout.js';
 
 // Experimental, restricted to the audited Home/Work exports. No fetched JS eval.
@@ -209,9 +210,9 @@ async function start() {
   swup.hooks.on('visit:abort', recover);
 }
 const boot = () => start().catch(error => {
-  console.error('[ENV SD] Native navigation retained', error); releaseBoot();
+  console.error('[ENV SD] Native navigation retained', error);
   // Still initialize ordinary widgets when the certified export has changed.
-  script('env.js').then(() => {
+  runFallback(() => script('env.js'), () => {
     if (![...document.scripts].some(s => /const brand =/.test(s.textContent) && !/ENV SD/.test(s.textContent))) menu();
   }).catch(error => console.error('[ENV SD] Widget fallback failed', error));
 });
