@@ -1,4 +1,5 @@
 import Swup from 'swup';
+import { installPreload } from './preload.js';
 import ScrollPlugin from '@swup/scroll-plugin';
 import config from './interactions.json';
 import routes from './routes.json';
@@ -14,7 +15,7 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const main = () => document.querySelector('main.main-wrapper');
 let cleanMenu = () => {}, newsObserver, busyAnimation;
 const loaded = new Set();
-const releaseBoot = () => document.documentElement.classList.remove('env-sd-boot');
+const releaseBoot = () => { document.documentElement.classList.remove('env-sd-boot'); window.dispatchEvent(new Event('env:sd-ready')); };
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 function script(name, again = false) {
   if (!again && loaded.has(name)) return Promise.resolve();
@@ -154,12 +155,13 @@ async function start() {
       requestAnimationFrame(function frame(time) { window.lenis?.raf(time); requestAnimationFrame(frame); });
     } catch (error) { console.warn('[ENV SD] Native scroll retained', error); }
   }
-  const swup = new Swup({ containers: ['#env-sd-page'], animationSelector: false, cache: false,
+  const swup = new Swup({ containers: ['#env-sd-page'], animationSelector: false, cache: window.ENVSDPreload === true,
     plugins: [new ScrollPlugin({ animateScroll: false })],
     linkSelector: 'a[href]:not([download]):not([target]):not([data-no-swup])',
     ignoreVisit: (url, { el } = {}) => { const u = new URL(url, location.href); return u.origin !== location.origin || /\.(?:pdf|zip|png|jpe?g|webp|svg|mp4|webm|css|js)$/i.test(u.pathname) || !!el?.closest('[data-no-swup]'); }
   });
   window.ENVSD = { swup, status: 'ready' };
+  if (window.ENVSDPreload === true) window.ENVSD.stopPreload = installPreload(swup);
   document.documentElement.setAttribute('data-env-sd-document', crypto.randomUUID());
   // Swup normally clones containers; moving them preserves staged video sources.
   swup.replaceContent = visit => {
@@ -220,7 +222,7 @@ const boot = () => start().catch(error => {
   // Still initialize ordinary widgets when the certified export has changed.
   runFallback(() => script('env.js'), () => {
     if (![...document.scripts].some(s => /const brand =/.test(s.textContent) && !/ENV SD/.test(s.textContent))) menu();
-  }).catch(error => console.error('[ENV SD] Widget fallback failed', error));
+  }).catch(error => console.error('[ENV SD] Widget fallback failed', error)).finally(releaseBoot);
 });
 // Webflow's ready queue waits for its modules/DOM, not every image and video.
 window.Webflow = window.Webflow || [];
