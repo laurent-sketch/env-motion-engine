@@ -139,3 +139,17 @@ it('recognizes the published root Home identity and retains its runtime checks',
   doc.documentElement.setAttribute('data-wf-page', 'wrong-root');
   expect(() => validate(doc, '/')).toThrow('Uncertified');
 });
+
+it('accepts publication-specific runtime rotation while retaining audited core, site and dependency checks', () => {
+  const doc = fixture('/work-v1');
+  const scripts = [...doc.scripts];
+  scripts.at(-1)!.src = `https://cdn.prod.website-files.com/${routes['/work-v1'].site}/js/webflow.new-publish.js`;
+  expect(() => validate(doc, '/work-v1')).toThrow('export changed');
+  const result = validate(doc, '/work-v1', undefined, { refreshRuntime: true, gsapScripts: [] });
+  expect(result.runtimeChanged).toBe(true);
+  expect(result.bootstrap).toContain('webflow.new-publish.js');
+  const extra = doc.createElement('script'); extra.src = 'https://cdn.prod.website-files.com/gsap/3.15.0/Unknown.js'; doc.body.append(extra);
+  expect(() => validate(doc, '/work-v1', undefined, { refreshRuntime: true, gsapScripts: [] })).toThrow('New GSAP dependency');
+  extra.remove(); scripts[0].remove();
+  expect(() => validate(doc, '/work-v1', undefined, { refreshRuntime: true })).toThrow('shared core changed');
+});

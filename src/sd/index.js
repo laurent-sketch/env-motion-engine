@@ -133,8 +133,22 @@ async function start() {
   // A CSS-only Webflow publish changes the URL without changing the audited JS runtime.
   // Use the styles actually loaded in this document as the navigation compatibility baseline.
   const activeSheets = [...document.querySelectorAll('link[rel="stylesheet"]')].map(el => el.getAttribute('href'));
-  const profile = validate(document, path(), activeSheets);
-  if (!runtime.require('slider')?.ready) {
+  const gsapScripts = [...document.scripts].map(el => el.src).filter(url => url.includes('/gsap/'));
+  const profile = validate(document, path(), activeSheets, { refreshRuntime: true, gsapScripts });
+  let configModule;
+  const configuration = async record => {
+    if (!record.runtimeChanged) return config;
+    configModule ||= import('./runtime-config.js');
+    return (await configModule).runtimeConfig(record.dataScripts || record.bootstrap, record.site);
+  };
+  const warmPage = html => {
+    const urls = [...html.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["']/gi)].map(match => match[1]);
+    const bootstrap = urls.find(url => /\/js\/webflow\.(?![sa]chunk\.)[^/]+\.js$/.test(url));
+    if (!bootstrap || Object.values(routes).some(record => record.scripts.includes(bootstrap))) return;
+    return configuration({ runtimeChanged: true, bootstrap, dataScripts: urls.filter(url => url.includes('/js/webflow.')).slice(2), site: profile.site });
+  };
+  const ensureSlider = async () => {
+    if (runtime.require('slider')?.ready) return;
     const slider = routes['/home-sd'].slider;
     await script(slider.script);
     let registered = false;
@@ -142,29 +156,26 @@ async function start() {
     // Loading Work's bootstrap alone does not call this optional factory.
     window.webpackChunk.push([[`env-sd-slider-${Date.now()}`], {}, require => { require(slider.factory); registered = true; }]);
     if (!registered || !runtime.require('slider')?.ready) throw Error('Audited slider factory unavailable');
-  }
+  };
   native = ['slider', 'navbar', 'dropdown', 'tabs'].map(name => runtime.require(name)).filter(Boolean);
   wrap(document);
   gradient = installGradient();
   document.head.querySelectorAll('style').forEach(el => { if (profile.styles.includes(el.textContent)) el.dataset.envSdPageStyle = ''; });
   await window.ENVSDLoader?.prepare?.();
-  await mount(); releaseBoot();
+  await mount();
   // Keep the menu DOM and do not replay its initial reveal on later visits.
   document.querySelector('.navbar-logo-center')?.setAttribute('data-env-ignore', '');
-  if (!window.lenis && !reduced.matches) {
-    try {
-      await script('https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js');
-      window.lenis = new window.Lenis({ duration: 1.2, smoothWheel: true, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
-      requestAnimationFrame(function frame(time) { window.lenis?.raf(time); requestAnimationFrame(frame); });
-    } catch (error) { console.warn('[ENV SD] Native scroll retained', error); }
-  }
   const swup = new Swup({ containers: ['#env-sd-page'], animationSelector: false, cache: window.ENVSDPreload === true,
     plugins: [new ScrollPlugin({ animateScroll: false })],
     linkSelector: 'a[href]:not([download]):not([target]):not([data-no-swup])',
     ignoreVisit: (url, { el } = {}) => { const u = new URL(url, location.href); return u.origin !== location.origin || /\.(?:pdf|zip|png|jpe?g|webp|svg|mp4|webm|css|js)$/i.test(u.pathname) || !!el?.closest('[data-no-swup]'); }
   });
   window.ENVSD = { swup, status: 'ready' };
-  if (window.ENVSDPreload === true) window.ENVSD.stopPreload = installPreload(swup);
+  if (window.ENVSDPreload === true) {
+    window.ENVSD.stopPreload = installPreload(swup, { warmPage });
+    // Warm the already-loaded entry export too; sibling pages often share its data chunk.
+    void configuration(profile).catch(() => {});
+  }
   document.documentElement.setAttribute('data-env-sd-document', crypto.randomUUID());
   // Swup normally clones containers; moving them preserves staged video sources.
   swup.replaceContent = visit => {
@@ -180,10 +191,14 @@ async function start() {
   swup.hooks.replace('content:replace', async (visit, args, replace) => {
     const doc = visit.to.document;
     if (!doc || !replace) throw Error('Missing incoming page');
-    validate(doc, new URL(visit.to.url, location.href).pathname, activeSheets);
+    const record = validate(doc, new URL(visit.to.url, location.href).pathname, activeSheets, { refreshRuntime: true, gsapScripts });
+    const incomingConfig = await configuration(record);
     if (doc.querySelectorAll('.navbar-logo-center a[href]').length !== document.querySelectorAll('.navbar-logo-center a[href]').length) throw Error('Menu structure changed');
     const next = wrap(doc); next.classList.add('env-sd-pending');
-    if (next.querySelector('.w-slider') && !runtime.require('slider')?.ready) throw Error('Slider runtime unavailable; native visit required');
+    if (next.querySelector('.w-slider') && !runtime.require('slider')?.ready) {
+      await ensureSlider();
+      const slider = runtime.require('slider'); if (!native.includes(slider)) native.push(slider);
+    }
     window.lenis?.stop();
     unmount(); native.forEach(module => module.destroy?.()); ix2.destroy(); ix3.destroy();
     busyAnimation?.cancel();
@@ -191,10 +206,10 @@ async function start() {
     metadata(doc);
     gradient.prepare();
     native.forEach(module => module.ready?.());
-    ix2.init(config.ix2);
+    ix2.init(incomingConfig.ix2);
     await Promise.race([ix3.ready(), wait(4000).then(() => { throw Error('Webflow interaction restart timeout'); })]);
     const instance = ix3.getInstance(); if (!instance) throw Error('Webflow interactions did not restart');
-    instance.setFeatures({ timelineGroups: false }); instance.register(config.interactions, config.timelines);
+    instance.setFeatures({ timelineGroups: false }); instance.register(incomingConfig.interactions, incomingConfig.timelines);
     document.documentElement.classList.add('w-mod-ix3');
 
   });
@@ -221,6 +236,17 @@ async function start() {
   const recover = () => { gradient?.refresh(); releaseBoot(); window.lenis?.start(); busyAnimation?.cancel(); document.querySelector('#env-sd-page')?.classList.remove('env-sd-pending'); };
   swup.hooks.on('visit:fail', recover);
   swup.hooks.on('visit:abort', recover);
+  releaseBoot();
+  // Optional smooth scrolling must not hold menu interception or the initial loader.
+  void (async () => {
+  if (!window.lenis && !reduced.matches) {
+    try {
+      await script('https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js');
+      window.lenis = new window.Lenis({ duration: 1.2, smoothWheel: true, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+      requestAnimationFrame(function frame(time) { window.lenis?.raf(time); requestAnimationFrame(frame); });
+    } catch (error) { console.warn('[ENV SD] Native scroll retained', error); }
+  }
+  })();
 }
 const boot = () => start().catch(error => {
   console.error('[ENV SD] Native navigation retained', error);

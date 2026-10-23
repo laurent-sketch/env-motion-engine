@@ -10,12 +10,18 @@ export function wrap(doc) {
   if (footer) root.append(footer);
   return root;
 }
-export function validate(doc, pathname, expectedSheets) {
+export function validate(doc, pathname, expectedSheets, { refreshRuntime = false, gsapScripts } = {}) {
   const scripts = [...doc.scripts].map(s => s.getAttribute('src')).filter(s => s?.includes('/js/webflow.'));
   const known = routes[pathname];
-  const record = known || Object.values(routes).find(r => JSON.stringify(r.scripts) === JSON.stringify(scripts));
+  const record = known || Object.values(routes).find(r => JSON.stringify(r.scripts) === JSON.stringify(scripts)) || (refreshRuntime ? routes['/home-sd'] : undefined);
   if (!record || doc.documentElement.getAttribute('data-wf-site') !== record.site || !doc.documentElement.getAttribute('data-wf-page') || (known && doc.documentElement.getAttribute('data-wf-page') !== known.page)) throw Error('Uncertified page');
-  if (JSON.stringify(scripts) !== JSON.stringify(record.scripts)) throw Error('Webflow export changed; rebuild SD snapshots');
+  const runtimeChanged = JSON.stringify(scripts) !== JSON.stringify(record.scripts);
+  if (runtimeChanged && !refreshRuntime) throw Error('Webflow export changed; rebuild SD snapshots');
+  // Keep the audited shared core; publication-specific chunks/bootstrap may rotate.
+  if (runtimeChanged && !record.scripts.slice(0, 2).every(url => scripts.includes(url))) throw Error('Webflow shared core changed');
+  const bootstrap = scripts.find(url => /\/js\/webflow\.(?![sa]chunk\.)[^/]+\.js$/.test(url));
+  if (runtimeChanged && !bootstrap) throw Error('Missing Webflow data bootstrap');
+  if (gsapScripts && [...doc.scripts].map(s => s.src).filter(url => url.includes('/gsap/')).some(url => !gsapScripts.includes(url))) throw Error('New GSAP dependency requires native navigation');
   if (!doc.querySelector('.navbar-logo-center') || !doc.querySelector('body > main.main-wrapper, #env-sd-page > main.main-wrapper')) throw Error('Page needs the shared SD menu and main wrapper');
   const sheets = [...doc.querySelectorAll('link[rel="stylesheet"]')].map(e => e.getAttribute('href'));
   if (!(expectedSheets || record.sheets).every(s => sheets.includes(s)) || (expectedSheets && sheets.length !== expectedSheets.length)) throw Error('Stylesheets changed');
@@ -27,7 +33,7 @@ export function validate(doc, pathname, expectedSheets) {
     if (!/w-mod-|google_tags_first_party|dataLayer|ENV Videos|ENV SD|const brand =|ENVSite/.test(s.textContent)) throw Error('Additional inline script needs an adapter');
   }
   if (doc.querySelector('.w-form,[data-animation-type="spline"]')) throw Error('Unsupported page widget');
-  return record;
+  return refreshRuntime ? { ...record, runtimeChanged, bootstrap, dataScripts: scripts.slice(2) } : record;
 }
 
 // Keep the persistent menu nodes/listeners, but adopt the destination color variants.

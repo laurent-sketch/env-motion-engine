@@ -1,5 +1,5 @@
 // Opt-in, document-local HTML cache. Never parse or execute prefetched pages.
-export function installPreload(swup, { doc = document, win = window, fetchHTML = fetch, now = Date.now, ttl = 300000, limit = 8, delay = 1200 } = {}) {
+export function installPreload(swup, { doc = document, win = window, fetchHTML = fetch, now = Date.now, ttl = 300000, limit = 8, delay = 1200, warmPage } = {}) {
   const stamps = new Map(), pending = new Map(), abort = new AbortController();
   let timer, busy = false, stopped = false;
   const connection = win.navigator.connection;
@@ -31,7 +31,10 @@ export function installPreload(swup, { doc = document, win = window, fetchHTML =
         const final = new URL(response.url || url, win.location.href);
         if (final.origin !== win.location.origin || final.pathname !== url || final.search) return;
         const html = await response.text();
-        if (!stopped && html && html.length < 1000000) swup.cache.set(url, { url, html });
+        if (!stopped && html && html.length < 1000000) {
+          swup.cache.set(url, { url, html });
+          if (warmPage) void Promise.resolve().then(() => warmPage(html)).catch(() => {});
+        }
       } catch { /* An optional preload failure must never interrupt a real visit. */ }
       finally { win.clearTimeout(timeout); pending.delete(url); }
     })();

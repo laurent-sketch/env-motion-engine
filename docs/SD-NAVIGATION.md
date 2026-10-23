@@ -8,7 +8,7 @@ The engine now considers every same-origin page link, with no Home/Work pathname
 
 Pages need `.navbar-logo-center` with matching link/image structure and a direct `body > main.main-wrapper`. The optional direct `.section.footer` joins the replacement container automatically. No manual Swup wrapper is required. Pages copied from this structure can use arbitrary paths, including nested project paths, as long as their Webflow runtime matches a verified profile. Page-specific styles, body class, page ID, metadata and title follow the destination.
 
-The currently verified exports are `/home-sd`, `/home-sd-v2`, `/work-v2`, `/work-v1` , `/project-page`, `/about` and `/press`. Their IX2/IX3 data are identical; `scripts/snapshot-sd.mjs` verifies this before updating snapshots. Unknown paths are accepted by matching the shared runtime and site, not by their name. Changed runtime exports or interaction payloads require a new snapshot/build. The audited optional native slider factory is registered if the entry page omitted it; this uses Webflow internals and must be checked after Webflow runtime updates.
+The currently verified exports are `/home-sd`, `/home-sd-v2`, `/work-v2`, `/work-v1` , `/project-page`, `/about` and `/press`. Their audited interaction data are merged by `scripts/snapshot-sd.mjs`, retaining page-scoped additions. Unknown paths are accepted by matching the shared runtime and site, not by their name. Publication-specific exports and interaction payloads can refresh as described below. Changes to the shared runtime still require a new snapshot/build. The audited optional native slider factory is registered if the entry page omitted it; this uses Webflow internals and must be checked after Webflow runtime updates.
 
 ## Pages requiring adaptation
 
@@ -56,3 +56,14 @@ Install by replacing only the global Footer module pin; the Head/loader/video bl
 
 
 Runtime snapshot updates accept page-scoped IX3 additions when the IX2 runtime remains identical. `scripts/merge-sd-configs.mjs` deduplicates common interaction/timeline IDs, retains the original page scopes, accepts extra interactions only for known audited page IDs, and rejects conflicting definitions or missing timelines. On 23 October the current Work V1 export added a scoped native text-color interaction; it stays limited to Work rather than preventing the refreshed Home runtime from booting.
+
+
+## First-click navigation and Webflow republishes
+
+A normal publication may rotate the page bootstrap and the shared chunk containing interaction data. These filenames no longer disable Swup when the first two audited core scripts, site identity, loaded stylesheets and GSAP dependencies remain compatible. The engine reads IX2/IX3 configuration literals from the incoming official site export, using a lazy data parser; it never evaluates downloaded page JavaScript. Calls, getters and unsafe property keys in configuration data are rejected. Requests are restricted to the site's immutable HTTPS Webflow CDN assets, bounded by time and size, and shared by asset URL across pages.
+
+With the existing `ENVSDPreload` option enabled, current-page configuration is warmed without blocking startup. Menu HTML preloads also warm destination configuration in the background. HTML is cached before configuration preparation finishes, and prefetch never inserts page media or executes scripts. The parser is a separate ~42 KB gzip chunk, fetched only when a publication has changed since the bundled snapshot. Previously audited exports retain the bundled path.
+
+Menu interception and its hooks are installed before releasing the initial loader. Optional Lenis loading no longer holds them up. The audited native slider factory is requested only when entering a page that actually has a native slider, rather than during every Work/About startup.
+
+New shared core/GSAP dependencies, incompatible styles/layout/widgets or invalid data still use native navigation. A cold connection can still delay destination readiness; this fix removes the unintended full-document reload and warms the small number of menu destinations rather than downloading every page/media asset. The existing global Head stays unchanged; replace the Footer module pin only. Rollback pin: `1ca0876790794968cd966c74d1fbe2f23a827628`.

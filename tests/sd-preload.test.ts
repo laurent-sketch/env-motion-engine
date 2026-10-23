@@ -39,3 +39,14 @@ it('reuses a pending preload when the user clicks and expires cache entries', as
   await vi.advanceTimersByTimeAsync(101); await emit('page:load', { to: { url: '/press' }, cache: { read: true } });
   expect(pages.has('/press')).toBe(false); stop();
 });
+
+it('warms configuration without blocking cached HTML or subsequent menu preloads', async () => {
+  vi.useFakeTimers(); document.body.innerHTML = '<nav class="navbar-logo-center"><a class="nav-link-sd" href="/work">Work</a><a class="nav-link-sd" href="/about">About</a></nav>';
+  const { swup, pages } = fixture();
+  const fetchHTML = vi.fn(async () => ({ ok: true, headers: new Headers({ 'content-type': 'text/html' }), text: async () => '<html>ready</html>' }));
+  const warmPage = vi.fn(() => new Promise(() => {}));
+  const stop = installPreload(swup, { fetchHTML, warmPage });
+  await vi.advanceTimersByTimeAsync(1200);
+  expect(pages.has('/work')).toBe(true); expect(pages.has('/about')).toBe(true);
+  expect(warmPage).toHaveBeenCalledTimes(2); stop();
+});
