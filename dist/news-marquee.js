@@ -9,13 +9,14 @@
   };
   function mount(root) {
     if (instances.has(root)) return;
-    if (root.swiper && !root.swiper.destroyed) {
+    const track = root.querySelector(':scope > .swiper-wrapper-news, :scope > .w-dyn-list > .swiper-wrapper-news');
+    if ([root, track?.parentElement].some(el => el?.swiper && !el.swiper.destroyed)) {
       console.warn('[ENV News] Disable the Swiper initializer on this container first.'); return;
     }
-    const track = root.querySelector(':scope > .swiper-wrapper-news');
     const cards = track ? [...track.children].filter(el => el.matches('.swiper-slide-news')) : [];
     if (!track || !cards.length) return;
     const abort = new AbortController(), preference = matchMedia('(prefers-reduced-motion: reduce)');
+    const hoverDevice = matchMedia('(hover: hover) and (pointer: fine)');
     const saved = [root, track, ...cards].map(el => [el, el.getAttribute('style')]);
     const oldTab = root.getAttribute('tabindex');
     const speed = num(root, 'data-env-news-speed', 25, 0, 200);
@@ -26,6 +27,9 @@
     let raf = 0, last = 0, visible = true, hover = false, focused = false;
     let pointer = null, dragging = false, suppressClick = false, destroyed = false;
     Object.assign(root.style, { margin: '0', padding: '0', overflow: 'hidden', touchAction: 'pan-y pinch-zoom', cursor: 'grab' });
+    root.style.setProperty('-webkit-user-select', 'none');
+    root.style.setProperty('user-select', 'none');
+    root.style.setProperty('-webkit-touch-callout', 'none');
     if (getComputedStyle(root).position === 'static') root.style.position = 'relative';
     Object.assign(track.style, { margin: '0', padding: '0', display: 'flex', flexWrap: 'nowrap', width: 'max-content', maxWidth: 'none', transition: 'none', willChange: 'transform' });
     track.style.columnGap = `${gap}px`;
@@ -75,9 +79,9 @@
       raf = 0;
       if (destroyed || !visible || document.hidden || !period) { last = 0; return; }
       const dt = last ? Math.min((time - last) / 1000, .05) : 0; last = time;
-      const desired = !preference.matches && !hover && !focused && !dragging ? 1 : 0;
+      const desired = !preference.matches && !hover && !focused && !pointer ? 1 : 0;
       rate += (desired - rate) * (1 - Math.exp(-(desired ? 4 : 7) * dt));
-      if (!dragging) target += speed * rate * dt;
+      if (!pointer) target += speed * rate * dt;
       position += (target - position) * (1 - Math.exp(-damping * dt));
       if (Math.abs(target - position) < .01) position = target;
       if (!pointer && Math.abs(position) > period * 100) { const shift = Math.floor(position / period) * period; position -= shift; target -= shift; }
@@ -86,7 +90,7 @@
     }
     function wake() { if (!raf && !destroyed && visible && !document.hidden) raf = requestAnimationFrame(tick); }
     const on = (type, fn, options = {}) => root.addEventListener(type, fn, { ...options, signal: abort.signal });
-    on('mouseenter', () => { hover = true; wake(); }); on('mouseleave', () => { hover = false; wake(); });
+    on('mouseenter', () => { if (hoverDevice.matches) { hover = true; wake(); } }); on('mouseleave', () => { hover = false; wake(); });
     on('focusin', event => {
       focused = !pointer;
       const index = cards.findIndex(card => card.contains(event.target));
@@ -94,29 +98,64 @@
       wake();
     });
     on('focusout', event => { if (!root.contains(event.relatedTarget)) { focused = false; wake(); } });
-    on('pointerdown', event => {
-      if (!event.isPrimary || event.button !== 0 || event.target.closest('button,input,select,textarea')) return;
-      pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, target }; dragging = false; suppressClick = false;
-    });
-    on('pointermove', event => {
-      if (!pointer || pointer.id !== event.pointerId) return;
-      const dx = event.clientX - pointer.x, dy = event.clientY - pointer.y;
-      if (!dragging) {
-        if (Math.max(Math.abs(dx), Math.abs(dy)) < 6) return;
-        if (event.pointerType === 'touch' && Math.abs(dy) > Math.abs(dx)) { pointer = null; return; }
-        dragging = true; suppressClick = true; root.setPointerCapture(event.pointerId); root.style.cursor = 'grabbing';
-      }
-      event.preventDefault(); target = pointer.target - dx;
-      if (preference.matches) position = target; render(); wake();
-    });
-    function release(event) {
-      if (!pointer || pointer.id !== event.pointerId) return;
-      pointer = null; dragging = false; root.style.cursor = 'grab';
-      if (root.hasPointerCapture(event.pointerId)) root.releasePointerCapture(event.pointerId);
+    const control = target => target.closest?.('button,input,select,textarea');
+    function begin(id, x, y, kind) {
+      pointer = { id, x, y, kind, target }; dragging = false; suppressClick = false;
+      if (kind === 'touch') hover = false;
       wake();
     }
+    function move(event, x, y) {
+      if (!pointer) return;
+      const dx = x - pointer.x, dy = y - pointer.y;
+      if (!dragging) {
+        if (Math.max(Math.abs(dx), Math.abs(dy)) < 6) return;
+        if (pointer.kind === 'touch' && Math.abs(dy) > Math.abs(dx)) { pointer = null; wake(); return; }
+        dragging = true; suppressClick = true; root.style.cursor = 'grabbing';
+        if (pointer.kind !== 'touch') {
+          try { root.setPointerCapture(pointer.id); } catch (_) { /* Pointer may already have ended. */ }
+        }
+      }
+      if (event.cancelable) event.preventDefault();
+      target = pointer.target - dx;
+      // Follow the finger immediately; retain desktop damping and autoplay easing.
+      if (pointer.kind === 'touch' || preference.matches) position = target;
+      render(); wake();
+    }
+    function finish() {
+      if (!pointer) return;
+      const old = pointer;
+      pointer = null; dragging = false; root.style.cursor = 'grab';
+      if (old.kind !== 'touch' && root.hasPointerCapture(old.id)) root.releasePointerCapture(old.id);
+      wake();
+    }
+    on('pointerdown', event => {
+      // Touch Events own the touch stream; do not process the same finger twice.
+      if (event.pointerType === 'touch' || !event.isPrimary || event.button !== 0 || control(event.target)) return;
+      begin(event.pointerId, event.clientX, event.clientY, 'pointer');
+    });
+    on('pointermove', event => {
+      if (pointer?.kind !== 'pointer' || pointer.id !== event.pointerId) return;
+      move(event, event.clientX, event.clientY);
+    }, { passive: false });
+    const release = event => { if (pointer?.kind === 'pointer' && pointer.id === event.pointerId) finish(); };
     ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(type => on(type, release));
     document.addEventListener('pointerup', release, { signal: abort.signal });
+    on('touchstart', event => {
+      if (event.touches.length !== 1) { finish(); return; }
+      if (control(event.target)) return;
+      const touch = event.touches[0];
+      begin(touch.identifier, touch.clientX, touch.clientY, 'touch');
+    }, { passive: true });
+    on('touchmove', event => {
+      if (pointer?.kind !== 'touch') return;
+      if (event.touches.length !== 1) { finish(); return; }
+      const touch = Array.from(event.touches).find(t => t.identifier === pointer.id);
+      if (touch) move(event, touch.clientX, touch.clientY);
+    }, { passive: false });
+    const releaseTouch = event => {
+      if (pointer?.kind === 'touch' && Array.from(event.changedTouches).some(t => t.identifier === pointer.id)) finish();
+    };
+    ['touchend', 'touchcancel'].forEach(type => on(type, releaseTouch));
     on('dragstart', event => event.preventDefault());
     on('click', event => {
       if (!suppressClick || event.detail === 0) return;

@@ -56,3 +56,8 @@ Le pilote peut activer Home ↔ About avec `navigation: true`, après mise à jo
 ## Animations Webflow et stagger d'éléments
 
 Le chargeur global et les reveals autonomes sont documentés dans [GLOBAL-LOADER.md](docs/GLOBAL-LOADER.md) et [ANIMATIONS-ONLY.md](docs/ANIMATIONS-ONLY.md). Pour animer les enfants directs d'un bloc, placer `data-env-reveal="fade-scale"` (ou `fade-up`) et `data-env-stagger="0.1"` sur le parent. `data-env-delay` décale la séquence et `data-env-duration` règle la durée par enfant. Sans stagger, le comportement existant du parent est conservé. Les exemples, exclusions, unités et règles de mise à jour du lien CDN sont détaillés dans la documentation des animations.
+
+
+## SD Home / Work — navigation expérimentale
+
+La navigation à menu persistant sur `/home-sd` et `/work-v2` est décrite dans [SD-NAVIGATION.md](docs/SD-NAVIGATION.md). Elle utilise `sd-navigation.js` et un head inline spécifique ; ne pas l'ajouter en parallèle de l'ancien loader sur ces routes. Les autres routes restent natives.

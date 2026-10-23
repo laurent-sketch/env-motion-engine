@@ -29,7 +29,8 @@
     return cssPromise;
   }
   function stop(record) {
-    record.cleanup?.(); record.cleanup = undefined; record.mode = null;
+    record.cleanup?.(); record.cleanup = undefined;
+    record.layoutCleanup?.(); record.layoutCleanup = undefined; record.mode = null;
   }
   async function select(root, record, force = false) {
     const mode = root.getAttribute('data-env-news');
@@ -37,9 +38,20 @@
     const revision = ++record.revision;
     stop(record);
     if (!['swiper', 'marquee'].includes(mode)) return;
+    const track = root.querySelector(':scope > .swiper-wrapper-news, :scope > .w-dyn-list > .swiper-wrapper-news');
+    const host = track?.parentElement;
+    // Empty CMS collections keep their authored empty state.
+    if (!track || ![...track.children].some(el => el.matches('.swiper-slide-news'))) return;
     // A stale external initializer must not compete with the selected engine.
-    if (root.swiper && !root.swiper.destroyed) {
+    if ([root, host].some(el => el?.swiper && !el.swiper.destroyed)) {
       console.warn('[ENV News] Remove the old News Swiper initializer before using this loader.', root); return;
+    }
+    if (root.getAttribute('data-env-news-layout') === 'alternating') {
+      const shapes = ['big-square', 'small-square', 'landscape'];
+      const cards = [...track.children].filter(el => el.matches('.swiper-slide-news:not([data-env-news-clone])'));
+      const authored = cards.map(el => [el, el.getAttribute('data-env-news-shape')]);
+      cards.forEach((el, i) => el.setAttribute('data-env-news-shape', shapes[i % shapes.length]));
+      record.layoutCleanup = () => authored.forEach(([el, value]) => value === null ? el.removeAttribute('data-env-news-shape') : el.setAttribute('data-env-news-shape', value));
     }
     try {
       if (mode === 'marquee') {
@@ -53,9 +65,10 @@
         if (disposed || revision !== record.revision) return;
         if (!window.Swiper) throw new Error('Swiper unavailable');
         const section = root.closest('section') || root.parentElement;
-        const nodes = [root, root.querySelector(':scope > .swiper-wrapper-news'), ...root.querySelectorAll('.swiper-slide-news')].filter(Boolean);
+        const nodes = [...new Set([root, host, track, ...track.children].filter(Boolean))];
         const styles = nodes.map(el => [el, el.getAttribute('style')]);
-        const instance = new window.Swiper(root, {
+        if (host !== root) Object.assign(host.style, { position: 'relative', minWidth: '0', width: '100%', touchAction: 'pan-y' });
+        const instance = new window.Swiper(host, {
           wrapperClass: 'swiper-wrapper-news', slideClass: 'swiper-slide-news',
           slidesPerView: 'auto', slidesPerGroup: 1,
           spaceBetween: number(root, 'data-env-news-gap', 16, 0, 200),
@@ -79,14 +92,25 @@
     if (disposed) return;
     if (!document.querySelector('style[data-env-news-base]')) {
       const el = document.createElement('style'); el.setAttribute('data-env-news-base', '');
-      el.textContent = '.swiper-news[data-env-news]{margin:0;padding:0}.swiper-news[data-env-news]>.swiper-wrapper-news{margin:0;padding:0}.swiper-news[data-env-news="swiper"]{position:relative;overflow:hidden;min-width:0;touch-action:pan-y}.swiper-news[data-env-news="swiper"]>.swiper-wrapper-news{position:relative;display:flex;flex-wrap:nowrap;width:100%;box-sizing:content-box;transition-property:transform;gap:0}.swiper-news[data-env-news="swiper"]>.swiper-wrapper-news>.swiper-slide-news{position:relative;flex-shrink:0;box-sizing:border-box}.swiper-news[data-env-news="swiper"] .swiper-navigation-icon{display:none}';
+      el.textContent = '.swiper-news[data-env-news]{margin:0;padding:0}.swiper-news[data-env-news] .swiper-wrapper-news{margin:0;padding:0}.swiper-news[data-env-news="swiper"]{position:relative;overflow:hidden;min-width:0;touch-action:pan-y}.swiper-news[data-env-news="swiper"] .swiper-wrapper-news{position:relative;display:flex;flex-wrap:nowrap;width:100%;box-sizing:content-box;transition-property:transform;gap:0}.swiper-news[data-env-news="swiper"] .swiper-wrapper-news>.swiper-slide-news{position:relative;flex-shrink:0;box-sizing:border-box}.swiper-news[data-env-news="swiper"] .swiper-navigation-icon{display:none}';
+      el.textContent += `
+.swiper-news[data-env-news-layout="alternating"]{--env-news-big:420px;--env-news-small:320px;--env-news-landscape:775.111px}
+.swiper-news[data-env-news-layout="alternating"] .swiper-slide-news[data-env-news-shape]{width:var(--env-news-width);flex-shrink:0}
+.swiper-news[data-env-news-layout="alternating"] [data-env-news-shape="big-square"]{--env-news-width:var(--env-news-big);--env-news-ratio:1}
+.swiper-news[data-env-news-layout="alternating"] [data-env-news-shape="small-square"]{--env-news-width:var(--env-news-small);--env-news-ratio:1}
+.swiper-news[data-env-news-layout="alternating"] [data-env-news-shape="landscape"]{--env-news-width:var(--env-news-landscape);--env-news-ratio:16/9}
+.swiper-news[data-env-news-layout="alternating"] .swiper-slide-news[data-env-news-shape] .news-item{width:100%;min-width:0}
+.swiper-news[data-env-news-layout="alternating"] .swiper-slide-news[data-env-news-shape] .media-project-wrap{position:relative;width:100%;height:auto;aspect-ratio:var(--env-news-ratio);overflow:hidden;flex:none}
+.swiper-news[data-env-news-layout="alternating"] .swiper-slide-news[data-env-news-shape] .image-news{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+@media(max-width:767px){.swiper-news[data-env-news-layout="alternating"]{--env-news-big:85vw;--env-news-small:70vw;--env-news-landscape:92vw}}
+`;
       document.head.append(el);
     }
     document.querySelectorAll('.swiper-news').forEach(root => {
       if (records.has(root)) return;
       const record = { revision: 0, mode: null, cleanup: undefined, observer: undefined };
-      record.observer = new MutationObserver(() => select(root, record));
-      record.observer.observe(root, { attributes: true, attributeFilter: ['data-env-news'] });
+      record.observer = new MutationObserver(mutations => select(root, record, mutations.some(m => m.attributeName === 'data-env-news-layout')));
+      record.observer.observe(root, { attributes: true, attributeFilter: ['data-env-news', 'data-env-news-layout'] });
       records.set(root, record); select(root, record);
     });
   }

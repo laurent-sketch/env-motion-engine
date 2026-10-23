@@ -43,6 +43,8 @@
 
   function start() {
     if (disposed) return;
+    const skipLateEntrance = document.documentElement.hasAttribute('data-env-sd-reveal-expired');
+    document.documentElement.removeAttribute('data-env-sd-reveal-expired');
     stop();
     if (media.matches) return;
     const gsap = window.gsap;
@@ -219,7 +221,11 @@
       if ((!scrub && seen.has(el)) || el.closest('[data-env-ignore], [data-env-news-clone], .w-slider, .swiper-initialized')) return;
       // Avoid compounded transforms/opacity on an animated ancestor and its text.
       if (el.parentElement?.closest('[data-env-reveal], [data-env-text]')) return;
-      if (scrub && ScrollTrigger) play(el, true);
+      const visible = el.getBoundingClientRect().bottom > 0 && el.getBoundingClientRect().top < innerHeight;
+      // A fail-open gate already showed this content: never hide it again on late startup.
+      if (skipLateEntrance && visible && !scrub) { seen.add(el); return; }
+      if (!scrub && visible) play(el);
+      else if (scrub && ScrollTrigger) play(el, true);
       else {
         if (scrub) console.warn('[ENV Animations] ScrollTrigger unavailable; using a one-time reveal.', el);
         observer.observe(el);
@@ -228,8 +234,14 @@
   }
 
   function ready() {
-    const boot = () => { if (!disposed) start(); };
-    if (document.fonts?.ready) document.fonts.ready.then(boot, boot);
+    const boot = () => { if (!disposed) { start(); window.dispatchEvent(new Event('env:animations-ready')); } };
+    // Prefer loaded fonts for line splitting, but never hold the first reveal indefinitely.
+    if (document.fonts?.ready) {
+      let started = false;
+      const finish = () => { if (started) return; started = true; clearTimeout(timeout); boot(); };
+      const timeout = setTimeout(finish, 500);
+      document.fonts.ready.then(finish, finish);
+    }
     else boot();
   }
   window.ENVAnimations?.destroy?.();
@@ -239,10 +251,10 @@
       disposed = true;
       stop();
       media.removeEventListener('change', start);
-      window.removeEventListener('load', ready);
+      document.removeEventListener('DOMContentLoaded', ready);
     }
   };
   media.addEventListener('change', start);
-  if (document.readyState === 'complete') ready();
-  else window.addEventListener('load', ready, { once: true });
+  if (document.readyState !== 'loading') ready();
+  else document.addEventListener('DOMContentLoaded', ready, { once: true });
 })();

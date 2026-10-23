@@ -38,3 +38,11 @@ Loop clones are prepared at initialization, rather than appended when reaching t
 Use the matching current `animations.js` with `news-marquee.js` (automatically matched through the pinned `env.js` entry). Group reveals use native animation effects where supported, so cloning a card cannot copy temporary opacity/transform inline styles. Generated clones are excluded from group reveals. An old animations version paired with a new marquee version is not a supported fix for transient hidden copies.
 
 Verification: 53 unit tests including large positive/negative horizontal wheel deltas and clone media readiness; browser fixture with five variable-width cards, stagger on the track, and repeated forward/reverse horizontal scrolling. The production intermittent blank was not captured in a screenshot; these changes address the observed lazy clone media and copyable reveal-style races.
+
+## Mobile touch (23 October 2026)
+
+Touch uses a dedicated Touch Events stream, with an explicit non-passive `touchmove` listener. Horizontal drags follow the finger immediately and prevent the resulting accidental link click; ordinary taps still work. Vertical gestures and multiple fingers remain available to native scrolling/pinch zoom. Pointer Events handle mouse/pen, while touch Pointer Events are ignored to avoid duplicate input. A resting finger pauses autoplay. Emulated mouse hover on a coarse-pointer device no longer keeps autoplay paused. Desktop drag keeps the existing damping. The root prevents text selection and iOS long-press callouts during interaction; destroy restores its original inline style.
+
+Automated touch-stream regressions cover horizontal drag, vertical scroll handoff, ordinary taps, click suppression, pinch handoff, duplicate input and coarse-pointer hover. These do not replace verification on physical iPhone Safari/Chrome.
+
+Native Webflow CMS `.w-dyn-list > .swiper-wrapper-news` is supported alongside the original direct wrapper. Collection Items carry `.swiper-slide-news`; CMS nodes are not reparented. See NEWS-LOADER.md for the structure and pagination limits.

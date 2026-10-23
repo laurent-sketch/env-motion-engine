@@ -9,9 +9,9 @@ afterEach(() => {
   api()?.destroy();
   vi.restoreAllMocks(); vi.unstubAllGlobals(); document.body.replaceChildren();
 });
-async function setup(html: string, reduced = false) {
+async function setup(html: string, reduced = false, state = 'complete') {
   document.body.innerHTML = html;
-  vi.spyOn(document, 'readyState', 'get').mockReturnValue('complete');
+  vi.spyOn(document, 'readyState', 'get').mockReturnValue(state as DocumentReadyState);
   let change!: () => void;
   const media = { matches: reduced, addEventListener: vi.fn((_name, cb) => { change = cb; }), removeEventListener: vi.fn() };
   vi.stubGlobal('matchMedia', () => media);
@@ -266,4 +266,19 @@ it('uses non-inline group effects so loop copies do not inherit hidden slides', 
   expect((animations[1].animate.mock.calls[0] as unknown as [unknown, { delay: number }])[1].delay).toBe(400);
   api().destroy();
   expect(animations[0].animation.cancel).toHaveBeenCalled();
+});
+
+it('starts at DOM readiness without waiting for images/window load', async () => {
+  const listener = vi.fn();
+  window.addEventListener('env:animations-ready', listener, { once: true });
+  await setup('<h2 data-env-reveal="fade-up">Ready</h2>', false, 'interactive');
+  expect(listener).toHaveBeenCalledOnce();
+});
+
+it('does not replay an above-fold entrance after the head watchdog already showed it', async () => {
+  document.documentElement.setAttribute('data-env-sd-reveal-expired', '');
+  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({ top: 20, bottom: 80, height: 60 } as DOMRect);
+  await setup('<h2 data-env-reveal="fade-up">Already visible</h2>');
+  expect(gsap.getTweensOf(document.querySelector('h2'))).toHaveLength(0);
+  expect(document.documentElement.hasAttribute('data-env-sd-reveal-expired')).toBe(false);
 });
