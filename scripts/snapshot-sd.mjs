@@ -4,7 +4,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { extract } from './snapshot-pilot.mjs';
 const base = 'https://sd-env-2025-2e4590d75f1a2db700cfbb4c7c1.webflow.io';
 const routes = {}, configs = [];
-for (const path of ['/home-sd', '/work-v2', '/home-sd-v2', '/work-v1', '/project-page', '/about', '/press']) {
+for (const path of ['/', '/home-sd', '/work-v2', '/home-sd-v2', '/work-v1', '/project-page', '/about', '/press']) {
   const response = await fetch(base + path); if (!response.ok) throw Error(`Unable to fetch ${path}`);
   const doc = new JSDOM(await response.text()).window.document;
   const scripts = [...doc.scripts].map(s => s.src).filter(s => s.includes('/js/webflow.'));

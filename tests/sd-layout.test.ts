@@ -132,3 +132,10 @@ it('accepts CSS-only republishes against the active document while rejecting inc
   const extra = css.cloneNode(true) as HTMLLinkElement; extra.href = 'https://example.com/page-only.css'; doc.head.append(extra);
   expect(() => validate(doc, '/press', active)).toThrow('Stylesheets changed');
 });
+
+it('recognizes the published root Home identity and retains its runtime checks', () => {
+  const doc = fixture('/');
+  expect(() => validate(doc, '/')).not.toThrow();
+  doc.documentElement.setAttribute('data-wf-page', 'wrong-root');
+  expect(() => validate(doc, '/')).toThrow('Uncertified');
+});

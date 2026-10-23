@@ -26,3 +26,7 @@ Remove only the loader/preload Head addition. Restore the stable Footer URL pinn
 
 Automated coverage: bounded menu queue, duplicate/cache reuse, no media DOM creation, data saver, external/query exclusion, in-flight click reuse, expiry, first-load session marker, loader ready signal and timeout.
 Browser test on local copies of published exports: Home V2 preloads Work V1/About/Press once each; clicking Press sends no new HTML request and preserves the document/menu. Fixture videos are substituted; this validates cache behavior, not production media performance.
+
+## Published runtime refresh, 23 October
+
+The first live installation correctly included both snippets, but the current root Home used a newly published Webflow runtime and triggered `Uncertified page`. The snapshot now includes the root `/` explicitly and refreshed all eight published pages and their shared interaction payload. Startup normalizes the root to `/`. The loader Head snippet is unchanged; only the Footer pin needs updating. Actual current-export fixture check: root Home → Press reuses the cached HTML and preserves the document/menu, with no console error. Runtime checks remain strict after future native-interaction changes.

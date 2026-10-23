@@ -10,7 +10,7 @@ import { wrap, validate, syncMenuVariants, syncMenuImages } from './layout.js';
 // Shared SD layouts with verified runtime profiles. No fetched JS eval.
 const base = new URL(import.meta.url);
 base.pathname = base.pathname.replace(/[^/]*$/, '');
-const path = () => location.pathname.replace(/\/$/, '');
+const path = () => location.pathname.replace(/\/$/, '') || '/';
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const main = () => document.querySelector('main.main-wrapper');
 let cleanMenu = () => {}, newsObserver, busyAnimation;
