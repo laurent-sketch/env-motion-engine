@@ -8,7 +8,7 @@ After merging, pin the CDN URL to the merge commit. Place this after the site's 
 <script defer src="https://cdn.jsdelivr.net/gh/laurent-sketch/env-motion-engine@COMMIT/dist/animations.js"></script>
 ```
 
-Replace COMMIT with the full published commit hash. The script waits for load and fonts. Never add another GSAP instance if Webflow already provides it. Do not run this script alongside the pilot reveal module on the same attributed elements.
+Replace COMMIT with the full published commit hash. The script starts at DOM readiness and waits at most 500ms for fonts. Never add another GSAP instance if Webflow already provides it. Do not run this script alongside the pilot reveal module on the same attributed elements.
 
 | Webflow custom attribute | Value | Effect |
 | --- | --- | --- |
@@ -18,6 +18,8 @@ Replace COMMIT with the full published commit hash. The script waits for load an
 | `data-env-text-effect` | `fade` | Opacity only; no movement or scale |
 | `data-env-text-effect` | `up` | Fade + upward movement (default) |
 | `data-env-text-effect` | `scale` | Fade + scale 0.98 → 1; no vertical movement |
+| `data-env-text-effect` | `blur` | Fade + scale 1.05 → 1 + blur 30px → 0; no vertical movement |
+| `data-env-blur` | `12` | Optional starting blur in px (number only) on an existing block/text reveal |
 | `data-env-reveal` | `fade-up` | Native browser preview reveal: fade + 16px upward reveal, 0.75s, cubic-bezier(.2,.65,.2,1) |
 | `data-env-reveal` | `fade-scale` | Original ENV fade + scale 0.99 → 1 |
 | `data-env-trigger` | `scrub` | Progress follows scrolling in both directions |
@@ -83,3 +85,33 @@ Conserver l'opacité normale dans le CSS (par exemple `.slider-nav-link { opacit
 ### Group reveals inside a News loop
 
 On browsers with `Element.animate`, non-scrub child groups use native effects with the preview cubic-bezier(.2,.65,.2,1) and `fill: backwards`. The effect disappears on completion, preserving current active/hover CSS. Both fade and movement/scale use `data-env-duration` in this path; the 0.2s fade-scale offset and per-child stagger remain. No temporary inline styles are copied into marquee duplicates. Generated `[data-env-news-clone]` children are excluded. The GSAP fallback retains its two-track fade-scale timing and scrub remains GSAP-controlled.
+
+
+## Blur lettre par lettre et option de flou
+
+Sur le titre `.h3.first` (ou tout autre texte), ajouter :
+
+| Name | Value |
+| --- | --- |
+| `data-env-text` | `chars` |
+| `data-env-text-effect` | `blur` |
+| `data-env-trigger` | `scrub` |
+
+La progression suit le scroll, de `top 85%` à `top 35%`, dans les deux sens : scale 1.05 → 1, opacité 0 → 1, blur 30px → 0 par caractère. Aucun déplacement vertical. Sans `scrub`, c’est un reveal autonome joué une seule fois à l’entrée dans l’écran. Les réglages existants de seuil, durée et stagger restent disponibles. Durée de référence : 1 seconde ; stagger par défaut des caractères de cette variante : 0,035 seconde (plafond total de 1,2 seconde conservé). En scrub, la distance de scroll détermine la vitesse et le délai est ignoré.
+
+Pour ajouter seulement un flou à un `fade-scale` existant :
+
+| Name | Value |
+| --- | --- |
+| `data-env-reveal` | `fade-scale` |
+| `data-env-blur` | `12` |
+
+Le scale de ce reveal existant reste 0.99 → 1. `data-env-blur` s’applique aussi aux autres effets de texte, au fade-up et aux enfants directs d’un parent avec `data-env-stagger`. Une valeur est un nombre **sans `px`**, limité entre 0 et 60. `0` désactive le flou. Sans cet attribut, aucun flou n’est ajouté aux effets existants ; seule la nouvelle variante texte `blur` utilise 30px par défaut. Si l’attribut est présent mais vide/invalide, 30px est utilisé. Une valeur de 8 à 12 convient pour un flou plus léger.
+
+Le filtre CSS d’origine est composé avec le blur, puis restauré à la fin d’un reveal autonome. Les groupes natifs n’ajoutent pas de style inline temporaire qui pourrait être copié dans les clones News. Destroy/refresh/restauration de mouvement réduit retirent le flou animé. Les textes scrub conservent les wrappers pour permettre le retour arrière. Sans SplitText (ou pour un texte contenant un lien/contrôle), l’effet reste un reveal du bloc : le HTML et les liens sont conservés.
+
+GSAP et SplitText doivent être activés pour le découpage, et ScrollTrigger pour `scrub`. Ne pas conserver les snippets GSAP manuels précédents sur les mêmes titres. La variante masquée de `.large-text.first` n’est pas ajoutée.
+
+### Installation sur le site SD
+
+Le module global `sd-navigation.js` charge `animations.js` depuis le même dossier et le même commit. Mettre à jour uniquement le pin du Footer global pour récupérer les variantes. Ne pas ajouter un deuxième script `animations.js`. Le Head du loader et des vidéos reste identique. Les installations standalone peuvent utiliser directement le lien `dist/animations.js` au même commit.

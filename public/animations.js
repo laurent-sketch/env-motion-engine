@@ -75,22 +75,34 @@
         } : undefined;
         const text = el.hasAttribute('data-env-text');
         const delay = number(el, 'data-env-delay', 0, 5);
-        const duration = number(el, 'data-env-duration', text ? 0.8 : 0.75, 5);
-        const opacityState = target => ({
-          target, value: target.style.getPropertyValue('opacity'),
-          priority: target.style.getPropertyPriority('opacity'),
-          end: Number(getComputedStyle(target).opacity || '1')
+        const requestedEffect = el.getAttribute('data-env-text-effect');
+        const effect = ['fade', 'up', 'scale', 'blur'].includes(requestedEffect) ? requestedEffect : 'up';
+        const blur = number(el, 'data-env-blur', effect === 'blur' || el.hasAttribute('data-env-blur') ? 30 : 0, 60);
+        const duration = number(el, 'data-env-duration', text ? (effect === 'blur' ? 1 : 0.8) : 0.75, 5);
+        const blurFrames = base => ({
+          from: `blur(${blur}px)${base && base !== 'none' ? ` ${base}` : ''}`,
+          to: `blur(0px)${base && base !== 'none' ? ` ${base}` : ''}`
         });
+        const opacityState = target => {
+          const css = getComputedStyle(target);
+          return {
+            target, value: target.style.getPropertyValue('opacity'),
+            priority: target.style.getPropertyPriority('opacity'), end: Number(css.opacity || '1'),
+            filter: blur ? { value: target.style.getPropertyValue('filter'), priority: target.style.getPropertyPriority('filter'), base: css.filter } : undefined
+          };
+        };
         const restoreOpacity = states => {
           if (scrub) return;
-          states.forEach(({ target, value, priority }) => {
+          states.forEach(({ target, value, priority, filter }) => {
             if (value) target.style.setProperty('opacity', value, priority);
             else target.style.removeProperty('opacity');
+            if (blur) {
+              if (filter.value) target.style.setProperty('filter', filter.value, filter.priority);
+              else target.style.removeProperty('filter');
+            }
           });
         };
         const type = el.getAttribute('data-env-text') || 'lines';
-        const requestedEffect = el.getAttribute('data-env-text-effect');
-        const effect = ['fade', 'up', 'scale'].includes(requestedEffect) ? requestedEffect : 'up';
         // An explicit stagger turns a block reveal into a direct-child sequence.
         // Keep text splitting and ordinary block reveals backward compatible.
         if (!text && el.hasAttribute('data-env-stagger')) {
@@ -105,12 +117,12 @@
           if (!scrub && children.every(child => typeof child.animate === 'function')) {
             const snapshots = children.map(child => {
               const css = getComputedStyle(child);
-              return { opacity: css.opacity, transform: css.transform === 'none' ? '' : css.transform };
+              return { opacity: css.opacity, transform: css.transform === 'none' ? '' : css.transform, filter: css.filter };
             });
             children.forEach((child, index) => {
               const base = snapshots[index];
-              const end = { opacity: base.opacity, transform: base.transform || 'none' };
-              const start = { opacity: 0, transform: `${scale ? 'scale(0.99)' : 'translateY(16px)'} ${base.transform}`.trim() };
+              const end = { opacity: base.opacity, transform: base.transform || 'none', ...(blur ? { filter: blurFrames(base.filter).to } : {}) };
+              const start = { opacity: 0, transform: `${scale ? 'scale(0.99)' : 'translateY(16px)'} ${base.transform}`.trim(), ...(blur ? { filter: blurFrames(base.filter).from } : {}) };
               const animation = child.animate([start, end], {
                 duration: duration * 1000,
                 delay: (delay + index * stagger + (scale ? 0.2 : 0)) * 1000,
@@ -134,6 +146,7 @@
               timeline.from(child, { y: 16, duration, ease: scrub ? 'none' : previewEase }, at);
               timeline.fromTo(child, { opacity: 0 }, { opacity: states[index].end, duration, ease: scrub ? 'none' : previewEase, immediateRender: true }, at);
             }
+            if (blur) timeline.fromTo(child, { filter: blurFrames(states[index].filter.base).from }, { filter: blurFrames(states[index].filter.base).to, duration, ease: scrub ? 'none' : 'power2.out', immediateRender: true }, at);
           });
           return;
         }
@@ -141,8 +154,8 @@
           const style = getComputedStyle(el);
           const baseTransform = style.transform === 'none' ? '' : style.transform;
           const animation = el.animate([
-            { opacity: 0, transform: `translateY(16px) ${baseTransform}`.trim() },
-            { opacity: style.opacity, transform: baseTransform || 'translateY(0)' }
+            { opacity: 0, transform: `translateY(16px) ${baseTransform}`.trim(), ...(blur ? { filter: blurFrames(style.filter).from } : {}) },
+            { opacity: style.opacity, transform: baseTransform || 'translateY(0)', ...(blur ? { filter: blurFrames(style.filter).to } : {}) }
           ], {
             duration: duration * 1000,
             delay: delay * 1000,
@@ -168,15 +181,15 @@
             aria: 'auto',
             onSplit(self) {
               const targets = self[type];
-              const defaultStagger = type === 'chars' ? 0.018 : type === 'words' ? 0.045 : 0.1;
+              const defaultStagger = type === 'chars' ? (effect === 'blur' ? 0.035 : 0.018) : type === 'words' ? 0.045 : 0.1;
               const stagger = number(el, 'data-env-stagger', defaultStagger, 1);
-              return gsap.from(targets, {
+              const vars = {
                 ...(effect === 'up' ? { yPercent: type === 'lines' ? 110 : 65 } : {}),
-                ...(effect === 'scale' ? { scale: 0.98 } : {}),
+                ...(effect === 'scale' ? { scale: 0.98 } : effect === 'blur' ? { scale: 1.05 } : {}),
                 opacity: 0,
                 duration,
                 delay: scrub ? 0 : delay,
-                ease: scrub ? 'none' : 'power3.out',
+                ease: scrub ? 'none' : effect === 'blur' ? 'power2.out' : 'power3.out',
                 ...(scrub ? { scrollTrigger: scroll } : {}),
                 stagger: { each: stagger, amount: Math.min(stagger * Math.max(targets.length - 1, 0), 1.2) },
                 onComplete() {
@@ -188,6 +201,21 @@
                     splits.delete(split);
                   });
                 }
+              };
+              if (!blur) return gsap.from(targets, vars);
+              const frames = targets.map(target => blurFrames(getComputedStyle(target).filter));
+              const startVars = {
+                ...(vars.yPercent !== undefined ? { yPercent: vars.yPercent } : {}),
+                ...(vars.scale !== undefined ? { scale: vars.scale } : {}),
+                opacity: 0, filter: index => frames[index].from
+              };
+              // Initialize every stagger target, including chars whose tween has not started.
+              gsap.set(targets, startVars);
+              return gsap.fromTo(targets, startVars, {
+                ...vars,
+                ...(vars.yPercent !== undefined ? { yPercent: 0 } : {}),
+                ...(vars.scale !== undefined ? { scale: 1 } : {}),
+                opacity: 1, filter: index => frames[index].to, immediateRender: true
               });
             }
           });
@@ -203,10 +231,11 @@
         } else {
           timeline.from(el, {
             ...(!text || effect === 'up' ? { y: 16 } : {}),
-            ...(text && effect === 'scale' ? { scale: 0.98 } : {}),
+            ...(text && effect === 'scale' ? { scale: 0.98 } : text && effect === 'blur' ? { scale: 1.05 } : {}),
             opacity: 0, duration, ease: scrub ? 'none' : previewEase
           });
         }
+        if (blur) timeline.fromTo(el, { filter: blurFrames(blockOpacity.filter.base).from }, { filter: blurFrames(blockOpacity.filter.base).to, duration, ease: scrub ? 'none' : 'power2.out', immediateRender: true }, scale && !scrub ? 0.2 : 0);
       });
     }
 

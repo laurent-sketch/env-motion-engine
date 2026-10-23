@@ -282,3 +282,73 @@ it('does not replay an above-fold entrance after the head watchdog already showe
   expect(gsap.getTweensOf(document.querySelector('h2'))).toHaveLength(0);
   expect(document.documentElement.hasAttribute('data-env-sd-reveal-expired')).toBe(false);
 });
+
+it('adds the character blur preset with no vertical movement and keeps it reversible in scrub mode', async () => {
+  const originalFromTo = gsap.fromTo;
+  const fromTo = vi.spyOn(gsap, 'fromTo').mockImplementation((targets, from, to) => {
+    const { scrollTrigger, ...rest } = to;
+    return originalFromTo(targets, from, { ...rest, paused: true });
+  });
+  const revert = vi.fn();
+  const create = vi.fn((el: HTMLElement, options) => {
+    el.innerHTML = '<span>B</span><span>l</span><span>u</span><span>r</span>';
+    options.onSplit({ chars: [...el.children] }); return { revert };
+  });
+  vi.stubGlobal('SplitText', { create }); vi.stubGlobal('ScrollTrigger', {});
+  vi.spyOn(gsap, 'registerPlugin').mockImplementation(() => {});
+  await setup('<h3 data-env-text="chars" data-env-text-effect="blur" data-env-trigger="scrub">Blur</h3>');
+  [...document.querySelectorAll('h3 span')].forEach(char => {
+    expect((char as HTMLElement).style.opacity).toBe('0');
+    expect((char as HTMLElement).style.filter).toContain('blur(30px)');
+  });
+  const [, from, to] = fromTo.mock.calls.at(-1)!;
+  expect(from.scale).toBe(1.05); expect(from.opacity).toBe(0); expect(from.yPercent).toBeUndefined();
+  expect(to.scale).toBe(1); expect(to.opacity).toBe(1); expect(to.duration).toBe(1);
+  expect(to.ease).toBe('none'); expect((to.scrollTrigger as any).scrub).toBe(true);
+  expect((to.stagger as any).each).toBe(0.035);
+  const tween = fromTo.mock.results.at(-1)!.value as gsap.core.Tween;
+  const char = document.querySelector('h3 span') as HTMLElement;
+  tween.progress(0); expect(char.style.filter).toContain('blur(30px)');
+  tween.progress(1); expect(char.style.filter).toContain('blur(0px)');
+  tween.progress(0.25); expect(char.style.filter).not.toContain('blur(0px)');
+  expect(revert).not.toHaveBeenCalled(); api().destroy(); expect(revert).toHaveBeenCalledOnce();
+});
+
+it('applies optional blur to fade-scale and releases the original filter and opacity on completion', async () => {
+  const f = await setup('<h3 data-env-reveal="fade-scale" data-env-blur="12" style="filter:brightness(0.8);opacity:0.7">Title</h3>');
+  const el = document.querySelector('h3')!;
+  f.enter(el);
+  const tweens = gsap.getTweensOf(el);
+  const filter = tweens.find(t => t.vars.filter !== undefined)!;
+  expect(filter).toBeDefined(); expect(filter.vars.filter).toBe('blur(0px) brightness(0.8)');
+  const timeline = filter.parent!;
+  timeline.time(0.2); expect(el.style.filter).toContain('blur(12px)');
+  timeline.totalProgress(1);
+  expect(el.style.filter).toBe('brightness(0.8)'); expect(el.style.opacity).toBe('0.7');
+  api().destroy(); expect(el.style.filter).toBe('brightness(0.8)');
+});
+
+it('adds blur to native stagger groups without leaking animation styles into clones', async () => {
+  const f = await setup('<section data-env-reveal="fade-scale" data-env-blur="8" data-env-stagger="0.1"><article style="filter:contrast(1.2)">A</article><article>B</article></section>');
+  const parent = document.querySelector('section')!;
+  let finish;
+  const animation = { finished: new Promise<void>(resolve => { finish = resolve; }), cancel: vi.fn() };
+  const animate = vi.fn(() => animation);
+  [...parent.children].forEach(child => Object.defineProperty(child, 'animate', { value: animate }));
+  f.enter(parent);
+  const frames = animate.mock.calls[0][0] as Keyframe[];
+  expect(frames[0].filter).toBe('blur(8px) contrast(1.2)');
+  expect(frames[1].filter).toBe('blur(0px) contrast(1.2)');
+  expect((parent.children[0].cloneNode(true) as HTMLElement).style.filter).toBe('contrast(1.2)');
+  finish(); await Promise.resolve(); expect(animation.cancel).toHaveBeenCalled();
+});
+
+it('falls back to a block for blur text without SplitText and preserves styles on interrupted teardown', async () => {
+  vi.stubGlobal('SplitText', undefined);
+  const f = await setup('<h3 data-env-text="chars" data-env-text-effect="blur" data-env-blur="9" style="filter:grayscale(0.2)">Blur</h3>');
+  const el = document.querySelector('h3')!; f.enter(el);
+  const tween = gsap.getTweensOf(el).find(t => t.vars.filter !== undefined)!;
+  expect(tween.vars.filter).toBe('blur(0px) grayscale(0.2)');
+  tween.parent!.time(0.25); api().destroy();
+  expect(el.textContent).toBe('Blur'); expect(el.style.filter).toBe('grayscale(0.2)'); expect(el.style.opacity).toBe('');
+});
