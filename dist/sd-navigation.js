@@ -1951,8 +1951,8 @@ const G = new URL(import.meta.url);
 G.pathname = G.pathname.replace(/[^/]*$/, "");
 const ie = () => location.pathname.replace(/\/$/, "") || "/", V = matchMedia("(prefers-reduced-motion: reduce)"), de = () => document.querySelector("main.main-wrapper");
 let k = () => {
-}, _, L;
-const Q = /* @__PURE__ */ new Set(), w = () => {
+}, w, L;
+const Q = /* @__PURE__ */ new Set(), _ = () => {
   document.documentElement.classList.remove("env-sd-boot"), window.dispatchEvent(new Event("env:sd-ready"));
 }, j = (e) => new Promise((a) => setTimeout(a, e));
 function v(e, a = !1) {
@@ -2045,12 +2045,12 @@ async function X() {
     oe()
   ]);
   const e = [...document.querySelectorAll(".swiper-news[data-env-news]")];
-  e.length && (_ = new IntersectionObserver((a) => {
-    a.some((t) => t.isIntersecting) && (_.disconnect(), v("news.js", !0).catch(console.error));
-  }, { rootMargin: "600px" }), e.forEach((a) => _.observe(a)));
+  e.length && (w = new IntersectionObserver((a) => {
+    a.some((t) => t.isIntersecting) && (w.disconnect(), v("news.js", !0).catch(console.error));
+  }, { rootMargin: "600px" }), e.forEach((a) => w.observe(a)));
 }
 function le() {
-  k(), _?.disconnect(), document.querySelector(".hero-wrapper")?.__envHeroCleanup?.(), window.ENVAnimations?.destroy(), window.ENVNews?.destroy(), window.ENVNewsMarquee?.destroy();
+  k(), w?.disconnect(), document.querySelector(".hero-wrapper")?.__envHeroCleanup?.(), window.ENVAnimations?.destroy(), window.ENVNews?.destroy(), window.ENVNewsMarquee?.destroy();
   const e = document.querySelector("#env-sd-page");
   e && window.ENVVideos?.release(e);
 }
@@ -2060,7 +2060,7 @@ async function z(e, a, t, f) {
 }
 async function fe() {
   if (window.ENVSD) {
-    w();
+    _();
     return;
   }
   if (!window.ENVVideos?.stage || !window.ENVVideos?.release) throw Error("Install the matching SD head block before enabling navigation");
@@ -2078,7 +2078,7 @@ async function fe() {
   }
   if (f = ["slider", "navbar", "dropdown", "tabs"].map((i) => e.require(i)).filter(Boolean), Y(document), document.head.querySelectorAll("style").forEach((i) => {
     d.styles.includes(i.textContent) && (i.dataset.envSdPageStyle = "");
-  }), await X(), w(), document.querySelector(".navbar-logo-center")?.setAttribute("data-env-ignore", ""), !window.lenis && !V.matches)
+  }), await window.ENVSDLoader?.prepare?.(), await X(), _(), document.querySelector(".navbar-logo-center")?.setAttribute("data-env-ignore", ""), !window.lenis && !V.matches)
     try {
       await v("https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js"), window.lenis = new window.Lenis({ duration: 1.2, smoothWheel: !0, easing: (i) => Math.min(1, 1.001 - Math.pow(2, -10 * i)) }), requestAnimationFrame(function i(o) {
         window.lenis?.raf(o), requestAnimationFrame(i);
@@ -2130,14 +2130,14 @@ async function fe() {
     }
   });
   const s = () => {
-    w(), window.lenis?.start(), L?.cancel(), document.querySelector("#env-sd-page")?.classList.remove("env-sd-pending");
+    _(), window.lenis?.start(), L?.cancel(), document.querySelector("#env-sd-page")?.classList.remove("env-sd-pending");
   };
   c.hooks.on("visit:fail", s), c.hooks.on("visit:abort", s);
 }
 const ce = () => fe().catch((e) => {
   console.error("[ENV SD] Native navigation retained", e), ee(() => v("env.js"), () => {
     [...document.scripts].some((a) => /const brand =/.test(a.textContent) && !/ENV SD/.test(a.textContent)) || F();
-  }).catch((a) => console.error("[ENV SD] Widget fallback failed", a)).finally(w);
+  }).catch((a) => console.error("[ENV SD] Widget fallback failed", a)).finally(_);
 });
 window.Webflow = window.Webflow || [];
 window.Webflow.push(ce);

@@ -10,7 +10,7 @@ The Head snippet opts in with `window.ENVSDPreload = true`. Without it, this bui
 
 ## Behavior
 
-- A 3px blue indeterminate line at the top of the viewport appears on the first document load per tab session. It does not cover or hide content and does not wait for background preloads. It disappears when the current page is prepared, or after six seconds if startup fails. Reduced motion disables its animation.
+- An opaque white first-visit screen with centered Said Differently text covers the initial viewport from the inline Head execution. It does not wait for background preloads. Before initial reveal preparation, the engine waits at most 1.8 seconds for fonts, up to eight viewport images, and the active hero video poster. It does not wait for the full hero video. The screen disappears immediately on current-page readiness so reveal animations are not consumed behind an exit fade, or after six seconds if startup fails. Reduced motion disables the text pulse. The previous bar-only version remains pinned at 6edbc4c7366e282970b5dc507a147faea1d3a2b8.
 - A ready signal marks the tab session as initialized. A new session may show the line again; it does not appear on Swup page transitions.
 - Swup uses its in-memory HTML cache. Entries expire after five minutes and are capped at eight. Reloading the document clears the cache; no service worker, localStorage page cache or cross-session stale HTML.
 - After page initialization, wait 1.2 seconds, then preload at most three unique internal destinations from the main menu, sequentially. Menu pointer/focus intent can also preload a destination. Pause the automatic queue during navigation or while the document is hidden.
