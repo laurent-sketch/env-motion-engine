@@ -9,10 +9,10 @@
   };
   function mount(root) {
     if (instances.has(root)) return;
-    if (root.swiper && !root.swiper.destroyed) {
+    const track = root.querySelector(':scope > .swiper-wrapper-news, :scope > .w-dyn-list > .swiper-wrapper-news');
+    if ([root, track?.parentElement].some(el => el?.swiper && !el.swiper.destroyed)) {
       console.warn('[ENV News] Disable the Swiper initializer on this container first.'); return;
     }
-    const track = root.querySelector(':scope > .swiper-wrapper-news');
     const cards = track ? [...track.children].filter(el => el.matches('.swiper-slide-news')) : [];
     if (!track || !cards.length) return;
     const abort = new AbortController(), preference = matchMedia('(prefers-reduced-motion: reduce)');

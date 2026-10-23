@@ -37,8 +37,12 @@
     const revision = ++record.revision;
     stop(record);
     if (!['swiper', 'marquee'].includes(mode)) return;
+    const track = root.querySelector(':scope > .swiper-wrapper-news, :scope > .w-dyn-list > .swiper-wrapper-news');
+    const host = track?.parentElement;
+    // Empty CMS collections keep their authored empty state.
+    if (!track || ![...track.children].some(el => el.matches('.swiper-slide-news'))) return;
     // A stale external initializer must not compete with the selected engine.
-    if (root.swiper && !root.swiper.destroyed) {
+    if ([root, host].some(el => el?.swiper && !el.swiper.destroyed)) {
       console.warn('[ENV News] Remove the old News Swiper initializer before using this loader.', root); return;
     }
     try {
@@ -53,9 +57,10 @@
         if (disposed || revision !== record.revision) return;
         if (!window.Swiper) throw new Error('Swiper unavailable');
         const section = root.closest('section') || root.parentElement;
-        const nodes = [root, root.querySelector(':scope > .swiper-wrapper-news'), ...root.querySelectorAll('.swiper-slide-news')].filter(Boolean);
+        const nodes = [...new Set([root, host, track, ...track.children].filter(Boolean))];
         const styles = nodes.map(el => [el, el.getAttribute('style')]);
-        const instance = new window.Swiper(root, {
+        if (host !== root) Object.assign(host.style, { position: 'relative', minWidth: '0', width: '100%', touchAction: 'pan-y' });
+        const instance = new window.Swiper(host, {
           wrapperClass: 'swiper-wrapper-news', slideClass: 'swiper-slide-news',
           slidesPerView: 'auto', slidesPerGroup: 1,
           spaceBetween: number(root, 'data-env-news-gap', 16, 0, 200),
@@ -79,7 +84,7 @@
     if (disposed) return;
     if (!document.querySelector('style[data-env-news-base]')) {
       const el = document.createElement('style'); el.setAttribute('data-env-news-base', '');
-      el.textContent = '.swiper-news[data-env-news]{margin:0;padding:0}.swiper-news[data-env-news]>.swiper-wrapper-news{margin:0;padding:0}.swiper-news[data-env-news="swiper"]{position:relative;overflow:hidden;min-width:0;touch-action:pan-y}.swiper-news[data-env-news="swiper"]>.swiper-wrapper-news{position:relative;display:flex;flex-wrap:nowrap;width:100%;box-sizing:content-box;transition-property:transform;gap:0}.swiper-news[data-env-news="swiper"]>.swiper-wrapper-news>.swiper-slide-news{position:relative;flex-shrink:0;box-sizing:border-box}.swiper-news[data-env-news="swiper"] .swiper-navigation-icon{display:none}';
+      el.textContent = '.swiper-news[data-env-news]{margin:0;padding:0}.swiper-news[data-env-news] .swiper-wrapper-news{margin:0;padding:0}.swiper-news[data-env-news="swiper"]{position:relative;overflow:hidden;min-width:0;touch-action:pan-y}.swiper-news[data-env-news="swiper"] .swiper-wrapper-news{position:relative;display:flex;flex-wrap:nowrap;width:100%;box-sizing:content-box;transition-property:transform;gap:0}.swiper-news[data-env-news="swiper"] .swiper-wrapper-news>.swiper-slide-news{position:relative;flex-shrink:0;box-sizing:border-box}.swiper-news[data-env-news="swiper"] .swiper-navigation-icon{display:none}';
       document.head.append(el);
     }
     document.querySelectorAll('.swiper-news').forEach(root => {

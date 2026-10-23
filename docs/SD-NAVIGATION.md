@@ -20,7 +20,7 @@ Head preparation hides only reveal targets, leaving the menu and media/backgroun
 
 ## Validation
 
-75 automated tests and production build pass. Browser fixtures use the published HTML/CSS/fonts/images with a small local video to isolate lifecycle behavior; real video transfer performance and physical-phone touch behavior need separate verification. Installation alone does not rewrite incorrect authored links in Webflow: the persistent menu deliberately adopts those links from each destination.
+78 automated tests and production build pass. Browser fixtures use the published HTML/CSS/fonts/images with a small local video to isolate lifecycle behavior; real video transfer performance and physical-phone touch behavior need separate verification. Installation alone does not rewrite incorrect authored links in Webflow: the persistent menu deliberately adopts those links from each destination.
 
 ## Rollback
 
@@ -35,3 +35,5 @@ On tablet/mobile (up to 991px), the light Home's `.logo-mobile` contains a white
 The persistent mobile brand link is retained across navigation. Its logo images may change from two to one and back; image synchronization now matches the desktop brand, mobile brand and modal texture separately. Burger white variants and the optional mobile contact underline follow the destination page. The header color controller runs even if the desktop Boutique Scale markup is missing or hidden. The existing global Head does not need to change for this update: replace only the module URL in the global Footer. Keep the authored `.logo-nav.bis` blue asset on light Home pages.
 
 News marquee touch input now uses a dedicated Touch Events stream with a non-passive horizontal move handler, immediate finger tracking and coarse-pointer hover guards. See NEWS-MARQUEE.md for gesture behavior and physical-device verification limits.
+
+News supports the CMS Collection List wrapper in both marquee and Swiper modes; the global loader initializes either structure without an extra page-specific script.

@@ -3,9 +3,10 @@ import { afterEach, expect, it, vi } from 'vitest';
 const source = readFileSync('public/news-marquee.js', 'utf8');
 const api = () => (window as Window & { ENVNewsMarquee?: { destroy(): void; init(): void; refresh(): void } }).ENVNewsMarquee!;
 afterEach(() => { api()?.destroy(); vi.restoreAllMocks(); vi.unstubAllGlobals(); document.body.replaceChildren(); });
-function setup(reduced = false, swiper = false, finePointer = true) {
+function setup(reduced = false, swiper = false, finePointer = true, cms = false) {
   document.body.innerHTML = '<section><div class="swiper-news" data-env-news="marquee" style="color:red"><div class="swiper-wrapper-news"><article class="swiper-slide-news" id="original" style="width:200px"><a href="#one" data-env-reveal="fade-up">One</a><img loading="lazy" src="/one.jpg"></article><article class="swiper-slide-news" style="width:300px"><a href="#two">Two</a></article></div></div><button class="swiper-button-prev" disabled>Prev</button><button class="swiper-button-next">Next</button></section>';
   const root = document.querySelector('.swiper-news') as HTMLElement;
+  if (cms) { const host = document.createElement('div'); host.className = 'w-dyn-list'; root.firstElementChild!.before(host); host.append(root.querySelector('.swiper-wrapper-news')!); }
   if (swiper) Object.assign(root, { swiper: { destroyed: false } });
   Object.defineProperty(root, 'clientWidth', { value: 600 });
   vi.spyOn(document, 'readyState', 'get').mockReturnValue('complete');
@@ -26,7 +27,7 @@ function setup(reduced = false, swiper = false, finePointer = true) {
   vi.stubGlobal('matchMedia', (query: string) => ({ matches: query.includes('prefers-reduced-motion') ? reduced : finePointer, addEventListener() {}, removeEventListener() {} }));
   Object.assign(root, { setPointerCapture: vi.fn(), hasPointerCapture: () => false, releasePointerCapture: vi.fn() });
   new Function(source)();
-  return { root, track: root.firstElementChild as HTMLElement, frames, advance(n: number) { for (let i = 0; i < n; i++) { time += 16.667; const pending = [...frames.values()]; frames.clear(); pending.forEach(fn => fn(time)); } } };
+  return { root, track: root.querySelector('.swiper-wrapper-news') as HTMLElement, frames, advance(n: number) { for (let i = 0; i < n; i++) { time += 16.667; const pending = [...frames.values()]; frames.clear(); pending.forEach(fn => fn(time)); } } };
 }
 it('creates enough seamless copies while excluding duplicates from keyboard navigation', () => {
   const { root } = setup();
@@ -150,4 +151,18 @@ it('ignores duplicate touch pointer events and holds autoplay while a finger res
   f.root.dispatchEvent(event);
   touchEvent(f.root, 'touchmove', 120, 100);
   expect(f.track.style.transform).toBe('translate3d(-100px,0,0)');
+});
+
+it('loops CMS collection items without reparenting the Collection List or losing its contents', () => {
+  const f = setup(false, false, true, true);
+  const host = f.root.querySelector('.w-dyn-list')!;
+  expect(f.track.parentElement).toBe(host);
+  expect(f.track.querySelectorAll('[data-env-news-clone]').length).toBeGreaterThan(0);
+  expect(f.track.querySelectorAll(':scope > .swiper-slide-news:not([data-env-news-clone])')).toHaveLength(2);
+  const before = f.track.style.transform; f.advance(60);
+  expect(f.track.style.transform).not.toBe(before);
+  api().destroy();
+  expect(f.track.parentElement).toBe(host);
+  expect(f.track.children).toHaveLength(2);
+  expect(f.root.style.color).toBe('red');
 });

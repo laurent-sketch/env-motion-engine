@@ -23,6 +23,24 @@ Shared option: `data-env-news-gap` in pixels (Swiper defaults to 16; marquee use
 
 `window.ENVNews.init()` discovers new containers. `refresh()` remounts current selections, and `destroy()` disconnects mode observers, invalidates pending asynchronous loads and tears down owned drivers. It does not remove globally loaded vendor libraries that may be used elsewhere.
 
-Local comparison page includes Swiper/Marquee controls. Validation: 41 tests pass, including selection, repeated initialization and discarded asynchronous initialization after mode changes. Native browser confirmed Swiper initialization, arrow movement, a return to marquee with one Pause button and the expected copies, and no warning/error logs. Physical mobile/trackpad checks remain to be performed on devices.
+Automated regressions cover mode changes, pending loads, CMS wrappers, restoration and empty collections. The current CMS adapter is tested on the published Home V2 structure. Physical iPhone touch remains a separate device check.
 
 Both modes zero margins and paddings on the container and track. Spacing between cards remains controlled by data-env-news-gap. The marquee does not inject a Play/Pause button. Outer section/ancestor spacing is owned by Webflow and is not modified.
+
+
+## Webflow CMS Collections
+
+Both engines accept the original direct wrapper and this native CMS structure:
+
+```text
+.swiper-news [data-env-news="marquee" or "swiper"]
+└── .w-dyn-list                  Collection List Wrapper
+    ├── .swiper-wrapper-news.w-dyn-items   Collection List
+    │   └── .swiper-slide-news.w-dyn-item  Collection Item
+    │       └── card content bound to CMS fields
+    └── .w-dyn-empty             optional empty state
+```
+
+Keep the mode and speed attributes on `.swiper-news`; no new custom attributes are needed. Marquee measures and clones the Collection Items inside the existing list. Swiper mounts on `.w-dyn-list`, so the Collection List remains its direct wrapper without moving CMS nodes. Manual arrows remain in the surrounding section. Both modes restore authored styles when switching/destroying. The empty state remains readable if no items are published.
+
+This uses the CMS items rendered in the current published page. It does not automatically fetch later pagination pages. After a separate client-side filtering/loading plugin changes the items, refresh the News engine; such integrations are not part of this adapter. CMS links must be bound to their intended URL field: a published `href="#"` remains a placeholder.
