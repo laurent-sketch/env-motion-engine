@@ -1,5 +1,6 @@
 import Swup from 'swup';
 import { installPreload } from './preload.js';
+import { installGradient } from './gradient.js';
 import ScrollPlugin from '@swup/scroll-plugin';
 import config from './interactions.json';
 import routes from './routes.json';
@@ -13,7 +14,7 @@ base.pathname = base.pathname.replace(/[^/]*$/, '');
 const path = () => location.pathname.replace(/\/$/, '') || '/';
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const main = () => document.querySelector('main.main-wrapper');
-let cleanMenu = () => {}, newsObserver, busyAnimation;
+let cleanMenu = () => {}, newsObserver, busyAnimation, gradient;
 const loaded = new Set();
 const releaseBoot = () => { document.documentElement.classList.remove('env-sd-boot'); window.dispatchEvent(new Event('env:sd-ready')); };
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -43,7 +44,7 @@ function metadata(doc) {
   document.head.querySelectorAll(selectors).forEach(e => e.remove());
   doc.head.querySelectorAll(selectors).forEach(e => document.head.append(e.cloneNode(true)));
   document.head.querySelectorAll('style[data-env-sd-page-style]').forEach(e => e.remove());
-  doc.head.querySelectorAll('style:not([data-env-sd-mobile-nav])').forEach(e => { const copy = e.cloneNode(true); copy.dataset.envSdPageStyle = ''; document.head.append(copy); });
+  doc.head.querySelectorAll('style:not([data-env-sd-mobile-nav]):not([data-env-sd-gradient-style])').forEach(e => { const copy = e.cloneNode(true); copy.dataset.envSdPageStyle = ''; document.head.append(copy); });
 }
 function menu() {
   cleanMenu();
@@ -144,6 +145,7 @@ async function start() {
   }
   native = ['slider', 'navbar', 'dropdown', 'tabs'].map(name => runtime.require(name)).filter(Boolean);
   wrap(document);
+  gradient = installGradient();
   document.head.querySelectorAll('style').forEach(el => { if (profile.styles.includes(el.textContent)) el.dataset.envSdPageStyle = ''; });
   await window.ENVSDLoader?.prepare?.();
   await mount(); releaseBoot();
@@ -187,6 +189,7 @@ async function start() {
     busyAnimation?.cancel();
     await replace(visit, args);
     metadata(doc);
+    gradient.prepare();
     native.forEach(module => module.ready?.());
     ix2.init(config.ix2);
     await Promise.race([ix3.ready(), wait(4000).then(() => { throw Error('Webflow interaction restart timeout'); })]);
@@ -206,6 +209,7 @@ async function start() {
     window.lenis?.start();
     await mount();
     document.querySelector('#env-sd-page')?.classList.remove('env-sd-pending');
+    gradient.commit();
     if (!['localhost', '127.0.0.1'].includes(location.hostname) && typeof window.gtag === 'function') window.gtag('event', 'page_view', { page_title: document.title, page_location: location.href });
     const content = main(); if (content) { const tab = content.getAttribute('tabindex'); content.setAttribute('tabindex', '-1'); content.focus({ preventScroll: true }); if (tab === null) content.removeAttribute('tabindex'); else content.setAttribute('tabindex', tab); }
     } catch (error) {
@@ -214,7 +218,7 @@ async function start() {
       window.location.assign(visit.to.url);
     }
   });
-  const recover = () => { releaseBoot(); window.lenis?.start(); busyAnimation?.cancel(); document.querySelector('#env-sd-page')?.classList.remove('env-sd-pending'); };
+  const recover = () => { gradient?.refresh(); releaseBoot(); window.lenis?.start(); busyAnimation?.cancel(); document.querySelector('#env-sd-page')?.classList.remove('env-sd-pending'); };
   swup.hooks.on('visit:fail', recover);
   swup.hooks.on('visit:abort', recover);
 }

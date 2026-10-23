@@ -45,3 +45,11 @@ The persistent mobile modal also adopts the destination `.menu-modal.darker` bac
 CSS-only Webflow publishes are accepted at startup when the audited JavaScript runtime still matches. Incoming pages must share the exact stylesheet URLs already loaded in the active document; incompatible page styles still use native navigation.
 
 Optional native slider registration is shipped as `sd-slider.js`, containing only audited factory 4345 from the published Webflow export. It registers into the active shared runtime without executing a second page bootstrap. `scripts/snapshot-sd.mjs` regenerates this asset with the runtime snapshot.
+
+## Persistent inner-page gradient
+
+`src/sd/gradient.js` moves the rendering of the authored `.hero-wrapper.gradient-blue` background into a single `#env-sd-gradient` layer outside `#env-sd-page`. It copies computed Webflow background properties and measures the actual header rectangle; no hardcoded gradient colors or header heights. The original background is suppressed and its main wrapper made transparent only while adapted. Article/media gradients remain unchanged.
+
+Between inner pages, the layer stays at opacity 1 while the content fades; its height adapts over 350ms. ResizeObserver/window resize keep mobile/tablet measurements aligned. Entering/leaving a page without the authored gradient (Home) fades this layer in/out once the incoming content is prepared. Normal document scrolling is preserved: the gradient remains at its header's document position, not fixed over the full page. Reduced motion removes layer transitions. Cached initial markers are cleared before reading authored styles, and generated gradient styles are excluded from incoming page-style cloning.
+
+Install by replacing only the global Footer module pin; the Head/loader/video blocks stay as installed. Prior pinned version for rollback: `81c1057ffc5663e271be4ff8012e90a5d3cf5bed`.
