@@ -1,4 +1,5 @@
 import { JSDOM } from 'jsdom';
+import { mergeSDConfigs } from './merge-sd-configs.mjs';
 import { sliderChunk } from './slider-factory.mjs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { extract } from './snapshot-pilot.mjs';
@@ -14,7 +15,7 @@ for (const path of ['/', '/home-sd', '/work-v2', '/home-sd-v2', '/work-v1', '/pr
     try { config = extract(source); break; } catch { /* Runtime chunks contain no registrations. */ }
   }
   if (!config) throw Error('No data-only IX2 + IX3 registration found');
-  configs.push(JSON.stringify(config));
+  configs.push(config);
   routes[path] = { page: doc.documentElement.getAttribute('data-wf-page'), site: doc.documentElement.getAttribute('data-wf-site'), scripts,
     sheets: [...doc.querySelectorAll('link[rel="stylesheet"]')].map(el => el.href),
     styles: [...doc.querySelectorAll('head style')].map(el => el.textContent) };
@@ -29,8 +30,8 @@ for (const script of routes['/home-sd'].scripts) {
   break;
 }
 if (!routes['/home-sd'].slider) throw Error('Missing audited slider factory');
-if (configs.some(config => config !== configs[0])) throw Error('Interaction payloads differ; review adapter before certifying');
+const merged = mergeSDConfigs(configs, Object.values(routes).map(route => route.page));
 await mkdir('src/sd', { recursive: true });
 await writeFile('src/sd/routes.json', JSON.stringify(routes));
-await writeFile('src/sd/interactions.json', configs[0]);
+await writeFile('src/sd/interactions.json', JSON.stringify(merged));
 console.log('SD shared pages snapshot updated. Rebuild, test and publish a new pinned version.');

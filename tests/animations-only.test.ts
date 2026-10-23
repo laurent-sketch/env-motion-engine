@@ -304,8 +304,8 @@ it('adds the character blur preset with no vertical movement and keeps it revers
   const [, from, to] = fromTo.mock.calls.at(-1)!;
   expect(from.scale).toBe(1.05); expect(from.opacity).toBe(0); expect(from.yPercent).toBeUndefined();
   expect(to.scale).toBe(1); expect(to.opacity).toBe(1); expect(to.duration).toBe(1);
-  expect(to.ease).toBe('none'); expect((to.scrollTrigger as any).scrub).toBe(true);
-  expect((to.stagger as any).each).toBe(0.035);
+  expect(to.ease).toBe('power2.out'); expect((to.scrollTrigger as any).scrub).toBe(1);
+  expect(to.stagger).toBe(0.035);
   const tween = fromTo.mock.results.at(-1)!.value as gsap.core.Tween;
   const char = document.querySelector('h3 span') as HTMLElement;
   tween.progress(0); expect(char.style.filter).toContain('blur(30px)');
@@ -315,8 +315,8 @@ it('adds the character blur preset with no vertical movement and keeps it revers
 });
 
 it('applies optional blur to fade-scale and releases the original filter and opacity on completion', async () => {
-  const f = await setup('<h3 data-env-reveal="fade-scale" data-env-blur="12" style="filter:brightness(0.8);opacity:0.7">Title</h3>');
-  const el = document.querySelector('h3')!;
+  const f = await setup('<img alt="Image" data-env-reveal="fade-scale" data-env-blur="12" style="filter:brightness(0.8);opacity:0.7">');
+  const el = document.querySelector('img')!;
   f.enter(el);
   const tweens = gsap.getTweensOf(el);
   const filter = tweens.find(t => t.vars.filter !== undefined)!;

@@ -77,6 +77,7 @@
         const delay = number(el, 'data-env-delay', 0, 5);
         const requestedEffect = el.getAttribute('data-env-text-effect');
         const effect = ['fade', 'up', 'scale', 'blur'].includes(requestedEffect) ? requestedEffect : 'up';
+        if (scroll && text && effect === 'blur') scroll.scrub = 1;
         const blur = number(el, 'data-env-blur', effect === 'blur' || el.hasAttribute('data-env-blur') ? 30 : 0, 60);
         const duration = number(el, 'data-env-duration', text ? (effect === 'blur' ? 1 : 0.8) : 0.75, 5);
         const blurFrames = base => ({
@@ -181,7 +182,7 @@
             aria: 'auto',
             onSplit(self) {
               const targets = self[type];
-              const defaultStagger = type === 'chars' ? (effect === 'blur' ? 0.035 : 0.018) : type === 'words' ? 0.045 : 0.1;
+              const defaultStagger = effect === 'blur' ? 0.035 : type === 'chars' ? 0.018 : type === 'words' ? 0.045 : 0.1;
               const stagger = number(el, 'data-env-stagger', defaultStagger, 1);
               const vars = {
                 ...(effect === 'up' ? { yPercent: type === 'lines' ? 110 : 65 } : {}),
@@ -189,9 +190,9 @@
                 opacity: 0,
                 duration,
                 delay: scrub ? 0 : delay,
-                ease: scrub ? 'none' : effect === 'blur' ? 'power2.out' : 'power3.out',
+                ease: effect === 'blur' ? 'power2.out' : scrub ? 'none' : 'power3.out',
                 ...(scrub ? { scrollTrigger: scroll } : {}),
-                stagger: { each: stagger, amount: Math.min(stagger * Math.max(targets.length - 1, 0), 1.2) },
+                stagger: effect === 'blur' ? stagger : { each: stagger, amount: Math.min(stagger * Math.max(targets.length - 1, 0), 1.2) },
                 onComplete() {
                   if (scrub) return; // Keep split targets alive for reverse scrolling.
                   // Restore original markup after the reveal, including natural line wrapping.

@@ -26,9 +26,9 @@ Replace COMMIT with the full published commit hash. The script starts at DOM rea
 
 Without `data-env-trigger="scrub"`, the original one-time reveal remains the default. Scrub works with all text effects and block reveals. It requires global GSAP ScrollTrigger loaded before this file; if unavailable, the target uses a one-time reveal with a console warning. No automatic dependency download occurs.
 
-Example: add `data-env-text="words"`, `data-env-text-effect="fade"`, and `data-env-trigger="scrub"` to a paragraph. Its animation progresses as the top of the paragraph moves from 85% to 35% of the viewport height and reverses when scrolling back. Optional `data-env-scroll-start="85"` and `data-env-scroll-end="35"` customize those percentages. Keep end smaller than start. Unlike one-time reveals, scrub targets retain their SplitText wrappers to remain reversible; teardown restores the original markup. Delay is ignored in scrub mode, easing is linear, and scroll distance determines the overall playback speed.
+Example: add `data-env-text="words"`, `data-env-text-effect="fade"`, and `data-env-trigger="scrub"` to a paragraph. Its animation progresses as the top of the paragraph moves from 85% to 35% of the viewport height and reverses when scrolling back. Optional `data-env-scroll-start="85"` and `data-env-scroll-end="35"` customize those percentages. Keep end smaller than start. Unlike one-time reveals, scrub targets retain their SplitText wrappers to remain reversible; teardown restores the original markup. Delay is ignored in scrub mode and scroll distance determines the overall playback speed. Existing effects use linear easing and direct scrub; the text blur preset follows the approved GSAP snippet with `power2.out` and `scrub: 1`.
 
-Optional attributes: `data-env-delay`, `data-env-duration`, `data-env-stagger` (seconds). Duration controls text/fade-up and child-group reveals; an ordinary fade-scale block retains the original two-track timing. Total text stagger is capped at 1.2 seconds. Apply text attributes to an individual heading/paragraph, not a rich-text container. Text containing links or controls animates as a block to preserve their semantics.
+Optional attributes: `data-env-delay`, `data-env-duration`, `data-env-stagger` (seconds). Duration controls text/fade-up and child-group reveals; an ordinary fade-scale block retains the original two-track timing. Total text stagger is capped at 1.2 seconds for the older presets; blur uses the numeric stagger directly, matching the approved snippet. Apply text attributes to an individual heading/paragraph, not a rich-text container. Text containing links or controls animates as a block to preserve their semantics.
 
 Remove competing Webflow interactions from attributed targets, and keep their normal style visible. No global CSS hiding rule is needed. A reveal runs once, including for initially visible targets. Reduced-motion users see normal content. SplitText restores the original markup after completion and recalculates lines during animation on resize. Existing classes retain all styling responsibilities.
 
@@ -97,7 +97,7 @@ Sur le titre `.h3.first` (ou tout autre texte), ajouter :
 | `data-env-text-effect` | `blur` |
 | `data-env-trigger` | `scrub` |
 
-La progression suit le scroll, de `top 85%` à `top 35%`, dans les deux sens : scale 1.05 → 1, opacité 0 → 1, blur 30px → 0 par caractère. Aucun déplacement vertical. Sans `scrub`, c’est un reveal autonome joué une seule fois à l’entrée dans l’écran. Les réglages existants de seuil, durée et stagger restent disponibles. Durée de référence : 1 seconde ; stagger par défaut des caractères de cette variante : 0,035 seconde (plafond total de 1,2 seconde conservé). En scrub, la distance de scroll détermine la vitesse et le délai est ignoré.
+La progression suit le scroll, de `top 85%` à `top 35%`, dans les deux sens : scale 1.05 → 1, opacité 0 → 1, blur 30px → 0 par caractère. Aucun déplacement vertical. Sans `scrub`, c’est un reveal autonome joué une seule fois à l’entrée dans l’écran. Les réglages existants de seuil, durée et stagger restent disponibles. Durée de référence : 1 seconde ; stagger numérique par défaut de cette variante : 0,035 seconde, sans plafond sur la séquence. Le preset reprend `power2.out` et `scrub: 1` (rattrapage lissé sur une seconde), comme le snippet approuvé. En scrub, la distance de scroll détermine la vitesse et le délai est ignoré.
 
 Pour ajouter seulement un flou à un `fade-scale` existant :
 
@@ -115,3 +115,5 @@ GSAP et SplitText doivent être activés pour le découpage, et ScrollTrigger po
 ### Installation sur le site SD
 
 Le module global `sd-navigation.js` charge `animations.js` depuis le même dossier et le même commit. Mettre à jour uniquement le pin du Footer global pour récupérer les variantes. Ne pas ajouter un deuxième script `animations.js`. Le Head du loader et des vidéos reste identique. Les installations standalone peuvent utiliser directement le lien `dist/animations.js` au même commit.
+
+Le 23 octobre : les attributs publiés étaient corrects, mais la Home chargeait encore le pin a1c2de7, antérieur au blur. Le correctif synchronise aussi le snapshot Webflow actuel. Un nouveau pin du module global est obligatoire ; le Head reste inchangé.
