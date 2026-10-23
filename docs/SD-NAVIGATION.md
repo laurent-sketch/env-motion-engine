@@ -8,7 +8,7 @@ The engine now considers every same-origin page link, with no Home/Work pathname
 
 Pages need `.navbar-logo-center` with matching link/image structure and a direct `body > main.main-wrapper`. The optional direct `.section.footer` joins the replacement container automatically. No manual Swup wrapper is required. Pages copied from this structure can use arbitrary paths, including nested project paths, as long as their Webflow runtime matches a verified profile. Page-specific styles, body class, page ID, metadata and title follow the destination.
 
-The currently verified exports are `/home-sd`, `/home-sd-v2`, `/work-v2`, `/work-v1` and `/project-page`. Their IX2/IX3 data are identical; `scripts/snapshot-sd.mjs` verifies this before updating snapshots. Unknown paths are accepted by matching the shared runtime and site, not by their name. Changed runtime exports or interaction payloads require a new snapshot/build. The audited optional native slider factory is registered if the entry page omitted it; this uses Webflow internals and must be checked after Webflow runtime updates.
+The currently verified exports are `/home-sd`, `/home-sd-v2`, `/work-v2`, `/work-v1` , `/project-page`, `/about` and `/press`. Their IX2/IX3 data are identical; `scripts/snapshot-sd.mjs` verifies this before updating snapshots. Unknown paths are accepted by matching the shared runtime and site, not by their name. Changed runtime exports or interaction payloads require a new snapshot/build. The audited optional native slider factory is registered if the entry page omitted it; this uses Webflow internals and must be checked after Webflow runtime updates.
 
 ## Pages requiring adaptation
 
@@ -20,10 +20,16 @@ Head preparation hides only reveal targets, leaving the menu and media/backgroun
 
 ## Validation
 
-68 automated tests and production build pass. Browser fixtures use the published HTML/CSS/fonts/images with a small local video to isolate lifecycle behavior; real video transfer performance and physical-phone touch behavior need separate verification. Installation alone does not rewrite incorrect authored links in Webflow: the persistent menu deliberately adopts those links from each destination.
+70 automated tests and production build pass. Browser fixtures use the published HTML/CSS/fonts/images with a small local video to isolate lifecycle behavior; real video transfer performance and physical-phone touch behavior need separate verification. Installation alone does not rewrite incorrect authored links in Webflow: the persistent menu deliberately adopts those links from each destination.
 
 ## Rollback
 
 Replace the global module loader with the former ENV/brand loader and remove Head boot preparation. Preserve the video interceptor if still wanted. Republish the site.
 
 The native-navigation fallback keeps the Head reveal gate until `env:animations-ready`. If initialization or the watchdog times out, visible reveal targets are shown once and skipped by a late entrance instead of being hidden again. Verified with a frame audit of the hero logo in normal and forced-fallback fixtures; neither was visible before animation preparation.
+
+## Responsive Home menu (23 October 2026)
+
+On tablet/mobile (up to 991px), the light Home's `.logo-mobile` contains a white `.logo-nav` and a blue `.logo-nav.bis`. The engine injects scoped CSS that crossfades these images on `.is-past-hero`, puts the blue image in the same position without shifting the layout, and turns only `.burger-menu-wrap .line-burger` dark blue. The divider lines inside the menu modal are not affected. The single blue logo on inner pages remains unchanged. Reduced motion disables these transitions.
+
+The persistent mobile brand link is retained across navigation. Its logo images may change from two to one and back; image synchronization now matches the desktop brand, mobile brand and modal texture separately. Burger white variants and the optional mobile contact underline follow the destination page. The header color controller runs even if the desktop Boutique Scale markup is missing or hidden. The existing global Head does not need to change for this update: replace only the module URL in the global Footer. Keep the authored `.logo-nav.bis` blue asset on light Home pages.

@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { wrap, validate, syncMenuVariants } from '../src/sd/layout.js';
+import { wrap, validate, syncMenuVariants, syncMenuImages } from '../src/sd/layout.js';
 import routes from '../src/sd/routes.json';
 function fixture(path: keyof typeof routes) {
   const record = routes[path];
@@ -64,4 +64,41 @@ it('accepts any internal path sharing a verified runtime and SD layout', () => {
   expect(() => validate(doc, '/projects/new-name')).not.toThrow();
   doc.querySelector('.navbar-logo-center')!.remove();
   expect(() => validate(doc, '/projects/new-name')).toThrow('shared SD menu');
+});
+
+it('keeps the mobile brand link while changing between light dual and dark single logos', () => {
+  const live = document.implementation.createHTMLDocument('Home');
+  const next = document.implementation.createHTMLDocument('Work');
+  live.body.innerHTML = '<nav class="navbar-logo-center"><a class="logo-mobile"><img class="logo-nav" src="white.svg"><img class="logo-nav bis" src="blue.svg"></a><div class="burger-menu-wrap"><i class="line-burger white"></i><i class="line-burger white"></i></div></nav>';
+  next.body.innerHTML = '<nav class="navbar-logo-center"><a class="logo-mobile"><img class="logo-nav" src="blue.svg"></a><div class="burger-menu-wrap"><i class="line-burger top"></i><i class="line-burger bottom"></i></div></nav>';
+  const link = live.querySelector('.logo-mobile');
+  syncMenuImages(live, next); syncMenuVariants(live, next);
+  expect(live.querySelector('.logo-mobile')).toBe(link);
+  expect(link!.querySelectorAll('img')).toHaveLength(1);
+  expect(link!.querySelector('img')!.getAttribute('src')).toBe('blue.svg');
+  expect(live.querySelector('.line-burger')!.classList.contains('white')).toBe(false);
+  next.querySelector('.logo-mobile')!.innerHTML = '<img class="logo-nav" src="white.svg"><img class="logo-nav bis" src="blue.svg">';
+  next.querySelectorAll('.line-burger').forEach(el => el.classList.add('white'));
+  syncMenuImages(live, next); syncMenuVariants(live, next);
+  expect(live.querySelector('.logo-mobile')).toBe(link);
+  expect(link!.querySelectorAll('img')).toHaveLength(2);
+  expect(link!.querySelector('img')!.getAttribute('src')).toBe('white.svg');
+  expect(link!.querySelector('.bis')!.getAttribute('src')).toBe('blue.svg');
+  expect(live.querySelector('.line-burger')!.classList.contains('white')).toBe(true);
+});
+
+it('adopts the optional mobile contact underline without replacing its link', () => {
+  const live = document.implementation.createHTMLDocument('Home');
+  const next = document.implementation.createHTMLDocument('Work');
+  live.body.innerHTML = '<nav class="navbar-logo-center"><div class="link-box mobile"><a class="nav-link-sd white">Contact</a></div></nav>';
+  next.body.innerHTML = '<nav class="navbar-logo-center"><div class="link-box mobile"><a class="nav-link-sd">Contact</a><div class="dot-link dark"></div></div></nav>';
+  const link = live.querySelector('a');
+  syncMenuVariants(live, next);
+  expect(live.querySelector('a')).toBe(link);
+  expect(live.querySelector('.dot-link.dark')).not.toBeNull();
+  next.querySelector('.dot-link')!.remove();
+  next.querySelector('a')!.classList.add('white');
+  syncMenuVariants(live, next);
+  expect(live.querySelector('.dot-link')).toBeNull();
+  expect(live.querySelector('a')).toBe(link);
 });

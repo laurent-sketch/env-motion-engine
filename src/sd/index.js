@@ -3,9 +3,10 @@ import ScrollPlugin from '@swup/scroll-plugin';
 import config from './interactions.json';
 import routes from './routes.json';
 import { runFallback } from './boot.js';
+import { installMobileMenuStyles } from './menu.js';
 import { wrap, validate, syncMenuVariants, syncMenuImages } from './layout.js';
 
-// Experimental, restricted to the audited Home/Work exports. No fetched JS eval.
+// Shared SD layouts with verified runtime profiles. No fetched JS eval.
 const base = new URL(import.meta.url);
 base.pathname = base.pathname.replace(/[^/]*$/, '');
 const path = () => location.pathname.replace(/\/$/, '');
@@ -41,14 +42,15 @@ function metadata(doc) {
   document.head.querySelectorAll(selectors).forEach(e => e.remove());
   doc.head.querySelectorAll(selectors).forEach(e => document.head.append(e.cloneNode(true)));
   document.head.querySelectorAll('style[data-env-sd-page-style]').forEach(e => e.remove());
-  doc.head.querySelectorAll('style').forEach(e => { const copy = e.cloneNode(true); copy.dataset.envSdPageStyle = ''; document.head.append(copy); });
+  doc.head.querySelectorAll('style:not([data-env-sd-mobile-nav])').forEach(e => { const copy = e.cloneNode(true); copy.dataset.envSdPageStyle = ''; document.head.append(copy); });
 }
 function menu() {
   cleanMenu();
   const nav = document.querySelector('.navbar-logo-center');
   const brand = nav?.querySelector('.navbar-brand-three');
   const text = brand?.querySelector('.nav-link-sd'), logo = brand?.querySelector('.logo-nav');
-  if (!nav || !text || !logo) return;
+  if (!nav) return;
+  installMobileMenuStyles();
   const abort = new AbortController();
   let state, animations = [], pending = false;
   function update(force = false) {
@@ -57,6 +59,9 @@ function menu() {
     nav.classList.toggle('is-past-hero', show);
     if (!force && show === state) return;
     const initial = state === undefined; state = show;
+    if (!text || !logo || !text.getClientRects().length) {
+      animations.forEach(a => a.cancel()); animations = []; return;
+    }
     const elements = [text, logo];
     const starts = elements.map(el => ({ transform: getComputedStyle(el).transform, opacity: getComputedStyle(el).opacity }));
     animations.forEach(a => a.cancel());
@@ -73,7 +78,7 @@ function menu() {
   function schedule() { if (pending) return; pending = true; requestAnimationFrame(() => { pending = false; update(); }); }
   addEventListener('scroll', schedule, { passive: true, signal: abort.signal });
   addEventListener('resize', () => update(true), { signal: abort.signal });
-  logo.addEventListener('load', () => update(true), { signal: abort.signal });
+  logo?.addEventListener('load', () => update(true), { signal: abort.signal });
   update();
   document.querySelectorAll('.navbar-logo-center a[href]').forEach(a => {
     const url = new URL(a.href); const current = url.origin === location.origin && url.pathname === location.pathname && !url.hash;

@@ -32,7 +32,15 @@ export function validate(doc, pathname) {
 
 // Keep the persistent menu nodes/listeners, but adopt the destination color variants.
 export function syncMenuVariants(live, incoming) {
-  for (const [selector, variant] of [['.nav-link-sd', 'white'], ['.dot-link', 'dark']]) {
+  // Home omits the mobile contact underline; inner pages include it.
+  const contact = live.querySelector('.navbar-logo-center .link-box.mobile');
+  const nextContact = incoming.querySelector('.navbar-logo-center .link-box.mobile');
+  if (contact && nextContact) {
+    const dot = contact.querySelector('.dot-link'), nextDot = nextContact.querySelector('.dot-link');
+    if (dot && !nextDot) dot.remove();
+    else if (!dot && nextDot) contact.append(nextDot.cloneNode(true));
+  }
+  for (const [selector, variant] of [['.nav-link-sd', 'white'], ['.dot-link', 'dark'], ['.burger-menu-wrap .line-burger', 'white']]) {
     const current = [...live.querySelectorAll(`.navbar-logo-center ${selector}`)];
     const next = [...incoming.querySelectorAll(`.navbar-logo-center ${selector}`)];
     if (current.length !== next.length) throw Error('Menu variants structure changed');
@@ -41,13 +49,26 @@ export function syncMenuVariants(live, incoming) {
 }
 
 export function syncMenuImages(live, incoming) {
-  const current = [...live.querySelectorAll('.navbar-logo-center img')];
-  const next = [...incoming.querySelectorAll('.navbar-logo-center img')];
-  if (current.length !== next.length) throw Error('Menu images structure changed');
-  current.forEach((el, i) => {
-    for (const attr of ['src', 'srcset', 'sizes', 'alt']) {
-      const value = next[i].getAttribute(attr);
-      if (value === null) el.removeAttribute(attr); else el.setAttribute(attr, value);
+  // Match roles, not all images by index: only the mobile logo may gain/lose its second image.
+  for (const selector of ['.navbar-brand-three', '.logo-mobile', '.menu-modal']) {
+    const current = live.querySelector(`.navbar-logo-center ${selector}`);
+    const next = incoming.querySelector(`.navbar-logo-center ${selector}`);
+    if (!current && !next) continue;
+    if (!current || !next) throw Error('Menu image slot changed');
+    let images = [...current.querySelectorAll('img')];
+    const nextImages = [...next.querySelectorAll('img')];
+    if (selector !== '.logo-mobile' && images.length !== nextImages.length) throw Error('Menu images structure changed');
+    while (images.length > nextImages.length) images.pop().remove();
+    while (images.length < nextImages.length) {
+      const copy = nextImages[images.length].cloneNode(true);
+      current.append(copy); images.push(copy);
     }
-  });
+    images.forEach((el, i) => {
+      el.className = nextImages[i].className;
+      for (const attr of ['src', 'srcset', 'sizes', 'alt']) {
+        const value = nextImages[i].getAttribute(attr);
+        if (value === null) el.removeAttribute(attr); else el.setAttribute(attr, value);
+      }
+    });
+  }
 }
