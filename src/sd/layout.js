@@ -40,7 +40,7 @@ export function syncMenuVariants(live, incoming) {
     if (dot && !nextDot) dot.remove();
     else if (!dot && nextDot) contact.append(nextDot.cloneNode(true));
   }
-  for (const [selector, variant] of [['.nav-link-sd', 'white'], ['.dot-link', 'dark'], ['.burger-menu-wrap .line-burger', 'white']]) {
+  for (const [selector, variant] of [['.nav-link-sd', 'white'], ['.dot-link', 'dark'], ['.burger-menu-wrap .line-burger', 'white'], ['.menu-modal', 'darker'], ['.menu-modal .link-overlay', 'dark']]) {
     const current = [...live.querySelectorAll(`.navbar-logo-center ${selector}`)];
     const next = [...incoming.querySelectorAll(`.navbar-logo-center ${selector}`)];
     if (current.length !== next.length) throw Error('Menu variants structure changed');

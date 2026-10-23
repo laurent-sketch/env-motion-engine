@@ -102,3 +102,22 @@ it('adopts the optional mobile contact underline without replacing its link', ()
   expect(live.querySelector('.dot-link')).toBeNull();
   expect(live.querySelector('a')).toBe(link);
 });
+
+it('syncs modal background and link colors in both directions while preserving animation state', () => {
+  const live = document.implementation.createHTMLDocument('Home');
+  const next = document.implementation.createHTMLDocument('Work');
+  live.body.innerHTML = '<nav class="navbar-logo-center"><div class="menu-modal big-layout darker" style="opacity:0.5"><a><span class="link-overlay big">Work</span></a></div></nav>';
+  next.body.innerHTML = '<nav class="navbar-logo-center"><div class="menu-modal big-layout"><a><span class="link-overlay big dark">Work</span></a></div></nav>';
+  const modal = live.querySelector('.menu-modal')!;
+  const link = live.querySelector('a');
+  syncMenuVariants(live, next);
+  expect(modal.classList.contains('darker')).toBe(false);
+  expect(live.querySelector('.link-overlay.dark')).not.toBeNull();
+  expect(modal.getAttribute('style')).toBe('opacity:0.5');
+  next.querySelector('.menu-modal')!.classList.add('darker');
+  next.querySelector('.link-overlay')!.classList.remove('dark');
+  syncMenuVariants(live, next);
+  expect(modal.classList.contains('darker')).toBe(true);
+  expect(live.querySelector('.link-overlay.dark')).toBeNull();
+  expect(live.querySelector('a')).toBe(link);
+});

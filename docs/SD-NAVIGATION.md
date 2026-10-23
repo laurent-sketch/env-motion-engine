@@ -39,3 +39,5 @@ News marquee touch input now uses a dedicated Touch Events stream with a non-pas
 News supports the CMS Collection List wrapper in both marquee and Swiper modes; the global loader initializes either structure without an extra page-specific script.
 
 The News root may opt into `data-env-news-layout="alternating"` for automatic positional media sizes, without per-item CMS fields. See NEWS-LOADER.md.
+
+The persistent mobile modal also adopts the destination `.menu-modal.darker` background and `.link-overlay.dark` text variants on every page transition, retaining its nodes and native animation styles.

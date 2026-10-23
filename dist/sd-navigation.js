@@ -1478,7 +1478,7 @@ function j(e, t) {
     const a = d.querySelector(".dot-link"), n = l.querySelector(".dot-link");
     a && !n ? a.remove() : !a && n && d.append(n.cloneNode(!0));
   }
-  for (const [a, n] of [[".nav-link-sd", "white"], [".dot-link", "dark"], [".burger-menu-wrap .line-burger", "white"]]) {
+  for (const [a, n] of [[".nav-link-sd", "white"], [".dot-link", "dark"], [".burger-menu-wrap .line-burger", "white"], [".menu-modal", "darker"], [".menu-modal .link-overlay", "dark"]]) {
     const s = [...e.querySelectorAll(`.navbar-logo-center ${a}`)], i = [...t.querySelectorAll(`.navbar-logo-center ${a}`)];
     if (s.length !== i.length) throw Error("Menu variants structure changed");
     s.forEach((o, f) => o.classList.toggle(n, i[f].classList.contains(n)));
