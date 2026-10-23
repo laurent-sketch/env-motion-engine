@@ -44,3 +44,12 @@ Both engines accept the original direct wrapper and this native CMS structure:
 Keep the mode and speed attributes on `.swiper-news`; no new custom attributes are needed. Marquee measures and clones the Collection Items inside the existing list. Swiper mounts on `.w-dyn-list`, so the Collection List remains its direct wrapper without moving CMS nodes. Manual arrows remain in the surrounding section. Both modes restore authored styles when switching/destroying. The empty state remains readable if no items are published.
 
 This uses the CMS items rendered in the current published page. It does not automatically fetch later pagination pages. After a separate client-side filtering/loading plugin changes the items, refresh the News engine; such integrations are not part of this adapter. CMS links must be bound to their intended URL field: a published `href="#"` remains a placeholder.
+
+
+## Automatic alternating media formats
+
+Set `data-env-news-layout="alternating"` once on `.swiper-news`, beside the existing mode and speed attributes. No CMS field is needed. Original Collection Items receive a repeating `data-env-news-shape` sequence before the selected driver mounts: `big-square`, `small-square`, `landscape`, then repeat. Loop clones inherit their original shape, so a group with a non-multiple-of-three item count still repeats without a format mismatch at the seam. Disabling the layout restores authored shape attributes.
+
+The defaults follow the manual Home: large square 420×420px and landscape approximately 775×436px. The compact square is explicitly set to 320×320px (a proposed size; the old `_1-1` class only declared a ratio). Mobile widths are 85vw, 70vw and 92vw respectively, preserving square/16:9 ratios. Only opted-in News have their media wrapper sizing and image cover rules overridden. Existing CMS `_1-1-big` combo classes can remain; the attribute-scoped rules override their dimensions.
+
+For custom sizes, define these variables on the opted-in root in your CSS: `--env-news-big`, `--env-news-small`, `--env-news-landscape`. Put custom overrides after the loader styles or use a more specific selector. A CMS reorder automatically changes the next published layout sequence. After client-side reordering, call `ENVNews.refresh()` to reassign the indices and remeasure the loop. A mode change reuses the same layout sequence for marquee or Swiper.

@@ -67,3 +67,18 @@ it('leaves an empty CMS collection readable without initializing either driver',
   expect(f.construct).not.toHaveBeenCalled();
   expect(f.root.textContent).toContain('No news yet');
 });
+
+it('assigns a repeating media format by original item index and restores authored attributes', async () => {
+  const f = setup('off', true);
+  const track = f.root.querySelector('.swiper-wrapper-news')!;
+  const card = track.firstElementChild!;
+  for (let i = 0; i < 4; i++) track.append(card.cloneNode(true));
+  card.setAttribute('data-env-news-shape', 'authored');
+  f.root.setAttribute('data-env-news-layout', 'alternating');
+  f.root.setAttribute('data-env-news', 'marquee'); await flush();
+  expect([...track.children].map(el => el.getAttribute('data-env-news-shape'))).toEqual(['big-square', 'small-square', 'landscape', 'big-square', 'small-square']);
+  f.root.setAttribute('data-env-news-layout', 'off'); await flush();
+  expect(card.getAttribute('data-env-news-shape')).toBe('authored');
+  expect(track.children[1].hasAttribute('data-env-news-shape')).toBe(false);
+  expect(f.marqueeDestroy).toHaveBeenCalled();
+});

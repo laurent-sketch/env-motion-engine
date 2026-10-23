@@ -20,7 +20,7 @@ Head preparation hides only reveal targets, leaving the menu and media/backgroun
 
 ## Validation
 
-78 automated tests and production build pass. Browser fixtures use the published HTML/CSS/fonts/images with a small local video to isolate lifecycle behavior; real video transfer performance and physical-phone touch behavior need separate verification. Installation alone does not rewrite incorrect authored links in Webflow: the persistent menu deliberately adopts those links from each destination.
+79 automated tests and production build pass. Browser fixtures use the published HTML/CSS/fonts/images with a small local video to isolate lifecycle behavior; real video transfer performance and physical-phone touch behavior need separate verification. Installation alone does not rewrite incorrect authored links in Webflow: the persistent menu deliberately adopts those links from each destination.
 
 ## Rollback
 
@@ -37,3 +37,5 @@ The persistent mobile brand link is retained across navigation. Its logo images 
 News marquee touch input now uses a dedicated Touch Events stream with a non-passive horizontal move handler, immediate finger tracking and coarse-pointer hover guards. See NEWS-MARQUEE.md for gesture behavior and physical-device verification limits.
 
 News supports the CMS Collection List wrapper in both marquee and Swiper modes; the global loader initializes either structure without an extra page-specific script.
+
+The News root may opt into `data-env-news-layout="alternating"` for automatic positional media sizes, without per-item CMS fields. See NEWS-LOADER.md.
