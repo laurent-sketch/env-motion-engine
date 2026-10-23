@@ -20,7 +20,7 @@ Head preparation hides only reveal targets, leaving the menu and media/backgroun
 
 ## Validation
 
-70 automated tests and production build pass. Browser fixtures use the published HTML/CSS/fonts/images with a small local video to isolate lifecycle behavior; real video transfer performance and physical-phone touch behavior need separate verification. Installation alone does not rewrite incorrect authored links in Webflow: the persistent menu deliberately adopts those links from each destination.
+75 automated tests and production build pass. Browser fixtures use the published HTML/CSS/fonts/images with a small local video to isolate lifecycle behavior; real video transfer performance and physical-phone touch behavior need separate verification. Installation alone does not rewrite incorrect authored links in Webflow: the persistent menu deliberately adopts those links from each destination.
 
 ## Rollback
 
@@ -33,3 +33,5 @@ The native-navigation fallback keeps the Head reveal gate until `env:animations-
 On tablet/mobile (up to 991px), the light Home's `.logo-mobile` contains a white `.logo-nav` and a blue `.logo-nav.bis`. The engine injects scoped CSS that crossfades these images on `.is-past-hero`, puts the blue image in the same position without shifting the layout, and turns only `.burger-menu-wrap .line-burger` dark blue. The divider lines inside the menu modal are not affected. The single blue logo on inner pages remains unchanged. Reduced motion disables these transitions.
 
 The persistent mobile brand link is retained across navigation. Its logo images may change from two to one and back; image synchronization now matches the desktop brand, mobile brand and modal texture separately. Burger white variants and the optional mobile contact underline follow the destination page. The header color controller runs even if the desktop Boutique Scale markup is missing or hidden. The existing global Head does not need to change for this update: replace only the module URL in the global Footer. Keep the authored `.logo-nav.bis` blue asset on light Home pages.
+
+News marquee touch input now uses a dedicated Touch Events stream with a non-passive horizontal move handler, immediate finger tracking and coarse-pointer hover guards. See NEWS-MARQUEE.md for gesture behavior and physical-device verification limits.

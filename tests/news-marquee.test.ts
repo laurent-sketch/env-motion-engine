@@ -3,7 +3,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 const source = readFileSync('public/news-marquee.js', 'utf8');
 const api = () => (window as Window & { ENVNewsMarquee?: { destroy(): void; init(): void; refresh(): void } }).ENVNewsMarquee!;
 afterEach(() => { api()?.destroy(); vi.restoreAllMocks(); vi.unstubAllGlobals(); document.body.replaceChildren(); });
-function setup(reduced = false, swiper = false) {
+function setup(reduced = false, swiper = false, finePointer = true) {
   document.body.innerHTML = '<section><div class="swiper-news" data-env-news="marquee" style="color:red"><div class="swiper-wrapper-news"><article class="swiper-slide-news" id="original" style="width:200px"><a href="#one" data-env-reveal="fade-up">One</a><img loading="lazy" src="/one.jpg"></article><article class="swiper-slide-news" style="width:300px"><a href="#two">Two</a></article></div></div><button class="swiper-button-prev" disabled>Prev</button><button class="swiper-button-next">Next</button></section>';
   const root = document.querySelector('.swiper-news') as HTMLElement;
   if (swiper) Object.assign(root, { swiper: { destroyed: false } });
@@ -23,7 +23,7 @@ function setup(reduced = false, swiper = false) {
   vi.stubGlobal('cancelAnimationFrame', (n: number) => frames.delete(n));
   vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} });
   vi.stubGlobal('IntersectionObserver', class { observe() {} disconnect() {} });
-  vi.stubGlobal('matchMedia', () => ({ matches: reduced, addEventListener() {}, removeEventListener() {} }));
+  vi.stubGlobal('matchMedia', (query: string) => ({ matches: query.includes('prefers-reduced-motion') ? reduced : finePointer, addEventListener() {}, removeEventListener() {} }));
   Object.assign(root, { setPointerCapture: vi.fn(), hasPointerCapture: () => false, releasePointerCapture: vi.fn() });
   new Function(source)();
   return { root, track: root.firstElementChild as HTMLElement, frames, advance(n: number) { for (let i = 0; i < n; i++) { time += 16.667; const pending = [...frames.values()]; frames.clear(); pending.forEach(fn => fn(time)); } } };
@@ -97,4 +97,57 @@ it('keeps horizontal movement inside a filled loop across large forward and reve
     expect(x).toBeGreaterThanOrEqual(0);
     expect(x).toBeLessThan(540);
   });
+});
+
+function touchEvent(target: Element, type: string, x: number, y: number, extra = false) {
+  const touch = { identifier: 7, clientX: x, clientY: y };
+  const event = new Event(type, { bubbles: true, cancelable: true });
+  Object.assign(event, { touches: /end|cancel/.test(type) ? [] : extra ? [touch, { identifier: 8, clientX: x + 20, clientY: y }] : [touch], changedTouches: [touch] });
+  target.dispatchEvent(event);
+  return event;
+}
+it('follows horizontal touch immediately and suppresses only the post-drag click', () => {
+  const f = setup(false, false, false), link = f.root.querySelector('a')!;
+  touchEvent(link, 'touchstart', 220, 100);
+  const moved = touchEvent(link, 'touchmove', 100, 105);
+  expect(moved.defaultPrevented).toBe(true);
+  expect(f.track.style.transform).toBe('translate3d(-120px,0,0)');
+  expect(f.root.setPointerCapture).not.toHaveBeenCalled();
+  touchEvent(link, 'touchend', 100, 105);
+  expect(link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, detail: 1 }))).toBe(false);
+  touchEvent(link, 'touchstart', 150, 100); touchEvent(link, 'touchend', 150, 100);
+  expect(link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, detail: 1 }))).toBe(true);
+});
+it('leaves a vertical touch gesture to native page scrolling', () => {
+  const f = setup(false, false, false);
+  const before = f.track.style.transform;
+  touchEvent(f.root, 'touchstart', 220, 100);
+  expect(touchEvent(f.root, 'touchmove', 223, 155).defaultPrevented).toBe(false);
+  expect(f.track.style.transform).toBe(before);
+});
+it('leaves multi-touch free for pinch zoom and resumes after cancellation', () => {
+  const f = setup(false, false, false);
+  touchEvent(f.root, 'touchstart', 220, 100);
+  expect(touchEvent(f.root, 'touchmove', 200, 100, true).defaultPrevented).toBe(false);
+  const before = f.track.style.transform;
+  f.advance(80);
+  expect(f.track.style.transform).not.toBe(before);
+});
+it('does not pause autoplay on emulated mouse hover from a touch device', () => {
+  const f = setup(false, false, false);
+  f.root.dispatchEvent(new MouseEvent('mouseenter'));
+  f.advance(100);
+  const before = f.track.style.transform; f.advance(30);
+  expect(f.track.style.transform).not.toBe(before);
+});
+it('ignores duplicate touch pointer events and holds autoplay while a finger rests', () => {
+  const f = setup(false, false, false);
+  touchEvent(f.root, 'touchstart', 220, 100);
+  const before = f.track.style.transform;
+  f.advance(40); expect(f.track.style.transform).toBe(before);
+  const event = new Event('pointerdown', { bubbles: true });
+  Object.assign(event, { isPrimary: true, button: 0, pointerId: 1, clientX: 999, clientY: 0, pointerType: 'touch' });
+  f.root.dispatchEvent(event);
+  touchEvent(f.root, 'touchmove', 120, 100);
+  expect(f.track.style.transform).toBe('translate3d(-100px,0,0)');
 });
