@@ -41,3 +41,7 @@ News supports the CMS Collection List wrapper in both marquee and Swiper modes; 
 The News root may opt into `data-env-news-layout="alternating"` for automatic positional media sizes, without per-item CMS fields. See NEWS-LOADER.md.
 
 The persistent mobile modal also adopts the destination `.menu-modal.darker` background and `.link-overlay.dark` text variants on every page transition, retaining its nodes and native animation styles.
+
+CSS-only Webflow publishes are accepted at startup when the audited JavaScript runtime still matches. Incoming pages must share the exact stylesheet URLs already loaded in the active document; incompatible page styles still use native navigation.
+
+Optional native slider registration is shipped as `sd-slider.js`, containing only audited factory 4345 from the published Webflow export. It registers into the active shared runtime without executing a second page bootstrap. `scripts/snapshot-sd.mjs` regenerates this asset with the runtime snapshot.

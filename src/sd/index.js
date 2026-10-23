@@ -128,7 +128,10 @@ async function start() {
   const ix2 = runtime?.require('ix2'), ix3 = runtime?.require('ix3');
   let native;
   if (!ix2?.init || !ix3?.ready) throw Error('Webflow runtime unavailable');
-  const profile = validate(document, path());
+  // A CSS-only Webflow publish changes the URL without changing the audited JS runtime.
+  // Use the styles actually loaded in this document as the navigation compatibility baseline.
+  const activeSheets = [...document.querySelectorAll('link[rel="stylesheet"]')].map(el => el.getAttribute('href'));
+  const profile = validate(document, path(), activeSheets);
   if (!runtime.require('slider')?.ready) {
     const slider = routes['/home-sd'].slider;
     await script(slider.script);
@@ -139,8 +142,6 @@ async function start() {
     if (!registered || !runtime.require('slider')?.ready) throw Error('Audited slider factory unavailable');
   }
   native = ['slider', 'navbar', 'dropdown', 'tabs'].map(name => runtime.require(name)).filter(Boolean);
-  // The same site stylesheet is required; otherwise use a full native visit.
-  if (JSON.stringify(routes['/home-sd'].sheets) !== JSON.stringify(routes['/work-v2'].sheets)) throw Error('Page stylesheets differ');
   wrap(document);
   document.head.querySelectorAll('style').forEach(el => { if (profile.styles.includes(el.textContent)) el.dataset.envSdPageStyle = ''; });
   await mount(); releaseBoot();
@@ -174,7 +175,7 @@ async function start() {
   swup.hooks.replace('content:replace', async (visit, args, replace) => {
     const doc = visit.to.document;
     if (!doc || !replace) throw Error('Missing incoming page');
-    validate(doc, new URL(visit.to.url, location.href).pathname);
+    validate(doc, new URL(visit.to.url, location.href).pathname, activeSheets);
     if (doc.querySelectorAll('.navbar-logo-center a[href]').length !== document.querySelectorAll('.navbar-logo-center a[href]').length) throw Error('Menu structure changed');
     const next = wrap(doc); next.classList.add('env-sd-pending');
     if (next.querySelector('.w-slider') && !runtime.require('slider')?.ready) throw Error('Slider runtime unavailable; native visit required');

@@ -121,3 +121,14 @@ it('syncs modal background and link colors in both directions while preserving a
   expect(live.querySelector('.link-overlay.dark')).toBeNull();
   expect(live.querySelector('a')).toBe(link);
 });
+
+it('accepts CSS-only republishes against the active document while rejecting incompatible destination styles', () => {
+  const doc = fixture('/press');
+  doc.querySelectorAll('link[rel="stylesheet"]').forEach(el => el.remove());
+  const css = doc.createElement('link'); css.rel = 'stylesheet'; css.href = 'https://cdn.prod.website-files.com/site/css/new-publish.css'; doc.head.append(css);
+  const active = [css.getAttribute('href')!];
+  expect(() => validate(doc, '/press', active)).not.toThrow();
+  expect(() => validate(doc, '/press', ['https://example.com/different.css'])).toThrow('Stylesheets changed');
+  const extra = css.cloneNode(true) as HTMLLinkElement; extra.href = 'https://example.com/page-only.css'; doc.head.append(extra);
+  expect(() => validate(doc, '/press', active)).toThrow('Stylesheets changed');
+});

@@ -10,7 +10,7 @@ export function wrap(doc) {
   if (footer) root.append(footer);
   return root;
 }
-export function validate(doc, pathname) {
+export function validate(doc, pathname, expectedSheets) {
   const scripts = [...doc.scripts].map(s => s.getAttribute('src')).filter(s => s?.includes('/js/webflow.'));
   const known = routes[pathname];
   const record = known || Object.values(routes).find(r => JSON.stringify(r.scripts) === JSON.stringify(scripts));
@@ -18,7 +18,7 @@ export function validate(doc, pathname) {
   if (JSON.stringify(scripts) !== JSON.stringify(record.scripts)) throw Error('Webflow export changed; rebuild SD snapshots');
   if (!doc.querySelector('.navbar-logo-center') || !doc.querySelector('body > main.main-wrapper, #env-sd-page > main.main-wrapper')) throw Error('Page needs the shared SD menu and main wrapper');
   const sheets = [...doc.querySelectorAll('link[rel="stylesheet"]')].map(e => e.getAttribute('href'));
-  if (!record.sheets.every(s => sheets.includes(s))) throw Error('Stylesheets changed');
+  if (!(expectedSheets || record.sheets).every(s => sheets.includes(s)) || (expectedSheets && sheets.length !== expectedSheets.length)) throw Error('Stylesheets changed');
   // Unknown inline scripts need a lifecycle adapter rather than blind execution.
   for (const s of doc.scripts) {
     if (/env-motion-engine@.*\/dist\/env\.js/.test(s.src)) throw Error('Remove the legacy env.js loader on pilot routes');

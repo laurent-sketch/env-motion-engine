@@ -1,4 +1,5 @@
 import { JSDOM } from 'jsdom';
+import { sliderChunk } from './slider-factory.mjs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { extract } from './snapshot-pilot.mjs';
 const base = 'https://sd-env-2025-2e4590d75f1a2db700cfbb4c7c1.webflow.io';
@@ -23,7 +24,8 @@ for (const script of routes['/home-sd'].scripts) {
   if (!source.includes('define("slider"')) continue;
   const factory = source.match(/\{(\d+):function[^]*?define\("slider"/);
   if (!factory) throw Error('Slider chunk layout changed');
-  routes['/home-sd'].slider = { script, factory: Number(factory[1]) };
+  await writeFile('public/sd-slider.js', sliderChunk(source, Number(factory[1])));
+  routes['/home-sd'].slider = { script: 'sd-slider.js', factory: Number(factory[1]) };
   break;
 }
 if (!routes['/home-sd'].slider) throw Error('Missing audited slider factory');
