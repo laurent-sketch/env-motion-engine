@@ -99,3 +99,33 @@ it('releases retired page records without restoring sources, and stages the next
   expect(next.querySelector('source')?.hasAttribute('src')).toBe(false);
   expect(runtime.audit()).toHaveLength(3);
 });
+
+it('supports native videos in arbitrary opt-in containers without Webflow classes', async () => {
+  const f = await setup();
+  const root = document.createElement('article'); root.dataset.envVideo = 'hover';
+  root.innerHTML = '<video id="generic" muted poster="cover.jpg" autoplay><source src="generic.mp4"></video>';
+  document.body.append(root);
+  await Promise.resolve(); await Promise.resolve();
+  const video = root.querySelector('video')!;
+  expect(video.querySelector('source')!.hasAttribute('src')).toBe(false);
+  expect(video.getAttribute('poster')).toBe('cover.jpg');
+  f.enter(0, root); f.enter(1, root);
+  expect(video.querySelector('source')!.hasAttribute('src')).toBe(false);
+  root.dispatchEvent(new Event('pointerenter'));
+  expect(video.querySelector('source')!.getAttribute('src')).toBe('generic.mp4');
+  video.dispatchEvent(new Event('playing'));
+  expect(root.classList.contains('is-env-video-playing')).toBe(true);
+  root.dispatchEvent(new Event('pointerleave'));
+  expect(root.classList.contains('is-env-video-playing')).toBe(false);
+});
+
+it('keeps hero autoplay behavior inside an opted-in ancestor', async () => {
+  const f = await setup();
+  const slider = document.querySelector('.sd-slider')!;
+  api().destroy();
+  slider.setAttribute('data-env-video', 'hover');
+  new Function(source)(); await Promise.resolve();
+  // Fresh observers are appended by the second initialization.
+  f.enter(3, slider);
+  expect(document.querySelector('#hero source')!.hasAttribute('src')).toBe(true);
+});

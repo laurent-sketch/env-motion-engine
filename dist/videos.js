@@ -9,10 +9,10 @@
   const preference = matchMedia('(prefers-reduced-motion: reduce)');
   const hoverDevice = matchMedia('(hover: hover) and (pointer: fine)');
   const coverStyle = document.createElement('style');
-  coverStyle.textContent = '.project-item[data-env-video="hover"]:not(.is-env-video-playing) .cover-project{opacity:1!important}.project-item[data-env-video="hover"].is-env-video-playing .cover-project{opacity:0!important}';
+  coverStyle.textContent = '[data-env-video="hover"]:not(.is-env-video-playing) .cover-project{opacity:1!important}[data-env-video="hover"].is-env-video-playing .cover-project{opacity:0!important}';
   document.head.append(coverStyle);
   let ready = false, destroyed = false, near, visible, timer;
-  const supported = video => video.closest('.w-background-video') && video.closest('.sd-slider, .item-video');
+  const supported = video => video.closest('[data-env-video="hover"]') || (video.closest('.w-background-video') && video.closest('.sd-slider, .item-video'));
   const pause = video => { try { video.pause(); } catch (_) {} };
   function allowed(record) {
     if (document.hidden || preference.matches || !record.visible) return false;
@@ -31,7 +31,7 @@
     if (!record) {
       record = { video, loaded: false, visible: false, sources: new Map(), direct: null,
         autoplay: video.hasAttribute('autoplay'), preload: video.getAttribute('preload'), aria: video.getAttribute('aria-hidden'), early: false };
-      record.hoverRoot = !video.closest('.sd-slider') ? video.closest('.project-item[data-env-video="hover"]') : null;
+      record.hoverRoot = !video.closest('.sd-slider') ? video.closest('[data-env-video="hover"]') : null;
       record.hovering = false; record.focused = false;
       record.controller = new AbortController();
       records.set(video, record);
@@ -49,7 +49,7 @@
       }
       video.removeAttribute('autoplay'); video.preload = 'none'; pause(video);
       video.setAttribute('aria-hidden', 'true'); // Deferred media is represented by its poster, not an empty media control.
-      const poster = video.closest('.w-background-video').getAttribute('data-poster-url');
+      const poster = video.closest('.w-background-video')?.getAttribute('data-poster-url');
       record.poster = video.getAttribute('poster');
       if (poster && !record.poster) video.poster = poster;
       video.addEventListener('play', () => { if (!allowed(record)) pause(video); }, { signal: record.controller.signal });
@@ -108,7 +108,7 @@
     }, 1500);
   }
   function observe(record) {
-    const region = record.video.closest('.sd-slider') || record.video.closest('.w-background-video');
+    const region = record.video.closest('.sd-slider') || record.video.closest('.w-background-video') || record.hoverRoot || record.video;
     record.region = region; near.observe(region); visible.observe(region);
   }
   function init() {
