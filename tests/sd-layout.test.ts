@@ -153,3 +153,21 @@ it('accepts publication-specific runtime rotation while retaining audited core, 
   extra.remove(); scripts[0].remove();
   expect(() => validate(doc, '/work-v1', undefined, { refreshRuntime: true })).toThrow('shared core changed');
 });
+
+it('accepts only a data-only global transition setting, not appended page code', () => {
+  const doc = fixture('/about');
+  const setting = doc.createElement('script'); setting.textContent = 'window.ENVSDTransition = "mask";'; doc.head.append(setting);
+  expect(() => validate(doc, '/about')).not.toThrow();
+  setting.textContent += 'alert("unexpected")';
+  expect(() => validate(doc, '/about')).toThrow('Additional inline script');
+});
+
+it('allows only an audited persistent contact form and known inline adapters in the test engine', () => {
+  const doc = fixture('/about');
+  doc.querySelector('.navbar-logo-center')!.innerHTML = '<div class="contact-modal-bloc"><div class="w-form"><form></form></div></div>';
+  const script = doc.createElement('script'); script.textContent = 'knownContactAdapter()'; doc.body.append(script);
+  expect(() => validate(doc, '/about', undefined, { persistentContact: true, inlineScripts: [script.textContent] })).not.toThrow();
+  expect(() => validate(doc, '/about')).toThrow('Additional inline script');
+  doc.querySelector('main')!.append(doc.querySelector('.w-form')!);
+  expect(() => validate(doc, '/about', undefined, { persistentContact: true, inlineScripts: [script.textContent] })).toThrow('Unsupported page widget');
+});

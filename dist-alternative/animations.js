@@ -1,0 +1,290 @@
+/* ENV Animations — standalone Webflow reveals. Requires GSAP 3.13+.
+ * SplitText 3.13+ enables lines/words/chars; otherwise text fades as a block.
+ * Add attributes only to elements without competing Webflow animations.
+ */
+(() => {
+  'use strict';
+  let observer;
+  let context;
+  let disposed = false;
+  const splits = new Set();
+  const nativeAnimations = new Set();
+  const seen = new WeakSet();
+  const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+  // Match the approved preview's CSS cubic-bezier(.2, .65, .2, 1),
+  // solving the curve's x coordinate rather than treating its parameter as time.
+  function previewEase(progress) {
+    if (progress <= 0 || progress >= 1) return Math.max(0, Math.min(1, progress));
+    let low = 0, high = 1;
+    for (let i = 0; i < 20; i++) {
+      const t = (low + high) / 2;
+      const x = 0.6 * t * (1 - t) + t * t * t;
+      if (x < progress) low = t;
+      else high = t;
+    }
+    const t = (low + high) / 2;
+    return 1.95 * (1 - t) * (1 - t) * t + 3 * (1 - t) * t * t + t * t * t;
+  }
+  const number = (el, key, fallback, max) => {
+    const raw = el.getAttribute(key);
+    const value = raw === null || raw.trim() === '' ? NaN : Number(raw);
+    return Number.isFinite(value) ? Math.min(max, Math.max(0, value)) : fallback;
+  };
+
+  function stop() {
+    observer?.disconnect();
+    nativeAnimations.forEach(animation => animation.cancel());
+    nativeAnimations.clear();
+    context?.revert();
+    context = undefined;
+    splits.forEach(split => split.revert());
+    splits.clear();
+  }
+
+  function start() {
+    if (disposed) return;
+    const skipLateEntrance = document.documentElement.hasAttribute('data-env-sd-reveal-expired');
+    document.documentElement.removeAttribute('data-env-sd-reveal-expired');
+    stop();
+    if (media.matches) return;
+    const gsap = window.gsap;
+    if (!gsap || !window.IntersectionObserver) {
+      console.warn('[ENV Animations] GSAP or IntersectionObserver unavailable. Content stays visible.');
+      return;
+    }
+    const SplitText = window.SplitText;
+    const ScrollTrigger = window.ScrollTrigger;
+    if (SplitText) gsap.registerPlugin(SplitText);
+    if (ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
+    context = gsap.context(() => {});
+
+    function play(el, scrub = false) {
+      if (!scrub) seen.add(el);
+      observer.unobserve(el);
+      context.add(() => {
+        const scroll = scrub ? {
+          trigger: el,
+          start: () => `top ${number(el, 'data-env-scroll-start', 85, 100)}%`,
+          end: () => {
+            const start = number(el, 'data-env-scroll-start', 85, 100);
+            const end = number(el, 'data-env-scroll-end', 35, 100);
+            return `top ${Math.max(0, Math.min(end, start - 1))}%`;
+          },
+          scrub: true,
+          invalidateOnRefresh: true
+        } : undefined;
+        const text = el.hasAttribute('data-env-text');
+        const delay = number(el, 'data-env-delay', 0, 5);
+        const requestedEffect = el.getAttribute('data-env-text-effect');
+        const effect = ['fade', 'up', 'scale', 'blur'].includes(requestedEffect) ? requestedEffect : 'up';
+        if (scroll && text && effect === 'blur') scroll.scrub = 1;
+        const blur = number(el, 'data-env-blur', effect === 'blur' || el.hasAttribute('data-env-blur') ? 30 : 0, 60);
+        const duration = number(el, 'data-env-duration', text ? (effect === 'blur' ? 1 : 0.8) : 0.75, 5);
+        const blurFrames = base => ({
+          from: `blur(${blur}px)${base && base !== 'none' ? ` ${base}` : ''}`,
+          to: `blur(0px)${base && base !== 'none' ? ` ${base}` : ''}`
+        });
+        const opacityState = target => {
+          const css = getComputedStyle(target);
+          return {
+            target, value: target.style.getPropertyValue('opacity'),
+            priority: target.style.getPropertyPriority('opacity'), end: Number(css.opacity || '1'),
+            filter: blur ? { value: target.style.getPropertyValue('filter'), priority: target.style.getPropertyPriority('filter'), base: css.filter } : undefined
+          };
+        };
+        const restoreOpacity = states => {
+          if (scrub) return;
+          states.forEach(({ target, value, priority, filter }) => {
+            if (value) target.style.setProperty('opacity', value, priority);
+            else target.style.removeProperty('opacity');
+            if (blur) {
+              if (filter.value) target.style.setProperty('filter', filter.value, filter.priority);
+              else target.style.removeProperty('filter');
+            }
+          });
+        };
+        const type = el.getAttribute('data-env-text') || 'lines';
+        // An explicit stagger turns a block reveal into a direct-child sequence.
+        // Keep text splitting and ordinary block reveals backward compatible.
+        if (!text && el.hasAttribute('data-env-stagger')) {
+          const children = [...el.children].filter(child =>
+            !child.matches('script, style, template, [hidden], [data-env-ignore], [data-env-news-clone], .w-slider, .swiper-initialized')
+          );
+          if (!children.length) return;
+          const stagger = number(el, 'data-env-stagger', 0.1, 1);
+          const scale = el.dataset.envReveal === 'fade-scale';
+          // Native effects are not inline styles: marquee clones must never
+          // inherit a half-finished reveal's opacity or transform.
+          if (!scrub && children.every(child => typeof child.animate === 'function')) {
+            const snapshots = children.map(child => {
+              const css = getComputedStyle(child);
+              return { opacity: css.opacity, transform: css.transform === 'none' ? '' : css.transform, filter: css.filter };
+            });
+            children.forEach((child, index) => {
+              const base = snapshots[index];
+              const end = { opacity: base.opacity, transform: base.transform || 'none', ...(blur ? { filter: blurFrames(base.filter).to } : {}) };
+              const start = { opacity: 0, transform: `${scale ? 'scale(0.99)' : 'translateY(16px)'} ${base.transform}`.trim(), ...(blur ? { filter: blurFrames(base.filter).from } : {}) };
+              const animation = child.animate([start, end], {
+                duration: duration * 1000,
+                delay: (delay + index * stagger + (scale ? 0.2 : 0)) * 1000,
+                easing: 'cubic-bezier(.2,.65,.2,1)', fill: 'backwards'
+              });
+              nativeAnimations.add(animation);
+              animation.finished.then(() => {
+                nativeAnimations.delete(animation); animation.cancel();
+              }, () => nativeAnimations.delete(animation));
+            });
+            return;
+          }
+          const states = children.map(opacityState);
+          const timeline = gsap.timeline({ delay: scrub ? 0 : delay, ...(scrub ? { scrollTrigger: scroll } : {}), onComplete: () => restoreOpacity(states) });
+          children.forEach((child, index) => {
+            const at = index * stagger + (scale && !scrub ? 0.2 : 0);
+            if (scale) {
+              timeline.from(child, { scale: 0.99, duration, ease: scrub ? 'none' : 'power3.out' }, at);
+              timeline.fromTo(child, { opacity: 0 }, { opacity: states[index].end, duration: Math.min(0.5, duration), ease: 'none', immediateRender: true }, at);
+            } else {
+              timeline.from(child, { y: 16, duration, ease: scrub ? 'none' : previewEase }, at);
+              timeline.fromTo(child, { opacity: 0 }, { opacity: states[index].end, duration, ease: scrub ? 'none' : previewEase, immediateRender: true }, at);
+            }
+            if (blur) timeline.fromTo(child, { filter: blurFrames(states[index].filter.base).from }, { filter: blurFrames(states[index].filter.base).to, duration, ease: scrub ? 'none' : 'power2.out', immediateRender: true }, at);
+          });
+          return;
+        }
+        if (!text && !scrub && el.dataset.envReveal === 'fade-up' && typeof el.animate === 'function') {
+          const style = getComputedStyle(el);
+          const baseTransform = style.transform === 'none' ? '' : style.transform;
+          const animation = el.animate([
+            { opacity: 0, transform: `translateY(16px) ${baseTransform}`.trim(), ...(blur ? { filter: blurFrames(style.filter).from } : {}) },
+            { opacity: style.opacity, transform: baseTransform || 'translateY(0)', ...(blur ? { filter: blurFrames(style.filter).to } : {}) }
+          ], {
+            duration: duration * 1000,
+            delay: delay * 1000,
+            easing: 'cubic-bezier(.2,.65,.2,1)',
+            fill: 'backwards'
+          });
+          nativeAnimations.add(animation);
+          const release = () => {
+            nativeAnimations.delete(animation);
+            animation.cancel(); // Release the effect and return to authored CSS.
+          };
+          animation.finished.then(release, () => nativeAnimations.delete(animation));
+          return;
+        }
+        // Preserve nested link/control semantics by animating these texts as a block.
+        const interactive = el.querySelector('a, button, input, select, textarea, [tabindex]');
+        if (text && SplitText && !interactive && ['lines', 'words', 'chars'].includes(type)) {
+          let split;
+          split = SplitText.create(el, {
+            type: type === 'chars' ? 'words,chars' : type,
+            mask: type === 'lines' && effect === 'up' ? 'lines' : undefined,
+            autoSplit: true,
+            aria: 'auto',
+            onSplit(self) {
+              const targets = self[type];
+              const defaultStagger = effect === 'blur' ? 0.035 : type === 'chars' ? 0.018 : type === 'words' ? 0.045 : 0.1;
+              const stagger = number(el, 'data-env-stagger', defaultStagger, 1);
+              const vars = {
+                ...(effect === 'up' ? { yPercent: type === 'lines' ? 110 : 65 } : {}),
+                ...(effect === 'scale' ? { scale: 0.98 } : effect === 'blur' ? { scale: 1.05 } : {}),
+                opacity: 0,
+                duration,
+                delay: scrub ? 0 : delay,
+                ease: effect === 'blur' ? 'power2.out' : scrub ? 'none' : 'power3.out',
+                ...(scrub ? { scrollTrigger: scroll } : {}),
+                stagger: effect === 'blur' ? stagger : { each: stagger, amount: Math.min(stagger * Math.max(targets.length - 1, 0), 1.2) },
+                onComplete() {
+                  if (scrub) return; // Keep split targets alive for reverse scrolling.
+                  // Restore original markup after the reveal, including natural line wrapping.
+                  queueMicrotask(() => {
+                    if (!split || !splits.has(split)) return;
+                    split.revert();
+                    splits.delete(split);
+                  });
+                }
+              };
+              if (!blur) return gsap.from(targets, vars);
+              const frames = targets.map(target => blurFrames(getComputedStyle(target).filter));
+              const startVars = {
+                ...(vars.yPercent !== undefined ? { yPercent: vars.yPercent } : {}),
+                ...(vars.scale !== undefined ? { scale: vars.scale } : {}),
+                opacity: 0, filter: index => frames[index].from
+              };
+              // Initialize every stagger target, including chars whose tween has not started.
+              gsap.set(targets, startVars);
+              return gsap.fromTo(targets, startVars, {
+                ...vars,
+                ...(vars.yPercent !== undefined ? { yPercent: 0 } : {}),
+                ...(vars.scale !== undefined ? { scale: 1 } : {}),
+                opacity: 1, filter: index => frames[index].to, immediateRender: true
+              });
+            }
+          });
+          splits.add(split);
+          return;
+        }
+        const scale = !text && el.dataset.envReveal === 'fade-scale';
+        const blockOpacity = opacityState(el);
+        const timeline = gsap.timeline({ delay: scrub ? 0 : delay, ...(scrub ? { scrollTrigger: scroll } : {}), onComplete: () => restoreOpacity([blockOpacity]) });
+        if (scale) {
+          timeline.from(el, { scale: 0.99, duration: 0.75, ease: scrub ? 'none' : 'power3.out' }, scrub ? 0 : 0.2);
+          timeline.fromTo(el, { opacity: 0 }, { opacity: blockOpacity.end, duration: 0.5, ease: 'none', immediateRender: true }, scrub ? 0 : 0.2);
+        } else {
+          timeline.from(el, {
+            ...(!text || effect === 'up' ? { y: 16 } : {}),
+            ...(text && effect === 'scale' ? { scale: 0.98 } : text && effect === 'blur' ? { scale: 1.05 } : {}),
+            opacity: 0, duration, ease: scrub ? 'none' : previewEase
+          });
+        }
+        if (blur) timeline.fromTo(el, { filter: blurFrames(blockOpacity.filter.base).from }, { filter: blurFrames(blockOpacity.filter.base).to, duration, ease: scrub ? 'none' : 'power2.out', immediateRender: true }, scale && !scrub ? 0.2 : 0);
+      });
+    }
+
+    observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !seen.has(entry.target)) play(entry.target);
+      });
+    }, { threshold: 0 });
+
+    document.querySelectorAll('[data-env-reveal], [data-env-text]').forEach(el => {
+      const scrub = el.getAttribute('data-env-trigger') === 'scrub';
+      if ((!scrub && seen.has(el)) || el.closest('[data-env-ignore], [data-env-news-clone], .w-slider, .swiper-initialized')) return;
+      // Avoid compounded transforms/opacity on an animated ancestor and its text.
+      if (el.parentElement?.closest('[data-env-reveal], [data-env-text]')) return;
+      const visible = el.getBoundingClientRect().bottom > 0 && el.getBoundingClientRect().top < innerHeight;
+      // A fail-open gate already showed this content: never hide it again on late startup.
+      if (skipLateEntrance && visible && !scrub) { seen.add(el); return; }
+      if (!scrub && visible) play(el);
+      else if (scrub && ScrollTrigger) play(el, true);
+      else {
+        if (scrub) console.warn('[ENV Animations] ScrollTrigger unavailable; using a one-time reveal.', el);
+        observer.observe(el);
+      }
+    });
+  }
+
+  function ready() {
+    const boot = () => { if (!disposed) { start(); window.dispatchEvent(new Event('env:animations-ready')); } };
+    // Prefer loaded fonts for line splitting, but never hold the first reveal indefinitely.
+    if (document.fonts?.ready) {
+      let started = false;
+      const finish = () => { if (started) return; started = true; clearTimeout(timeout); boot(); };
+      const timeout = setTimeout(finish, 500);
+      document.fonts.ready.then(finish, finish);
+    }
+    else boot();
+  }
+  window.ENVAnimations?.destroy?.();
+  window.ENVAnimations = {
+    refresh: start,
+    destroy() {
+      disposed = true;
+      stop();
+      media.removeEventListener('change', start);
+      document.removeEventListener('DOMContentLoaded', ready);
+    }
+  };
+  media.addEventListener('change', start);
+  if (document.readyState !== 'loading') ready();
+  else document.addEventListener('DOMContentLoaded', ready, { once: true });
+})();
