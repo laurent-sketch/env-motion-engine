@@ -258,6 +258,10 @@ async function start() {
   });
   swup.hooks.on('page:view', async visit => {
     try {
+    // ScrollPlugin restores the destination in a queued animation frame. Wait for
+    // that frame before syncing Lenis or measuring the viewport mask. Otherwise
+    // a scrolled outgoing page can offset the mask below the visible viewport.
+    await new Promise(resolve => requestAnimationFrame(resolve));
     window.lenis?.resize();
     window.lenis?.scrollTo(window.scrollY, { immediate: true, force: true });
     if (!useMask) window.lenis?.start();

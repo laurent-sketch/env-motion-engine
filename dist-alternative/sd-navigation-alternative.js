@@ -4073,7 +4073,7 @@ async function Gt() {
       await Ae(u, 0, 1, 350), B?.cancel();
   }), E.hooks.on("page:view", async (u) => {
     try {
-      window.lenis?.resize(), window.lenis?.scrollTo(window.scrollY, { immediate: !0, force: !0 }), e || window.lenis?.start(), await _e({ deferReveals: e }), document.querySelector("#env-sd-page")?.classList.remove("env-sd-pending"), F.commit(), !["localhost", "127.0.0.1"].includes(location.hostname) && typeof window.gtag == "function" && window.gtag("event", "page_view", { page_title: document.title, page_location: location.href });
+      await new Promise((b) => requestAnimationFrame(b)), window.lenis?.resize(), window.lenis?.scrollTo(window.scrollY, { immediate: !0, force: !0 }), e || window.lenis?.start(), await _e({ deferReveals: e }), document.querySelector("#env-sd-page")?.classList.remove("env-sd-pending"), F.commit(), !["localhost", "127.0.0.1"].includes(location.hostname) && typeof window.gtag == "function" && window.gtag("event", "page_view", { page_title: document.title, page_location: location.href });
       const y = Ut();
       if (y) {
         const b = y.getAttribute("tabindex");
