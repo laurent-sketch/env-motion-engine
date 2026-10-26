@@ -33,7 +33,7 @@ export function createAlternativeTransition({ doc = document, win = window } = {
       canvas.style.cssText = video.style.cssText;
       canvas.className = video.className;
       const css = win.getComputedStyle(source);
-      for (const property of ['position', 'top', 'left', 'right', 'bottom', 'width', 'height', 'minWidth', 'minHeight', 'maxWidth', 'maxHeight', 'objectFit', 'objectPosition', 'transform', 'zIndex']) canvas.style[property] = css[property];
+      for (const property of ['position', 'top', 'left', 'right', 'bottom', 'width', 'height', 'minWidth', 'minHeight', 'maxWidth', 'maxHeight', 'objectFit', 'objectPosition', 'transform', 'zIndex', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft', 'display', 'boxSizing', 'borderRadius']) canvas.style[property] = css[property];
       canvas.width = source.videoWidth || 320; canvas.height = source.videoHeight || 180;
       try {
         if (source.readyState < 2) throw Error('Video frame unavailable');

@@ -44,7 +44,7 @@ function Qe({ doc: n = document, win: e = window } = {}) {
       const O = y[T], I = n.createElement("canvas");
       I.style.cssText = b.style.cssText, I.className = b.className;
       const w = e.getComputedStyle(O);
-      for (const L of ["position", "top", "left", "right", "bottom", "width", "height", "minWidth", "minHeight", "maxWidth", "maxHeight", "objectFit", "objectPosition", "transform", "zIndex"]) I.style[L] = w[L];
+      for (const L of ["position", "top", "left", "right", "bottom", "width", "height", "minWidth", "minHeight", "maxWidth", "maxHeight", "objectFit", "objectPosition", "transform", "zIndex", "marginTop", "marginRight", "marginBottom", "marginLeft", "display", "boxSizing", "borderRadius"]) I.style[L] = w[L];
       I.width = O.videoWidth || 320, I.height = O.videoHeight || 180;
       try {
         if (O.readyState < 2) throw Error("Video frame unavailable");

@@ -46,3 +46,23 @@ it('uses viewport-sized mask travel and synchronizes a black shade with both pag
   expect(calls[2][0]).toEqual([{ opacity: 0 }, { opacity: 0.35 }]);
   expect(calls.map(call => call[1])).toEqual([calls[0][1], calls[0][1], calls[0][1]]);
 });
+
+// Webflow centers background videos with negative offsets and auto margins.
+// Omitting those resolved margins places the captured frame outside its wrapper.
+it('preserves background video centering when replacing it with a frame', () => {
+  const { runtime } = fixture();
+  const root = document.querySelector('#env-sd-page')!;
+  root.innerHTML = '<div class="w-background-video"><video style="position:absolute;top:-100px;left:-200px;width:200px;height:100px;margin:100px 200px;object-fit:cover"></video></div>';
+  const source = root.querySelector('video')!;
+  Object.defineProperty(source, 'readyState', { value: 4 });
+  const drawImage = vi.fn();
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({ drawImage } as any);
+  runtime.capture();
+  const frame = document.querySelector('[data-env-transition-snapshot] canvas') as HTMLCanvasElement;
+  expect(drawImage).toHaveBeenCalled();
+  expect(frame.style.marginTop).toBe('100px');
+  expect(frame.style.marginLeft).toBe('200px');
+  expect(frame.style.top).toBe('-100px');
+  expect(frame.style.left).toBe('-200px');
+  runtime.cleanup();
+});
