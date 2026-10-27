@@ -195,7 +195,7 @@ async function start() {
   // Keep the menu DOM and do not replay its initial reveal on later visits.
   document.querySelector('.navbar-logo-center')?.setAttribute('data-env-ignore', '');
   const swup = new Swup({ containers: ['#env-sd-page'], animationSelector: false, cache: window.ENVSDPreload === true,
-    plugins: [new ScrollPlugin({ animateScroll: false })],
+    plugins: [new ScrollPlugin({ animateScroll: { betweenPages: false, samePageWithHash: !reduced.matches, samePage: !reduced.matches } })],
     linkSelector: 'a[href]:not([download]):not([target]):not([data-no-swup])',
     ignoreVisit: (url, { el } = {}) => { const u = new URL(url, location.href); return u.origin !== location.origin || /\.(?:pdf|zip|png|jpe?g|webp|svg|mp4|webm|css|js)$/i.test(u.pathname) || !!el?.closest('[data-no-swup]'); }
   });

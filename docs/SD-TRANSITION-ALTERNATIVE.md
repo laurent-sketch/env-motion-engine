@@ -17,3 +17,7 @@ Persistent menu colors are explicitly interpolated for 400ms in either direction
 Set `window.ENVSDTransition = "mask"` before the navigation module to enable the diagonal mask, outgoing shade and delayed ENV reveals. Set it to `"classic"` for the original 200ms fade-out / 350ms fade-in path, with normal reveal initialization. Missing/unrecognized values default to classic. Selection is read once at startup, remains for all client-side page visits, and changes on document reload. No page attributes are required. The unified test entry retains symmetric menu color interpolation in either mode.
 
 The local server defaults to mask. Open `/?transition=classic` to compare classic mode or `/?transition=mask` to compare mask mode; this query handling is confined to the local preview server, not the production engine. Stable classic-only module remains pinned at `479fdf09cf4fe05867cfd9fc6cb1e4a28cedd3f8/dist/sd-navigation.js`, and its source/build files are untouched.
+
+## Anchor scrolling
+
+Same-page anchors and return-to-top links use smooth scrolling unless reduced motion is enabled. Between-page scroll restoration stays instantaneous so mask measurements remain stable.
