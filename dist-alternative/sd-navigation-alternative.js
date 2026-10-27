@@ -79,7 +79,7 @@ function Qe({ doc: n = document, win: e = window } = {}) {
     i || m(c);
     const u = l, g = Math.max(0, -c.getBoundingClientRect().top), y = e.innerHeight, I = `polygon(0 ${g + y}px,100% ${g + y * 1.1}px,100% 100%,0 100%)`, h = `polygon(0 ${g}px,100% ${g}px,100% 100%,0 100%)`, T = { duration: 850, easing: "cubic-bezier(.76,0,.24,1)", fill: "both" };
     o = [
-      t.animate([{ transform: "translateY(0) rotate(0) scale(1)" }, { transform: "translateY(-12vh) rotate(-1.2deg) scale(1.04)" }], T),
+      t.animate([{ transform: "translateY(0) scale(1)" }, { transform: "translateY(-12vh) scale(1.04)" }], T),
       c.animate([{ clipPath: I }, { clipPath: h }], T),
       a.animate([{ opacity: 0 }, { opacity: 0.35 }], T)
     ];

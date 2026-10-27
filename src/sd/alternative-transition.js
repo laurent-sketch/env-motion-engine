@@ -91,7 +91,7 @@ export function createAlternativeTransition({ doc = document, win = window } = {
     const endClip = `polygon(0 ${top}px,100% ${top}px,100% 100%,0 100%)`;
     const options = { duration: 850, easing: 'cubic-bezier(.76,0,.24,1)', fill: 'both' };
     animations = [
-      overlay.animate([{ transform: 'translateY(0) rotate(0) scale(1)' }, { transform: 'translateY(-12vh) rotate(-1.2deg) scale(1.04)' }], options),
+      overlay.animate([{ transform: 'translateY(0) scale(1)' }, { transform: 'translateY(-12vh) scale(1.04)' }], options),
       root.animate([{ clipPath: startClip }, { clipPath: endClip }], options),
       shade.animate([{ opacity: 0 }, { opacity: 0.35 }], options)
     ];
