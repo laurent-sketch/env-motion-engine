@@ -16,8 +16,8 @@ window.Webflow.push(function () {
   const nav = slider.querySelector('.w-slider-nav');
   const slides = [...slider.querySelectorAll('.w-slider-mask > .w-slide')];
   const dots = nav ? [...nav.querySelectorAll('.w-slider-dot')] : [];
-  if (!dots.length || dots.length !== links.length || dots.length !== slides.length) {
-    console.error('[Hero] Expected one navigation link and native dot per slide.');
+  if (!dots.length || dots.length !== slides.length || (links.length > 0 && dots.length !== links.length)) {
+    console.error('[Hero] Expected one native dot per slide and either no navigation links or one per slide.');
     return;
   }
 

@@ -31,3 +31,5 @@ In mask mode, each incoming page retains its authored header background. No shar
 The home (`/home-sd-2026-vf`, or `/` when used as the homepage) switches after `.hero-wrapper` leaves the viewport. Other pages switch to white at 320 px and retain white until scroll drops below 80 px. The white background uses a separate opacity layer, excluded from page color handover. Reduced motion disables the fade.
 
 History visits that skip Swup animations explicitly release the reveal gate, clean transition scroll locks, resume Lenis and initialize reveals without waiting for animation:in. ScrollTrigger refreshes after destination mounting.
+
+The hero timer supports both layouts: no custom slider navigation, or exactly one custom link per slide. Native slider dots remain required. Disable native Webflow Autoplay before using this timer.
