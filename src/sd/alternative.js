@@ -1,3 +1,4 @@
+import { resumePageVisit } from './alternative-history.js';
 import { beginMenuColors } from './alternative-menu-colors.js';
 // TEMPORARY alternative: stable src/sd/index.js is intentionally unchanged.
 import { createAlternativeTransition } from './alternative-transition.js';
@@ -280,8 +281,8 @@ async function start() {
     await new Promise(resolve => requestAnimationFrame(resolve));
     window.lenis?.resize();
     window.lenis?.scrollTo(window.scrollY, { immediate: true, force: true });
-    if (!useMask) window.lenis?.start();
-    await mount({ deferReveals: useMask });
+    await resumePageVisit({ visit, useMask, transition, root: document.querySelector('#env-sd-page'), lenis: window.lenis, mount });
+    window.ScrollTrigger?.refresh();
     document.querySelector('#env-sd-page')?.classList.remove('env-sd-pending');
     gradient?.commit();
     if (!['localhost', '127.0.0.1'].includes(location.hostname) && typeof window.gtag === 'function') window.gtag('event', 'page_view', { page_title: document.title, page_location: location.href });
