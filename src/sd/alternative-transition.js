@@ -73,12 +73,7 @@ export function createAlternativeTransition({ doc = document, win = window } = {
     if (!overlay || reduced()) return;
     incoming = root; originalStyle = root.getAttribute('style');
     Object.assign(root.style, { position: 'relative', zIndex: '9', clipPath: 'polygon(0% 100%,100% 110%,100% 100%,0% 100%)', backgroundColor: '#fff', willChange: 'clip-path' });
-    const gradient = doc.querySelector('#env-sd-gradient');
-    if (root.hasAttribute('data-env-sd-gradient-page') && gradient) {
-      root.style.backgroundImage = gradient.style.backgroundImage;
-      root.style.backgroundSize = `100% ${gradient.style.height}`;
-      root.style.backgroundRepeat = 'no-repeat';
-    }
+
   }
   async function reveal(root) {
     if (!overlay || reduced()) { cleanup(); return; }

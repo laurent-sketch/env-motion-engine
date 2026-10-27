@@ -66,10 +66,7 @@ function Qe({ doc: n = document, win: e = window } = {}) {
     }), u.style.cssText = `position:absolute;left:0;top:${-e.scrollY}px;width:100%;margin:0;background:#fff;pointer-events:none;z-index:0;`, t = n.createElement("div"), t.dataset.envTransitionSnapshot = "", t.dataset.envIgnore = "", t.setAttribute("aria-hidden", "true"), t.inert = !0, t.style.cssText = "position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:8;background:#fff;transform-origin:50% 50%;", a = n.createElement("div"), a.dataset.envTransitionShade = "", a.style.cssText = "position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;z-index:1;", t.append(u, a), n.body.append(t), n.documentElement.setAttribute("data-env-transition-active", ""), e.addEventListener("wheel", r, { capture: !0, passive: !1 }), e.addEventListener("touchmove", r, { capture: !0, passive: !1 });
   }
   function m(c) {
-    if (!t || f()) return;
-    i = c, s = c.getAttribute("style"), Object.assign(c.style, { position: "relative", zIndex: "9", clipPath: "polygon(0% 100%,100% 110%,100% 100%,0% 100%)", backgroundColor: "#fff", willChange: "clip-path" });
-    const u = n.querySelector("#env-sd-gradient");
-    c.hasAttribute("data-env-sd-gradient-page") && u && (c.style.backgroundImage = u.style.backgroundImage, c.style.backgroundSize = `100% ${u.style.height}`, c.style.backgroundRepeat = "no-repeat");
+    !t || f() || (i = c, s = c.getAttribute("style"), Object.assign(c.style, { position: "relative", zIndex: "9", clipPath: "polygon(0% 100%,100% 110%,100% 100%,0% 100%)", backgroundColor: "#fff", willChange: "clip-path" }));
   }
   async function E(c) {
     if (!t || f()) {
@@ -4030,7 +4027,7 @@ async function Gt() {
       y(u.factory), g = !0;
     }]), !g || !t.require("slider")?.ready) throw Error("Audited slider factory unavailable");
   };
-  s = ["slider", "navbar", "dropdown", "tabs"].map((u) => t.require(u)).filter(Boolean), Le(document), W = yt(), document.head.querySelectorAll("style").forEach((u) => {
+  s = ["slider", "navbar", "dropdown", "tabs"].map((u) => t.require(u)).filter(Boolean), Le(document), W = e ? null : yt(), document.head.querySelectorAll("style").forEach((u) => {
     f.styles.includes(u.textContent) && (u.dataset.envSdPageStyle = "");
   }), await window.ENVSDLoader?.prepare?.(), await _e(), document.querySelector(".navbar-logo-center")?.setAttribute("data-env-ignore", "");
   const E = new mt({
@@ -4061,7 +4058,7 @@ async function Gt() {
       const N = t.require("slider");
       s.includes(N) || s.push(N);
     }
-    window.lenis?.stop(), Vt(), s.forEach((N) => N.destroy?.()), a.destroy(), i.destroy(), j?.cancel(), await y(u, g), Ct(I), W.prepare(), e && n.prepare(document.querySelector("#env-sd-page")), s.forEach((N) => N.ready?.()), a.init(T.ix2), await Promise.race([i.ready(), Ge(4e3).then(() => {
+    window.lenis?.stop(), Vt(), s.forEach((N) => N.destroy?.()), a.destroy(), i.destroy(), j?.cancel(), await y(u, g), Ct(I), W?.prepare(), e && n.prepare(document.querySelector("#env-sd-page")), s.forEach((N) => N.ready?.()), a.init(T.ix2), await Promise.race([i.ready(), Ge(4e3).then(() => {
       throw Error("Webflow interaction restart timeout");
     })]);
     const v = i.getInstance();
@@ -4080,7 +4077,7 @@ async function Gt() {
       await Ae(u, 0, 1, 350), j?.cancel();
   }), E.hooks.on("page:view", async (u) => {
     try {
-      await new Promise((y) => requestAnimationFrame(y)), window.lenis?.resize(), window.lenis?.scrollTo(window.scrollY, { immediate: !0, force: !0 }), e || window.lenis?.start(), await _e({ deferReveals: e }), document.querySelector("#env-sd-page")?.classList.remove("env-sd-pending"), W.commit(), !["localhost", "127.0.0.1"].includes(location.hostname) && typeof window.gtag == "function" && window.gtag("event", "page_view", { page_title: document.title, page_location: location.href });
+      await new Promise((y) => requestAnimationFrame(y)), window.lenis?.resize(), window.lenis?.scrollTo(window.scrollY, { immediate: !0, force: !0 }), e || window.lenis?.start(), await _e({ deferReveals: e }), document.querySelector("#env-sd-page")?.classList.remove("env-sd-pending"), W?.commit(), !["localhost", "127.0.0.1"].includes(location.hostname) && typeof window.gtag == "function" && window.gtag("event", "page_view", { page_title: document.title, page_location: location.href });
       const g = Ut();
       if (g) {
         const y = g.getAttribute("tabindex");

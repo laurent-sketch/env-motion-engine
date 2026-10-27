@@ -188,7 +188,7 @@ async function start() {
   };
   native = ['slider', 'navbar', 'dropdown', 'tabs'].map(name => runtime.require(name)).filter(Boolean);
   wrap(document);
-  gradient = installGradient();
+  gradient = useMask ? null : installGradient();
   document.head.querySelectorAll('style').forEach(el => { if (profile.styles.includes(el.textContent)) el.dataset.envSdPageStyle = ''; });
   await window.ENVSDLoader?.prepare?.();
   await mount();
@@ -236,7 +236,7 @@ async function start() {
     busyAnimation?.cancel();
     await replace(visit, args);
     metadata(doc);
-    gradient.prepare();
+    gradient?.prepare();
     if (useMask) transition.prepare(document.querySelector('#env-sd-page'));
     native.forEach(module => module.ready?.());
     ix2.init(incomingConfig.ix2);
@@ -267,7 +267,7 @@ async function start() {
     if (!useMask) window.lenis?.start();
     await mount({ deferReveals: useMask });
     document.querySelector('#env-sd-page')?.classList.remove('env-sd-pending');
-    gradient.commit();
+    gradient?.commit();
     if (!['localhost', '127.0.0.1'].includes(location.hostname) && typeof window.gtag === 'function') window.gtag('event', 'page_view', { page_title: document.title, page_location: location.href });
     const content = main(); if (content) { const tab = content.getAttribute('tabindex'); content.setAttribute('tabindex', '-1'); content.focus({ preventScroll: true }); if (tab === null) content.removeAttribute('tabindex'); else content.setAttribute('tabindex', tab); }
     } catch (error) {
