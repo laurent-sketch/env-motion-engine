@@ -21,6 +21,17 @@ export function createAlternativeTransition({ doc = document, win = window } = {
     const root = doc.querySelector('#env-sd-page');
     if (!root || reduced()) return;
     const copy = root.cloneNode(true);
+    // Destination sheets, page IDs and native slider reinitialization must not
+    // change the outgoing visual. Resolve its styles before sanitizing IDs.
+    const originals = [root, ...root.querySelectorAll('*')];
+    const copies = [copy, ...copy.querySelectorAll('*')];
+    copies.forEach((element, index) => {
+      const css = win.getComputedStyle(originals[index]);
+      for (let i = 0; i < css.length; i++) { const property = css[i]; element.style.setProperty(property, css.getPropertyValue(property)); }
+      element.style.setProperty('animation', 'none', 'important');
+      element.style.setProperty('transition', 'none', 'important');
+      element.classList.remove('w-slider', 'w-slide', 'w-slider-mask', 'w-slider-nav', 'w-slider-dot');
+    });
     // This is a non-interactive visual snapshot, never a second Webflow runtime.
     copy.querySelectorAll('script').forEach(el => el.remove());
     [copy, ...copy.querySelectorAll('*')].forEach(el => {

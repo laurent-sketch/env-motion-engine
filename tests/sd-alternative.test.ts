@@ -66,3 +66,19 @@ it('preserves background video centering when replacing it with a frame', () => 
   expect(frame.style.left).toBe('-200px');
   runtime.cleanup();
 });
+
+it('freezes outgoing page styles before destination CSS and slider initialization change', () => {
+  const { runtime } = fixture();
+  const sheet = document.createElement('style');
+  sheet.textContent = '#title { color: red; margin-top: 42px; } .w-slide { width: 300px; }';
+  document.head.append(sheet);
+  document.querySelector('#title')!.classList.add('w-slide');
+  runtime.capture();
+  sheet.textContent = '.w-slide { width: 900px; }';
+  const heading = document.querySelector('[data-env-transition-snapshot] h1') as HTMLElement;
+  expect(heading.style.color).toBe('rgb(255, 0, 0)');
+  expect(heading.style.marginTop).toBe('42px');
+  expect(heading.style.width).toBe('300px');
+  expect(heading.classList.contains('w-slide')).toBe(false);
+  runtime.cleanup(); sheet.remove();
+});
