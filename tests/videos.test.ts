@@ -129,3 +129,15 @@ it('keeps hero autoplay behavior inside an opted-in ancestor', async () => {
   f.enter(3, slider);
   expect(document.querySelector('#hero source')!.hasAttribute('src')).toBe(true);
 });
+
+it('restarts hover videos on re-entry without resetting during ordinary playback callbacks', async () => {
+  const f = await setup(true), root = document.querySelector('.project-item')!, wrapper = document.querySelector('.item-video')!, video = document.querySelector('#project') as HTMLVideoElement;
+  f.enter(1, wrapper);
+  root.dispatchEvent(new Event('pointerenter'));
+  video.currentTime = 4;
+  video.dispatchEvent(new Event('loadeddata'));
+  expect(video.currentTime).toBe(4);
+  root.dispatchEvent(new Event('pointerleave'));
+  root.dispatchEvent(new Event('pointerenter'));
+  expect(video.currentTime).toBe(0);
+});

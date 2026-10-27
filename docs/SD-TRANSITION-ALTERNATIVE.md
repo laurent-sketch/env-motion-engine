@@ -21,3 +21,5 @@ The local server defaults to mask. Open `/?transition=classic` to compare classi
 ## Anchor scrolling
 
 Same-page anchors and return-to-top links use smooth scrolling unless reduced motion is enabled. Between-page scroll restoration stays instantaneous so mask measurements remain stable.
+
+Hover video playback restarts at zero on each pointer entry or keyboard activation. Replace the synchronous inline Head video controller to apply this behavior; changing the Footer navigation module alone does not replace an already-installed ENVVideos controller.

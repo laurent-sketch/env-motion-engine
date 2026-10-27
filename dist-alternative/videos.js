@@ -22,6 +22,9 @@
   }
   function play(record) {
     if (!record.loaded || !allowed(record)) { record.hoverRoot?.classList.remove('is-env-video-playing'); pause(record.video); return; }
+    if (record.restartPending) {
+      try { record.video.currentTime = 0; record.restartPending = false; } catch (_) { /* Retry when media becomes seekable. */ }
+    }
     const result = record.video.play();
     if (result?.catch) result.catch(() => {});
   }
@@ -38,9 +41,9 @@
       if (record.hoverRoot) {
         const root = record.hoverRoot;
         const activate = () => { if (allowed(record)) hydrate(record, true); else play(record); };
-        root.addEventListener('pointerenter', event => { if (event.pointerType === 'touch') return; record.hovering = true; activate(); }, { signal: record.controller.signal });
+        root.addEventListener('pointerenter', event => { if (event.pointerType === 'touch') return; record.hovering = true; record.restartPending = true; activate(); }, { signal: record.controller.signal });
         root.addEventListener('pointerleave', () => { record.hovering = false; activate(); }, { signal: record.controller.signal });
-        root.addEventListener('focusin', event => { record.focused = event.target.matches(':focus-visible'); activate(); }, { signal: record.controller.signal });
+        root.addEventListener('focusin', event => { record.focused = event.target.matches(':focus-visible'); if (record.focused && !record.hovering) record.restartPending = true; activate(); }, { signal: record.controller.signal });
         root.addEventListener('focusout', event => { if (!root.contains(event.relatedTarget)) { record.focused = false; activate(); } }, { signal: record.controller.signal });
         video.addEventListener('playing', () => {
           if (allowed(record)) root.classList.add('is-env-video-playing'); else play(record);
