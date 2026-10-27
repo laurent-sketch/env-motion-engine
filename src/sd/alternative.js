@@ -21,6 +21,18 @@ revealGate.dataset.envAlternativeRevealGate = '';
 revealGate.textContent = '.navbar-logo-center [data-modal="contact"]{pointer-events:auto!important}' + '#env-sd-page[data-env-alt-reveal-wait] :is([data-env-reveal],[data-env-text]):not([data-env-ignore]):not([data-env-ignore] *):not(.w-slider *):not(.swiper-initialized *){visibility:hidden!important}';
 document.head.append(revealGate);
 
+// Animate a dedicated white layer; page color handover must not animate the nav background.
+const menuBackground = document.createElement('style');
+menuBackground.dataset.envNavBackground = '';
+menuBackground.textContent = `
+.navbar-logo-center { background:transparent!important; transition:none!important; isolation:isolate; }
+.navbar-logo-center::before { content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:#fff;opacity:0;transition:opacity 400ms ease;will-change:opacity; }
+.navbar-logo-center.is-past-hero::before { opacity:1; }
+@media(prefers-reduced-motion:reduce){.navbar-logo-center::before{transition:none}}
+`;
+document.head.append(menuBackground);
+
+
 // Shared SD layouts with verified runtime profiles. No fetched JS eval.
 const base = new URL(import.meta.url);
 base.pathname = base.pathname.replace(/[^/]*$/, '');
@@ -73,8 +85,12 @@ function menu() {
   const abort = new AbortController();
   let state, animations = [], pending = false;
   function update(force = false) {
-    const hero = document.querySelector('.hero-wrapper');
-    const show = !hero || hero.getBoundingClientRect().bottom <= 0;
+    const home = path() === '/home-sd-2026-vf' || path() === '/';
+    const hero = home ? document.querySelector('.hero-wrapper') : null;
+    const scroll = Math.max(0, Math.round(window.scrollY));
+    const show = home
+      ? !hero || hero.getBoundingClientRect().bottom <= 0
+      : state === undefined ? scroll >= 320 : state ? scroll >= 80 : scroll >= 320;
     nav.classList.toggle('is-past-hero', show);
     if (!force && show === state) return;
     const initial = state === undefined; state = show;

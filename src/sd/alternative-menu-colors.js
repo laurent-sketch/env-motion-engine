@@ -2,7 +2,6 @@
 const active = new Set();
 export function beginMenuColors(doc = document, win = window) {
   const entries = [
-    ['.navbar-logo-center', 'backgroundColor'],
     ['.navbar-logo-center .nav-link-sd', 'color'],
     ['.navbar-logo-center .dot-link, .navbar-logo-center .line-burger', 'backgroundColor']
   ].flatMap(([selector, property]) => [...doc.querySelectorAll(selector)].map(el => ({

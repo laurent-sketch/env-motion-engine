@@ -25,3 +25,7 @@ Same-page anchors and return-to-top links use smooth scrolling unless reduced mo
 Hover video playback restarts at zero on each pointer entry or keyboard activation. Replace the synchronous inline Head video controller to apply this behavior; changing the Footer navigation module alone does not replace an already-installed ENVVideos controller.
 
 In mask mode, each incoming page retains its authored header background. No shared gradient layer is installed or reconstructed on the incoming root. Classic mode retains the shared gradient behavior.
+
+## Menu scroll background
+
+The home (`/home-sd-2026-vf`, or `/` when used as the homepage) switches after `.hero-wrapper` leaves the viewport. Other pages switch to white at 320 px and retain white until scroll drops below 80 px. The white background uses a separate opacity layer, excluded from page color handover. Reduced motion disables the fade.
