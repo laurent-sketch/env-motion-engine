@@ -72,7 +72,7 @@ export function createAlternativeTransition({ doc = document, win = window } = {
   function prepare(root) {
     if (!overlay || reduced()) return;
     incoming = root; originalStyle = root.getAttribute('style');
-    Object.assign(root.style, { position: 'relative', zIndex: '9', clipPath: 'polygon(0% 100%,100% 110%,100% 100%,0% 100%)', backgroundColor: '#fff', willChange: 'clip-path' });
+    Object.assign(root.style, { position: 'relative', zIndex: '9', clipPath: 'polygon(0% 100%,100% 100%,100% 100%,0% 100%)', backgroundColor: '#fff', willChange: 'clip-path' });
 
   }
   async function reveal(root) {
@@ -82,7 +82,7 @@ export function createAlternativeTransition({ doc = document, win = window } = {
     // The mask travels through the viewport, not the full (potentially very tall) page.
     const top = Math.max(0, -root.getBoundingClientRect().top);
     const height = win.innerHeight;
-    const startClip = `polygon(0 ${top + height}px,100% ${top + height * 1.1}px,100% 100%,0 100%)`;
+    const startClip = `polygon(0 ${top + height}px,100% ${top + height}px,100% 100%,0 100%)`;
     const endClip = `polygon(0 ${top}px,100% ${top}px,100% 100%,0 100%)`;
     const options = { duration: 850, easing: 'cubic-bezier(.76,0,.24,1)', fill: 'both' };
     animations = [

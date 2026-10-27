@@ -66,7 +66,7 @@ function Qe({ doc: n = document, win: e = window } = {}) {
     }), u.style.cssText = `position:absolute;left:0;top:${-e.scrollY}px;width:100%;margin:0;background:#fff;pointer-events:none;z-index:0;`, t = n.createElement("div"), t.dataset.envTransitionSnapshot = "", t.dataset.envIgnore = "", t.setAttribute("aria-hidden", "true"), t.inert = !0, t.style.cssText = "position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:8;background:#fff;transform-origin:50% 50%;", a = n.createElement("div"), a.dataset.envTransitionShade = "", a.style.cssText = "position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;z-index:1;", t.append(u, a), n.body.append(t), n.documentElement.setAttribute("data-env-transition-active", ""), e.addEventListener("wheel", r, { capture: !0, passive: !1 }), e.addEventListener("touchmove", r, { capture: !0, passive: !1 });
   }
   function m(c) {
-    !t || f() || (i = c, s = c.getAttribute("style"), Object.assign(c.style, { position: "relative", zIndex: "9", clipPath: "polygon(0% 100%,100% 110%,100% 100%,0% 100%)", backgroundColor: "#fff", willChange: "clip-path" }));
+    !t || f() || (i = c, s = c.getAttribute("style"), Object.assign(c.style, { position: "relative", zIndex: "9", clipPath: "polygon(0% 100%,100% 100%,100% 100%,0% 100%)", backgroundColor: "#fff", willChange: "clip-path" }));
   }
   async function E(c) {
     if (!t || f()) {
@@ -74,7 +74,7 @@ function Qe({ doc: n = document, win: e = window } = {}) {
       return;
     }
     i || m(c);
-    const u = l, g = Math.max(0, -c.getBoundingClientRect().top), y = e.innerHeight, I = `polygon(0 ${g + y}px,100% ${g + y * 1.1}px,100% 100%,0 100%)`, h = `polygon(0 ${g}px,100% ${g}px,100% 100%,0 100%)`, T = { duration: 850, easing: "cubic-bezier(.76,0,.24,1)", fill: "both" };
+    const u = l, g = Math.max(0, -c.getBoundingClientRect().top), y = e.innerHeight, I = `polygon(0 ${g + y}px,100% ${g + y}px,100% 100%,0 100%)`, h = `polygon(0 ${g}px,100% ${g}px,100% 100%,0 100%)`, T = { duration: 850, easing: "cubic-bezier(.76,0,.24,1)", fill: "both" };
     o = [
       t.animate([{ transform: "translateY(0) scale(1)" }, { transform: "translateY(-12vh) scale(1.04)" }], T),
       c.animate([{ clipPath: I }, { clipPath: h }], T),
