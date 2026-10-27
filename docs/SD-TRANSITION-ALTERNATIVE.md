@@ -33,3 +33,5 @@ The home (`/home-sd-2026-vf`, or `/` when used as the homepage) switches after `
 History visits that skip Swup animations explicitly release the reveal gate, clean transition scroll locks, resume Lenis and initialize reveals without waiting for animation:in. ScrollTrigger refreshes after destination mounting.
 
 The hero timer supports both layouts: no custom slider navigation, or exactly one custom link per slide. Native slider dots remain required. Disable native Webflow Autoplay before using this timer.
+
+Ordinary page links reset both native and Lenis scroll before Webflow interaction registration, after viewport refresh and immediately before the incoming reveal. History and explicit anchor visits retain restoration. Verified locally from About footer to Press (0 px) and Home VF footer to About (0 px, quote starts at opacity 0.1), with Back restoring Home scroll.

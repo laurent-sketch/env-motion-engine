@@ -1,4 +1,4 @@
-import { resumePageVisit } from './alternative-history.js';
+import { resumePageVisit, syncDestinationScroll } from './alternative-history.js';
 import { beginMenuColors } from './alternative-menu-colors.js';
 // TEMPORARY alternative: stable src/sd/index.js is intentionally unchanged.
 import { createAlternativeTransition } from './alternative-transition.js';
@@ -254,6 +254,9 @@ async function start() {
     await replace(visit, args);
     metadata(doc);
     gradient?.prepare();
+    syncDestinationScroll(visit);
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    syncDestinationScroll(visit);
     if (useMask) transition.prepare(document.querySelector('#env-sd-page'));
     native.forEach(module => module.ready?.());
     ix2.init(incomingConfig.ix2);
@@ -263,7 +266,8 @@ async function start() {
     document.documentElement.classList.add('w-mod-ix3');
 
   });
-  swup.hooks.replace('animation:in:await', async () => {
+  swup.hooks.replace('animation:in:await', async visit => {
+    syncDestinationScroll(visit);
     const el = document.querySelector('#env-sd-page');
     if (useMask) {
       await transition.reveal(el);
@@ -279,10 +283,10 @@ async function start() {
     // that frame before syncing Lenis or measuring the viewport mask. Otherwise
     // a scrolled outgoing page can offset the mask below the visible viewport.
     await new Promise(resolve => requestAnimationFrame(resolve));
-    window.lenis?.resize();
-    window.lenis?.scrollTo(window.scrollY, { immediate: true, force: true });
+    syncDestinationScroll(visit);
     await resumePageVisit({ visit, useMask, transition, root: document.querySelector('#env-sd-page'), lenis: window.lenis, mount });
     window.ScrollTrigger?.refresh();
+    syncDestinationScroll(visit);
     document.querySelector('#env-sd-page')?.classList.remove('env-sd-pending');
     gradient?.commit();
     if (!['localhost', '127.0.0.1'].includes(location.hostname) && typeof window.gtag === 'function') window.gtag('event', 'page_view', { page_title: document.title, page_location: location.href });
