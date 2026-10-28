@@ -225,6 +225,19 @@
         }
         const scale = !text && el.dataset.envReveal === 'fade-scale';
         const blockOpacity = opacityState(el);
+        // Webflow owns transform on these elements. An independent scale effect
+        // must not cache its scroll translation when entering from below.
+        if (!scrub && scale && el.hasAttribute('data-w-id') && typeof el.animate === 'function') {
+          const baseScale = getComputedStyle(el).scale;
+          const endScale = !baseScale || baseScale === 'none' ? '1' : baseScale;
+          const animation = el.animate([
+            { opacity: 0, scale: '0.99', ...(blur ? { filter: blurFrames(blockOpacity.filter.base).from } : {}) },
+            { opacity: blockOpacity.end, scale: endScale, ...(blur ? { filter: blurFrames(blockOpacity.filter.base).to } : {}) }
+          ], { duration: 750, delay: (delay + 0.2) * 1000, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
+          nativeAnimations.add(animation);
+          animation.finished.then(() => { nativeAnimations.delete(animation); animation.cancel(); }, () => nativeAnimations.delete(animation));
+          return;
+        }
         const timeline = gsap.timeline({ delay: scrub ? 0 : delay, ...(scrub ? { scrollTrigger: scroll } : {}), onComplete: () => restoreOpacity([blockOpacity]) });
         if (scale) {
           timeline.from(el, { scale: 0.99, duration: 0.75, ease: scrub ? 'none' : 'power3.out' }, scrub ? 0 : 0.2);

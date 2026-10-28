@@ -352,3 +352,23 @@ it('falls back to a block for blur text without SplitText and preserves styles o
   tween.parent!.time(0.25); api().destroy();
   expect(el.textContent).toBe('Blur'); expect(el.style.filter).toBe('grayscale(0.2)'); expect(el.style.opacity).toBe('');
 });
+
+it('keeps Webflow scroll translation independent from the scale reveal after a bottom reload', async () => {
+  let finish!: () => void;
+  const cancel = vi.fn();
+  const animate = vi.fn((..._args: any[]) => ({ finished: new Promise<void>(resolve => { finish = resolve; }), cancel }));
+  Object.defineProperty(Element.prototype, 'animate', { configurable: true, value: animate });
+  try {
+    const f = await setup('<img data-w-id="logo" data-env-reveal="fade-scale" style="transform:translateY(360px)">');
+    const logo = document.querySelector('img')!;
+    f.enter(logo);
+    expect(animate).toHaveBeenCalledOnce();
+    const frames = animate.mock.calls[0][0] as any;
+    expect(frames.every((frame: any) => !('transform' in frame))).toBe(true);
+    expect(gsap.getTweensOf(logo)).toHaveLength(0);
+    logo.style.transform = 'translateY(0px)'; // Webflow updates its scroll position.
+    finish(); await Promise.resolve();
+    expect(logo.style.transform).toBe('translateY(0px)');
+    expect(cancel).toHaveBeenCalledOnce();
+  } finally { delete (Element.prototype as any).animate; }
+});

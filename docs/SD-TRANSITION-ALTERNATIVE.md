@@ -35,3 +35,5 @@ History visits that skip Swup animations explicitly release the reveal gate, cle
 The hero timer supports both layouts: no custom slider navigation, or exactly one custom link per slide. Native slider dots remain required. Disable native Webflow Autoplay before using this timer.
 
 Ordinary page links reset both native and Lenis scroll before Webflow interaction registration, after viewport refresh and immediately before the incoming reveal. History and explicit anchor visits retain restoration. Verified locally from About footer to Press (0 px) and Home VF footer to About (0 px, quote starts at opacity 0.1), with Back restoring Home scroll.
+
+One-time fade-scale reveals on Webflow-animated elements use an independent native scale effect instead of caching GSAP transform. This prevents a hero logo from retaining its restored-scroll translation after loading at the page bottom and returning to the top. Native effects are cancelled on completion/cleanup and reduced motion keeps the existing no-reveal behavior.
