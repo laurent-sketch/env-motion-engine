@@ -82,3 +82,16 @@ it('freezes outgoing page styles before destination CSS and slider initializatio
   expect(heading.classList.contains('w-slide')).toBe(false);
   runtime.cleanup(); sheet.remove();
 });
+
+it('compensates section displacement caused by freezing auto heights', () => {
+  const { runtime } = fixture();
+  document.querySelector('.main-wrapper')!.innerHTML = '<section class="section news">News</section>';
+  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function () {
+    const top = this.closest('[data-env-transition-snapshot]') ? 44 : 100;
+    return { top, left: 0, bottom: top + 200, right: 300, width: 300, height: 200, x: 0, y: top, toJSON() {} };
+  });
+  runtime.capture();
+  const section = document.querySelector('[data-env-transition-snapshot] .news') as HTMLElement;
+  expect(section.style.transform).toContain('translate(0px,56px)');
+  runtime.cleanup();
+});

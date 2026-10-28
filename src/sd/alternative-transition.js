@@ -32,6 +32,12 @@ export function createAlternativeTransition({ doc = document, win = window } = {
       element.style.setProperty('transition', 'none', 'important');
       element.classList.remove('w-slider', 'w-slide', 'w-slider-mask', 'w-slider-nav', 'w-slider-dot');
     });
+    // Freezing auto heights can change descendant margin collapsing. Preserve
+    // each top-level section's rendered position, independently of normal flow.
+    const sections = originals.map((element, index) => ({ element, copy: copies[index] }))
+      .filter(({ element }) => element.parentElement === root || element.parentElement?.matches('main.main-wrapper'))
+      .filter(({ element }) => !element.matches('main.main-wrapper'))
+      .map(({ element, copy }) => ({ copy, rect: element.getBoundingClientRect() }));
     // This is a non-interactive visual snapshot, never a second Webflow runtime.
     copy.querySelectorAll('script').forEach(el => el.remove());
     [copy, ...copy.querySelectorAll('*')].forEach(el => {
@@ -65,6 +71,16 @@ export function createAlternativeTransition({ doc = document, win = window } = {
     shade.dataset.envTransitionShade = '';
     shade.style.cssText = 'position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;z-index:1;';
     overlay.append(copy, shade); doc.body.append(overlay);
+    // Read before writing to avoid layout work for each individual section.
+    const corrections = sections.map(({ copy: element, rect }) => {
+      const captured = element.getBoundingClientRect();
+      return { element, x: rect.left - captured.left, y: rect.top - captured.top };
+    });
+    corrections.forEach(({ element, x, y }) => {
+      if (Math.abs(x) < .1 && Math.abs(y) < .1) return;
+      const transform = element.style.transform;
+      element.style.transform = `translate(${x}px,${y}px) ${transform === 'none' ? '' : transform}`;
+    });
     doc.documentElement.setAttribute('data-env-transition-active', '');
     win.addEventListener('wheel', blockScroll, { capture: true, passive: false });
     win.addEventListener('touchmove', blockScroll, { capture: true, passive: false });
