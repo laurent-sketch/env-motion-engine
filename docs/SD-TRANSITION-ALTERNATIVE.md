@@ -37,3 +37,5 @@ The hero timer supports both layouts: no custom slider navigation, or exactly on
 Ordinary page links reset both native and Lenis scroll before Webflow interaction registration, after viewport refresh and immediately before the incoming reveal. History and explicit anchor visits retain restoration. Verified locally from About footer to Press (0 px) and Home VF footer to About (0 px, quote starts at opacity 0.1), with Back restoring Home scroll.
 
 One-time fade-scale reveals on Webflow-animated elements use an independent native scale effect instead of caching GSAP transform. This prevents a hero logo from retaining its restored-scroll translation after loading at the page bottom and returning to the top. Native effects are cancelled on completion/cleanup and reduced motion keeps the existing no-reveal behavior.
+
+The CTA blob pointer controller is installed on page mount and destroyed on unmount. The exact legacy standalone CTA blob script is accepted as an audited inline script, without executing fetched scripts. Remove that standalone script after installing this navigation version; keep the blob CSS and HTML.
