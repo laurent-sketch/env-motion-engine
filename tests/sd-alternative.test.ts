@@ -95,3 +95,13 @@ it('compensates section displacement caused by freezing auto heights', () => {
   expect(section.style.transform).toContain('translate(0px,56px)');
   runtime.cleanup();
 });
+
+it('isolates the frozen footer from class-targeted Webflow parallax', () => {
+  const { runtime } = fixture();
+  document.querySelector('#env-sd-page')!.insertAdjacentHTML('beforeend', '<footer class="section footer static" style="transform:translateY(-2px)">Footer</footer>');
+  runtime.capture();
+  const snapshot = document.querySelector('[data-env-transition-snapshot]')!;
+  expect(snapshot.querySelector('.footer')).toBeNull();
+  expect((snapshot.querySelector('footer') as HTMLElement).style.transform).toContain('-2px');
+  runtime.cleanup();
+});

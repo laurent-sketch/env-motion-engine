@@ -31,6 +31,9 @@ export function createAlternativeTransition({ doc = document, win = window } = {
       element.style.setProperty('animation', 'none', 'important');
       element.style.setProperty('transition', 'none', 'important');
       element.classList.remove('w-slider', 'w-slide', 'w-slider-mask', 'w-slider-nav', 'w-slider-dot');
+      // IX3 footer parallax selects by class even after data-w-id is removed.
+      // Styles are already resolved; this inert copy must not match that target.
+      element.classList.remove('footer');
     });
     // Freezing auto heights can change descendant margin collapsing. Preserve
     // each top-level section's rendered position, independently of normal flow.
