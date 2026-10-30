@@ -4050,7 +4050,10 @@ async function Ut(n, e, { doc: t = document, events: a = window, timeout: i = 4e
 function xt(n = document) {
   if (n.querySelector("style[data-env-sd-mobile-nav]")) return;
   const e = n.createElement("style");
-  e.dataset.envSdMobileNav = "", e.textContent = `@media(max-width:991px){
+  e.dataset.envSdMobileNav = "", e.textContent = `.navbar-logo-center .btn-sd.nav{transition:color 400ms ease,background-color 400ms ease,border-color 400ms ease}
+.navbar-logo-center:has(.navbar-brand-three .nav-link-sd.white):not(.is-past-hero) .btn-sd.nav{color:#fff;background-color:transparent;background-image:none;border-color:transparent;box-shadow:none}
+@media(prefers-reduced-motion:reduce){.navbar-logo-center .btn-sd.nav{transition:none}}
+@media(max-width:991px){
 .navbar-logo-center .burger-menu-wrap .line-burger{transition:background-color 400ms ease}
 .navbar-logo-center.is-past-hero .burger-menu-wrap .line-burger{background-color:var(--_colors---dark-blue,var(--nav-dark-blue,#11263a))}
 .navbar-logo-center .logo-mobile>.logo-nav{transition:opacity 400ms ease}

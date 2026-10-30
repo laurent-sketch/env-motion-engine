@@ -41,3 +41,5 @@ One-time fade-scale reveals on Webflow-animated elements use an independent nati
 The CTA blob pointer controller is installed on page mount and destroyed on unmount. The exact legacy standalone CTA blob script is accepted as an audited inline script, without executing fetched scripts. Remove that standalone script after installing this navigation version; keep the blob CSS and HTML.
 
 Organic canvas blobs marked data-env-blob="orange" are mounted and destroyed with page visits. Keep their HTML attribute and CSS; remove the standalone ENVOrganicBlob inline script. Outgoing canvas pixels are copied before widget teardown so the atmosphere remains visible under the mask.
+
+The .btn-sd.nav contact button follows the light Home menu automatically: white text with transparent background before is-past-hero, then authored Webflow styles. The rule applies only while the brand text carries .nav-link-sd.white and is injected with persistent menu styles.
