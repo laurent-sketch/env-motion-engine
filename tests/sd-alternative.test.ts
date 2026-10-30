@@ -146,3 +146,16 @@ it('copies painted canvas pixels into the transition snapshot', () => {
   expect(drawImage).toHaveBeenCalledWith(source,0,0);
   runtime.cleanup();
 });
+
+it('isolates Work parallax cards while preserving their captured transforms', () => {
+  const { runtime } = fixture();
+  document.querySelector('.main-wrapper')!.innerHTML = '<section><a class="project-item work left" style="transform:translateY(-4px)">Left</a><a class="project-item work right" style="transform:translateY(4px)">Right</a></section>';
+  runtime.capture();
+  const snapshot=document.querySelector('[data-env-transition-snapshot]')!;
+  expect(snapshot.querySelector('.project-item.work')).toBeNull();
+  const cards=snapshot.querySelectorAll('a');
+  expect(cards[0].style.transform).toContain('-4px');
+  expect(cards[1].style.transform).toContain('4px');
+  expect(document.querySelectorAll('#env-sd-page .project-item.work')).toHaveLength(2);
+  runtime.cleanup();
+});

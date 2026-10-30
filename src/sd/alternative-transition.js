@@ -40,6 +40,8 @@ export function createAlternativeTransition({ doc = document, win = window } = {
       // IX3 footer parallax selects by class even after data-w-id is removed.
       // Styles are already resolved; this inert copy must not match that target.
       element.classList.remove('footer');
+      // IX2 Work parallax resolves its left/right card targets globally.
+      if (originals[index].matches('.project-item.work.left, .project-item.work.right')) element.removeAttribute('class');
       // Isolate class-filtered IX3 service action targets as well as the trigger.
       if (originals[index].closest('[data-services="reveal"]')) element.removeAttribute('class');
     });
