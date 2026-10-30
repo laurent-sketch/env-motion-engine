@@ -4053,7 +4053,7 @@ async function Ut(n, e, { doc: t = document, events: a = window, timeout: i = 4e
 function xt(n = document) {
   if (n.querySelector("style[data-env-sd-mobile-nav]")) return;
   const e = n.createElement("style");
-  e.dataset.envSdMobileNav = "", e.textContent = `.navbar-logo-center .btn-sd.nav{transition:color 400ms ease,background-color 400ms ease,border-color 400ms ease}
+  e.dataset.envSdMobileNav = "", e.textContent = `.navbar-logo-center .btn-sd.nav{transition:color 400ms ease,background-color 400ms ease,border-color 400ms ease,transform 400ms cubic-bezier(.23,1,.32,1)}
 .navbar-logo-center:has(.navbar-brand-three .nav-link-sd.white):not(.is-past-hero) .btn-sd.nav{color:#fff;background-color:transparent;background-image:none;border-color:transparent;box-shadow:none}
 @media(prefers-reduced-motion:reduce){.navbar-logo-center .btn-sd.nav{transition:none}}
 @media(max-width:991px){
