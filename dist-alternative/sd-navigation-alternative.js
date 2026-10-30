@@ -126,6 +126,9 @@ const Q = /* @__PURE__ */ new Set();
 function We(n = document, e = window) {
   const t = [
     [".navbar-logo-center .nav-link-sd", "color"],
+    [".navbar-logo-center .btn-sd.nav", "color"],
+    [".navbar-logo-center .btn-sd.nav", "backgroundColor"],
+    [".navbar-logo-center .btn-sd.nav", "borderColor"],
     [".navbar-logo-center .dot-link, .navbar-logo-center .line-burger", "backgroundColor"]
   ].flatMap(([a, i]) => [...n.querySelectorAll(a)].map((s) => ({
     el: s,
