@@ -105,3 +105,14 @@ it('isolates the frozen footer from class-targeted Webflow parallax', () => {
   expect((snapshot.querySelector('footer') as HTMLElement).style.transform).toContain('-2px');
   runtime.cleanup();
 });
+
+it('removes attribute-based services targets only from the outgoing snapshot', () => {
+  const { runtime } = fixture();
+  document.querySelector('.main-wrapper')!.innerHTML = '<div data-services="reveal"><div class="bloc-100 gap24 padding-right" style="opacity:1">Brand strategy</div></div>';
+  runtime.capture();
+  expect(document.querySelector('[data-env-transition-snapshot] [data-services]')).toBeNull();
+  expect(document.querySelector('[data-env-transition-snapshot] .bloc-100')).toBeNull();
+  expect(document.querySelector('#env-sd-page [data-services="reveal"]')).not.toBeNull();
+  expect((document.querySelector('[data-env-transition-snapshot] main > div > div') as HTMLElement).style.opacity).toBe('1');
+  runtime.cleanup();
+});

@@ -94,11 +94,11 @@ function We({ doc: n = document, win: e = window } = {}) {
         const R = v[w];
         T.style.setProperty(R, v.getPropertyValue(R));
       }
-      T.style.setProperty("animation", "none", "important"), T.style.setProperty("transition", "none", "important"), T.classList.remove("w-slider", "w-slide", "w-slider-mask", "w-slider-nav", "w-slider-dot"), T.classList.remove("footer");
+      T.style.setProperty("animation", "none", "important"), T.style.setProperty("transition", "none", "important"), T.classList.remove("w-slider", "w-slide", "w-slider-mask", "w-slider-nav", "w-slider-dot"), T.classList.remove("footer"), b[I].closest('[data-services="reveal"]') && T.removeAttribute("class");
     });
     const h = b.map((T, I) => ({ element: T, copy: g[I] })).filter(({ element: T }) => T.parentElement === c || T.parentElement?.matches("main.main-wrapper")).filter(({ element: T }) => !T.matches("main.main-wrapper")).map(({ element: T, copy: I }) => ({ copy: I, rect: T.getBoundingClientRect() }));
     f.querySelectorAll("script").forEach((T) => T.remove()), [f, ...f.querySelectorAll("*")].forEach((T) => {
-      T.removeAttribute("id");
+      T.removeAttribute("id"), T.removeAttribute("data-services");
       for (const I of [...T.attributes]) (I.name.startsWith("data-env-") || I.name.startsWith("data-w-id")) && T.removeAttribute(I.name);
     });
     const S = c.querySelectorAll("video");

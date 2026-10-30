@@ -34,6 +34,8 @@ export function createAlternativeTransition({ doc = document, win = window } = {
       // IX3 footer parallax selects by class even after data-w-id is removed.
       // Styles are already resolved; this inert copy must not match that target.
       element.classList.remove('footer');
+      // Isolate class-filtered IX3 service action targets as well as the trigger.
+      if (originals[index].closest('[data-services="reveal"]')) element.removeAttribute('class');
     });
     // Freezing auto heights can change descendant margin collapsing. Preserve
     // each top-level section's rendered position, independently of normal flow.
@@ -45,6 +47,7 @@ export function createAlternativeTransition({ doc = document, win = window } = {
     copy.querySelectorAll('script').forEach(el => el.remove());
     [copy, ...copy.querySelectorAll('*')].forEach(el => {
       el.removeAttribute('id');
+      el.removeAttribute('data-services'); // Native IX3 reveal must target only the live page.
       for (const attr of [...el.attributes]) if (attr.name.startsWith('data-env-') || attr.name.startsWith('data-w-id')) el.removeAttribute(attr.name);
     });
     const sources = root.querySelectorAll('video');
