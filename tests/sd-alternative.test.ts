@@ -133,3 +133,16 @@ it('freezes nested sticky titles without changing the live page', () => {
   expect(frozen.style.transform).toContain('translate(');
   runtime.cleanup();
 });
+
+it('copies painted canvas pixels into the transition snapshot', () => {
+  const { runtime } = fixture();
+  const source = document.createElement('canvas');source.width=600;source.height=300;
+  document.querySelector('.main-wrapper')!.append(source);
+  const drawImage=vi.fn();
+  vi.spyOn(HTMLCanvasElement.prototype,'getContext').mockReturnValue({drawImage} as any);
+  runtime.capture();
+  const frozen=document.querySelector('[data-env-transition-snapshot] canvas') as HTMLCanvasElement;
+  expect(frozen.width).toBe(600);expect(frozen.height).toBe(300);
+  expect(drawImage).toHaveBeenCalledWith(source,0,0);
+  runtime.cleanup();
+});

@@ -1,3 +1,4 @@
+import { installOrganicBlob } from './organic-blob.js';
 import { installCTABlob } from './cta-blob.js';
 import { resumePageVisit, syncDestinationScroll } from './alternative-history.js';
 import { beginMenuColors } from './alternative-menu-colors.js';
@@ -136,6 +137,7 @@ async function animations() {
 async function mount({ deferReveals = false } = {}) {
   menu();
   installCTABlob();
+  installOrganicBlob();
   window.ENVVideos?.refresh();
   if (window.gsap && window.ScrollTrigger) {
     document.querySelectorAll('#env-sd-page .section.mask').forEach(section => {
@@ -156,6 +158,7 @@ async function mount({ deferReveals = false } = {}) {
   }
 }
 function unmount() {
+  window.ENVOrganicBlob?.destroy();
   window.ENVCTABlob?.destroy();
   pageMasks.forEach(tween => { tween.scrollTrigger?.kill(); tween.kill(); }); pageMasks = [];
   window.ScrollTrigger?.getAll().filter(trigger => trigger.trigger?.matches?.('#env-sd-page .section.mask')).forEach(trigger => trigger.kill());

@@ -56,6 +56,13 @@ export function createAlternativeTransition({ doc = document, win = window } = {
       el.removeAttribute('data-services'); // Native IX3 reveal must target only the live page.
       for (const attr of [...el.attributes]) if (attr.name.startsWith('data-env-') || attr.name.startsWith('data-w-id')) el.removeAttribute(attr.name);
     });
+    // cloneNode copies canvas attributes, but never its painted pixels.
+    const painted = root.querySelectorAll('canvas');
+    copy.querySelectorAll('canvas').forEach((canvas, index) => {
+      const source = painted[index];
+      canvas.width = source.width; canvas.height = source.height;
+      try { canvas.getContext('2d')?.drawImage(source, 0, 0); } catch (_) { /* Unavailable WebGL buffer. */ }
+    });
     const sources = root.querySelectorAll('video');
     copy.querySelectorAll('video').forEach((video, index) => {
       const source = sources[index], canvas = doc.createElement('canvas');
