@@ -116,3 +116,20 @@ it('removes attribute-based services targets only from the outgoing snapshot', (
   expect((document.querySelector('[data-env-transition-snapshot] main > div > div') as HTMLElement).style.opacity).toBe('1');
   runtime.cleanup();
 });
+
+it('freezes nested sticky titles without changing the live page', () => {
+  const { runtime } = fixture();
+  document.querySelector('.main-wrapper')!.innerHTML = '<section><div class="sticky" style="position:sticky;top:112px"><h1>Built Differently</h1></div></section>';
+  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function () {
+    const top = this.closest('[data-env-transition-snapshot]') ? -200 : 112;
+    return { top, left: 0, bottom: top + 100, right: 300, width: 300, height: 100, x: 0, y: top, toJSON() {} };
+  });
+  runtime.capture();
+  const live = document.querySelector('#env-sd-page .sticky') as HTMLElement;
+  const frozen = document.querySelector('[data-env-transition-snapshot] .sticky') as HTMLElement;
+  expect(live.style.position).toBe('sticky');
+  expect(frozen.style.position).toBe('relative');
+  expect(frozen.style.inset).toBe('auto');
+  expect(frozen.style.transform).toContain('translate(');
+  runtime.cleanup();
+});

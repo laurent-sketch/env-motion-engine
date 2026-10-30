@@ -25,9 +25,15 @@ export function createAlternativeTransition({ doc = document, win = window } = {
     // change the outgoing visual. Resolve its styles before sanitizing IDs.
     const originals = [root, ...root.querySelectorAll('*')];
     const copies = [copy, ...copy.querySelectorAll('*')];
+    const stickies = [];
     copies.forEach((element, index) => {
       const css = win.getComputedStyle(originals[index]);
       for (let i = 0; i < css.length; i++) { const property = css[i]; element.style.setProperty(property, css.getPropertyValue(property)); }
+      if (css.position === 'sticky') {
+        stickies.push({ element, rect: originals[index].getBoundingClientRect() });
+        element.style.position = 'relative';
+        element.style.inset = 'auto';
+      }
       element.style.setProperty('animation', 'none', 'important');
       element.style.setProperty('transition', 'none', 'important');
       element.classList.remove('w-slider', 'w-slide', 'w-slider-mask', 'w-slider-nav', 'w-slider-dot');
@@ -83,6 +89,15 @@ export function createAlternativeTransition({ doc = document, win = window } = {
       return { element, x: rect.left - captured.left, y: rect.top - captured.top };
     });
     corrections.forEach(({ element, x, y }) => {
+      if (Math.abs(x) < .1 && Math.abs(y) < .1) return;
+      const transform = element.style.transform;
+      element.style.transform = `translate(${x}px,${y}px) ${transform === 'none' ? '' : transform}`;
+    });
+    // After parent sections are aligned, freeze nested sticky boxes at their
+    // actual viewport position. They must no longer react to destination scroll.
+    stickies.forEach(({ element, rect }) => {
+      const captured = element.getBoundingClientRect();
+      const x = rect.left - captured.left, y = rect.top - captured.top;
       if (Math.abs(x) < .1 && Math.abs(y) < .1) return;
       const transform = element.style.transform;
       element.style.transform = `translate(${x}px,${y}px) ${transform === 'none' ? '' : transform}`;
