@@ -4056,6 +4056,7 @@ function xt(n = document) {
   e.dataset.envSdMobileNav = "", e.textContent = `.navbar-logo-center .btn-sd.nav{transition:color 400ms ease,background-color 400ms ease,border-color 400ms ease,transform 400ms cubic-bezier(.23,1,.32,1)}
 .navbar-logo-center:not(.is-past-hero) .btn-sd.nav{color:var(--_colors---dark-blue,var(--nav-dark-blue,#11263a));background-color:transparent;background-image:none;border-color:transparent;box-shadow:none}
 .navbar-logo-center:has(.navbar-brand-three .nav-link-sd.white):not(.is-past-hero) .btn-sd.nav{color:#fff;background-color:transparent;background-image:none;border-color:transparent;box-shadow:none}
+.navbar-logo-center .link-box:has(a.w--current) .dot-link,.navbar-logo-center .link-box.w--current .dot-link{opacity:1;width:100%;transform:translateY(0)}
 @media(prefers-reduced-motion:reduce){.navbar-logo-center .btn-sd.nav{transition:none}}
 @media(max-width:991px){
 .navbar-logo-center .burger-menu-wrap .line-burger{transition:background-color 400ms ease}

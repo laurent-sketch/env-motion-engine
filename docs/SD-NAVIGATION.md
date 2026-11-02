@@ -67,3 +67,5 @@ With the existing `ENVSDPreload` option enabled, current-page configuration is w
 Menu interception and its hooks are installed before releasing the initial loader. Optional Lenis loading no longer holds them up. The audited native slider factory is requested only when entering a page that actually has a native slider, rather than during every Work/About startup.
 
 New shared core/GSAP dependencies, incompatible styles/layout/widgets or invalid data still use native navigation. A cold connection can still delay destination readiness; this fix removes the unintended full-document reload and warms the small number of menu destinations rather than downloading every page/media asset. The existing global Head stays unchanged; replace the Footer module pin only. Rollback pin: `1ca0876790794968cd966c74d1fbe2f23a827628`.
+
+The current menu link keeps its `.dot-link` underline visible (opacity 1, width 100%, no vertical offset). This is scoped to navbar `.link-box` wrappers, including wrappers that are links themselves. Existing light/dark underline colors are retained. The current-page class and aria-current are recalculated on internal navigation.
