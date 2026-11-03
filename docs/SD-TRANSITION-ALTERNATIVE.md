@@ -43,3 +43,20 @@ The CTA blob pointer controller is installed on page mount and destroyed on unmo
 Organic canvas blobs marked data-env-blob="orange" are mounted and destroyed with page visits. Keep their HTML attribute and CSS; remove the standalone ENVOrganicBlob inline script. Outgoing canvas pixels are copied before widget teardown so the atmosphere remains visible under the mask.
 
 The `.btn-sd.nav` contact button follows both menu variants automatically. Before `.is-past-hero`, its background and border are transparent with no shadow: white text for the light Home menu (`.nav-link-sd.white` on the brand), dark blue text otherwise. The transparent override applies only at rest (`:not(:hover):not(:focus-visible)`), so the authored Webflow hover and keyboard focus styles remain available on both menu variants. Once the navbar gains its white background, the authored Webflow button styles return. Color/background/border transitions remain smooth, and padding stays unchanged to avoid layout shifts. These rules are injected with persistent menu styles and follow internal page navigation. Remove older standalone CSS overrides for this button to avoid competing rules.
+
+
+## Procedural hero shapes
+
+The optional `hero-shape.js` module loads only when the incoming page contains `[data-env-hero-shape]`. It generates three morphing volumes with independent pointer inertia and amplitude, no pointer magnification, no image dependency. Mobile uses automatic movement. Offscreen/hidden tabs stop rendering; reduced motion draws a static view. The navigation destroys the instances on unmount and recreates them on return. Existing outgoing canvas snapshots preserve the visible frame.
+
+Add the combo class `hero-motion` to a hero section with an authored height and place this Embed inside it (keep the Embed unpositioned):
+
+```html
+<style>
+.hero-motion { position: relative; isolation: isolate; overflow: hidden; }
+.hero-motion [data-env-hero-shape] { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+</style>
+<div data-env-hero-shape aria-hidden="true"></div>
+```
+
+No inline initializer or additional script is needed; use the corresponding published alternative navigation module. The shapes render behind the hero content and do not intercept links or scrolling. WebGL failure leaves the green fallback background.

@@ -148,6 +148,7 @@ async function mount({ deferReveals = false } = {}) {
   }
   await Promise.all([
     document.querySelector('.hero-wrapper .sd-slider') ? script('hero.js', true) : Promise.resolve(),
+    document.querySelector('#env-sd-page [data-env-hero-shape]') ? script('hero-shape.js', true) : Promise.resolve(),
     deferReveals ? Promise.resolve() : animations()
   ]);
   const roots = [...document.querySelectorAll('.swiper-news[data-env-news]')];
@@ -158,6 +159,7 @@ async function mount({ deferReveals = false } = {}) {
   }
 }
 function unmount() {
+  window.ENVHeroShape?.destroy();
   window.ENVOrganicBlob?.destroy();
   window.ENVCTABlob?.destroy();
   pageMasks.forEach(tween => { tween.scrollTrigger?.kill(); tween.kill(); }); pageMasks = [];

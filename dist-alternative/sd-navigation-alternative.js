@@ -285,11 +285,11 @@ function A() {
     return n;
   }, A.apply(null, arguments);
 }
-const Pe = (n, e) => String(n).toLowerCase().replace(/[\s/_.]+/g, "-").replace(/[^\w-]+/g, "").replace(/--+/g, "-").replace(/^-+|-+$/g, "") || e || "", j = ({ hash: n } = {}) => window.location.pathname + window.location.search + (n ? window.location.hash : ""), Ze = (n, e = {}) => {
-  const t = A({ url: n = n || j({ hash: !0 }), random: Math.random(), source: "swup" }, e);
+const Pe = (n, e) => String(n).toLowerCase().replace(/[\s/_.]+/g, "-").replace(/[^\w-]+/g, "").replace(/--+/g, "-").replace(/^-+|-+$/g, "") || e || "", Y = ({ hash: n } = {}) => window.location.pathname + window.location.search + (n ? window.location.hash : ""), Ze = (n, e = {}) => {
+  const t = A({ url: n = n || Y({ hash: !0 }), random: Math.random(), source: "swup" }, e);
   window.history.pushState(t, "", n);
 }, X = (n = null, e = {}) => {
-  n = n || j({ hash: !0 });
+  n = n || Y({ hash: !0 });
   const t = A({}, window.history.state || {}, { url: n, random: Math.random(), source: "swup" }, e);
   window.history.replaceState(t, "", n);
 }, Je = (n, e, t, a) => {
@@ -655,7 +655,7 @@ async function rt(n, e = {}) {
 }
 function Ne(n) {
   const e = n.to.url + n.to.hash;
-  j() === n.to.url ? (window.removeEventListener("popstate", this.handlePopState), window.addEventListener("popstate", () => window.location.assign(e), { once: !0 }), window.history.back()) : window.location.assign(e);
+  Y() === n.to.url ? (window.removeEventListener("popstate", this.handlePopState), window.addEventListener("popstate", () => window.location.assign(e), { once: !0 }), window.history.back()) : window.location.assign(e);
 }
 const ct = async function(n) {
   await this.hooks.call("animation:out:start", n, void 0, () => {
@@ -696,7 +696,7 @@ const ct = async function(n) {
   if (n.done) return;
   n.advance(6);
   const { url: t } = e;
-  this.isSameResolvedUrl(j(), t) || (X(t), this.location = G.fromUrl(t), n.to.url = this.location.url, n.to.hash = this.location.hash), await this.hooks.call("content:replace", n, { page: e }, (a, {}) => {
+  this.isSameResolvedUrl(Y(), t) || (X(t), this.location = G.fromUrl(t), n.to.url = this.location.url, n.to.hash = this.location.hash), await this.hooks.call("content:replace", n, { page: e }, (a, {}) => {
     if (this.classes.remove("is-leaving"), a.animation.animate && this.classes.add("is-rendering"), !this.replaceContent(a)) throw new Error("[swup] Container mismatch, aborting");
     a.animation.animate && (this.classes.add("is-changing", "is-animating", "is-rendering"), a.animation.name && this.classes.add(`to-${Pe(a.animation.name)}`));
   }), await this.hooks.call("content:scroll", n, void 0, () => this.scrollToContent(n)), await this.hooks.call("page:view", n, { url: this.location.url, title: document.title });
@@ -733,7 +733,7 @@ class vt {
   constructor(e = {}) {
     var t, a;
     this.version = "4.10.0", this.options = void 0, this.defaults = It, this.plugins = [], this.visit = void 0, this.cache = void 0, this.hooks = void 0, this.classes = void 0, this.location = G.fromUrl(window.location.href), this.currentHistoryIndex = void 0, this.clickDelegate = void 0, this.navigating = !1, this.onVisitEnd = void 0, this.use = mt, this.unuse = gt, this.findPlugin = yt, this.log = () => {
-    }, this.navigate = dt, this.performNavigation = rt, this.createVisit = it, this.delegateEvent = Je, this.fetchPage = et, this.awaitAnimations = lt, this.renderPage = bt, this.replaceContent = ft, this.animatePageIn = pt, this.animatePageOut = ct, this.scrollToContent = ut, this.getAnchorElement = ot, this.getCurrentUrl = j, this.resolveUrl = Et, this.isSameResolvedUrl = Tt, this.options = A({}, this.defaults, e), this.handleLinkClick = this.handleLinkClick.bind(this), this.handlePopState = this.handlePopState.bind(this), this.cache = new tt(this), this.classes = new at(this), this.hooks = new st(this), this.visit = this.createVisit({ to: "" }), this.currentHistoryIndex = (t = (a = window.history.state) == null ? void 0 : a.index) != null ? t : 1, this.enable();
+    }, this.navigate = dt, this.performNavigation = rt, this.createVisit = it, this.delegateEvent = Je, this.fetchPage = et, this.awaitAnimations = lt, this.renderPage = bt, this.replaceContent = ft, this.animatePageIn = pt, this.animatePageOut = ct, this.scrollToContent = ut, this.getAnchorElement = ot, this.getCurrentUrl = Y, this.resolveUrl = Et, this.isSameResolvedUrl = Tt, this.options = A({}, this.defaults, e), this.handleLinkClick = this.handleLinkClick.bind(this), this.handlePopState = this.handlePopState.bind(this), this.cache = new tt(this), this.classes = new at(this), this.hooks = new st(this), this.visit = this.createVisit({ to: "" }), this.currentHistoryIndex = (t = (a = window.history.state) == null ? void 0 : a.index) != null ? t : 1, this.enable();
   }
   async enable() {
     var e;
@@ -776,7 +776,7 @@ class vt {
   handlePopState(e) {
     var t, a, i, s;
     const o = (t = (a = e.state) == null ? void 0 : a.url) != null ? t : window.location.href;
-    if (this.options.skipPopStateHandling(e) || this.isSameResolvedUrl(j(), this.location.url)) return;
+    if (this.options.skipPopStateHandling(e) || this.isSameResolvedUrl(Y(), this.location.url)) return;
     const { url: d, hash: c } = G.fromUrl(o), r = this.createVisit({ to: d, hash: c, event: e });
     r.history.popstate = !0;
     const l = (i = (s = e.state) == null ? void 0 : s.index) != null ? i : 0;
@@ -4153,7 +4153,7 @@ let ge = () => {
 const Ue = /* @__PURE__ */ new Set(), ae = () => {
   document.documentElement.classList.remove("env-sd-boot"), window.dispatchEvent(new Event("env:sd-ready"));
 }, De = (n) => new Promise((e) => setTimeout(e, n));
-function Y(n, e = !1) {
+function j(n, e = !1) {
   return !e && Ue.has(n) ? Promise.resolve() : new Promise((t, a) => {
     const i = document.createElement("script");
     i.src = new URL(n, be).href;
@@ -4237,7 +4237,7 @@ async function Qe() {
   });
   window.addEventListener("env:animations-ready", n, { once: !0 });
   try {
-    await Y("animations.js", !0), await Promise.race([e, De(1500)]);
+    await j("animations.js", !0), await Promise.race([e, De(1500)]);
   } finally {
     window.removeEventListener("env:animations-ready", n);
   }
@@ -4246,16 +4246,17 @@ async function xe({ deferReveals: n = !1 } = {}) {
   ze(), Fe(), He(), window.ENVVideos?.refresh(), window.gsap && window.ScrollTrigger && document.querySelectorAll("#env-sd-page .section.mask").forEach((t) => {
     t.dataset.maskInitialized || (t.dataset.maskInitialized = "true", ye.push(window.gsap.fromTo(t, { clipPath: "inset(10%)" }, { clipPath: "inset(0%)", ease: "none", scrollTrigger: { trigger: t, start: "top bottom", end: "top 15%", scrub: 0.6, invalidateOnRefresh: !0 } })));
   }), await Promise.all([
-    document.querySelector(".hero-wrapper .sd-slider") ? Y("hero.js", !0) : Promise.resolve(),
+    document.querySelector(".hero-wrapper .sd-slider") ? j("hero.js", !0) : Promise.resolve(),
+    document.querySelector("#env-sd-page [data-env-hero-shape]") ? j("hero-shape.js", !0) : Promise.resolve(),
     n ? Promise.resolve() : Qe()
   ]);
   const e = [...document.querySelectorAll(".swiper-news[data-env-news]")];
   e.length && (ne = new IntersectionObserver((t) => {
-    t.some((a) => a.isIntersecting) && (ne.disconnect(), Y("news.js", !0).catch(console.error));
+    t.some((a) => a.isIntersecting) && (ne.disconnect(), j("news.js", !0).catch(console.error));
   }, { rootMargin: "600px" }), e.forEach((t) => ne.observe(t)));
 }
 function jt() {
-  window.ENVOrganicBlob?.destroy(), window.ENVCTABlob?.destroy(), ye.forEach((e) => {
+  window.ENVHeroShape?.destroy(), window.ENVOrganicBlob?.destroy(), window.ENVCTABlob?.destroy(), ye.forEach((e) => {
     e.scrollTrigger?.kill(), e.kill();
   }), ye = [], window.ScrollTrigger?.getAll().filter((e) => e.trigger?.matches?.("#env-sd-page .section.mask")).forEach((e) => e.kill()), ge(), ne?.disconnect(), document.querySelector(".hero-wrapper")?.__envHeroCleanup?.(), window.ENVAnimations?.destroy(), window.ENVNews?.destroy(), window.ENVNewsMarquee?.destroy();
   const n = document.querySelector("#env-sd-page");
@@ -4285,7 +4286,7 @@ async function Yt() {
   }, E = async () => {
     if (t.require("slider")?.ready) return;
     const u = c.slider || pe["/home-sd"].slider;
-    await Y(u.script);
+    await j(u.script);
     let m = !1;
     if (window.webpackChunk.push([[`env-sd-slider-${Date.now()}`], {}, (y) => {
       y(u.factory), m = !0;
@@ -4358,7 +4359,7 @@ async function Yt() {
   T.hooks.on("visit:fail", f), T.hooks.on("visit:abort", f), ae(), (async () => {
     if (!window.lenis && !F.matches)
       try {
-        await Y("https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js"), window.lenis = new window.Lenis({ duration: 1.2, smoothWheel: !0, easing: (u) => Math.min(1, 1.001 - Math.pow(2, -10 * u)) }), requestAnimationFrame(function u(m) {
+        await j("https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js"), window.lenis = new window.Lenis({ duration: 1.2, smoothWheel: !0, easing: (u) => Math.min(1, 1.001 - Math.pow(2, -10 * u)) }), requestAnimationFrame(function u(m) {
           window.lenis?.raf(m), requestAnimationFrame(u);
         });
       } catch (u) {
@@ -4367,7 +4368,7 @@ async function Yt() {
   })();
 }
 const Dt = () => Yt().catch((n) => {
-  console.error("[ENV SD] Native navigation retained", n), Ut(() => Y("env.js"), () => {
+  console.error("[ENV SD] Native navigation retained", n), Ut(() => j("env.js"), () => {
     [...document.scripts].some((e) => /const brand =/.test(e.textContent) && !/ENV SD/.test(e.textContent)) || ze();
   }).catch((e) => console.error("[ENV SD] Widget fallback failed", e)).finally(ae);
 });
