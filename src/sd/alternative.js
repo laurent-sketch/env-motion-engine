@@ -15,7 +15,7 @@ import testInline from './test-inline.json';
 const routes = { ...legacyRoutes, ...testRoutes };
 const validation = { profiles: routes, inlineScripts: testInline, persistentContact: true };
 import { runFallback } from './boot.js';
-import { installMobileMenuStyles, menuHasScrolled, menuBrandElements } from './menu.js';
+import { installMobileMenuStyles, menuHasScrolled, menuBrandElements, menuBrandFrames } from './menu.js';
 import { wrap, validate, syncMenuVariants, syncMenuImages } from './layout.js';
 
 // Keep authored reveal targets hidden until the page mask has cleared.
@@ -82,6 +82,8 @@ function menu() {
   cleanMenu();
   const nav = document.querySelector('.navbar-logo-center');
   const brand = nav?.querySelector('.navbar-brand-three');
+  const picto = brand?.querySelector('img.main-picto');
+  if (picto) { picto.removeAttribute('srcset'); picto.src = new URL('sd-picto-blue.svg', base).href; }
   const [text, logo] = menuBrandElements(brand);
   if (!nav) return;
   installMobileMenuStyles();
@@ -100,12 +102,8 @@ function menu() {
     animations.forEach(a => a.cancel());
     const before = elements.map(el => el.style.transform);
     elements.forEach(el => el.style.transform = 'none');
-    const a = text.getBoundingClientRect(), b = logo.getBoundingClientRect();
+    const ends = menuBrandFrames(text, logo, show);
     elements.forEach((el, i) => el.style.transform = before[i]);
-    const ends = [
-      { transform: `translateY(${show ? -a.height * 1.2 : 0}px)`, opacity: show ? 0 : 1 },
-      { transform: `translate(${a.left - b.left}px,${a.top + a.height / 2 - b.top - b.height / 2 + (show ? 0 : a.height * 1.2)}px)`, opacity: show ? 1 : 0 }
-    ];
     animations = elements.map((el, i) => el.animate([starts[i], ends[i]], { duration: initial || reduced.matches ? 0 : 550, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'forwards' }));
   }
   function schedule() { if (pending) return; pending = true; requestAnimationFrame(() => { pending = false; update(); }); }

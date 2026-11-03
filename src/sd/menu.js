@@ -5,6 +5,17 @@ export function menuHasScrolled(scroll, previous = false) {
 export function menuBrandElements(brand) {
   return [brand?.querySelector('.main-picto') || brand?.querySelector('.nav-link-sd'), brand?.querySelector('.logo-nav')];
 }
+export function menuBrandFrames(first, logo, show) {
+  if (first.matches('.main-picto')) return [
+    { transform: 'none', opacity: 1 },
+    { transform: `translateX(${show ? 0 : -10}px)`, opacity: show ? 1 : 0 }
+  ];
+  const a = first.getBoundingClientRect(), b = logo.getBoundingClientRect();
+  return [
+    { transform: `translateY(${show ? -a.height * 1.2 : 0}px)`, opacity: show ? 0 : 1 },
+    { transform: `translate(${a.left - b.left}px,${a.top + a.height / 2 - b.top - b.height / 2 + (show ? 0 : a.height * 1.2)}px)`, opacity: show ? 1 : 0 }
+  ];
+}
 // The light Home has two mobile logo images; inner pages have a single dark logo.
 export function installMobileMenuStyles(doc = document) {
   if (doc.querySelector('style[data-env-sd-mobile-nav]')) return;
@@ -13,6 +24,9 @@ export function installMobileMenuStyles(doc = document) {
 .navbar-logo-center:not(.is-past-hero) .btn-sd.nav:not(:hover):not(:focus-visible){color:var(--_colors---dark-blue,var(--nav-dark-blue,#11263a));background-color:transparent;background-image:none;border-color:transparent;box-shadow:none}
 .navbar-logo-center:has(.nav-menu-three .nav-link-sd.white):not(.is-past-hero) .btn-sd.nav:not(:hover):not(:focus-visible){color:#fff;background-color:transparent;background-image:none;border-color:transparent;box-shadow:none}
 .navbar-logo-center .link-box:has(a.w--current) .dot-link,.navbar-logo-center .link-box.w--current .dot-link{opacity:1;width:100%;transform:translateY(0)}
+.navbar-logo-center .navbar-brand-three .main-picto{filter:brightness(1) invert(0);transition:filter 400ms ease}
+.navbar-logo-center:has(.nav-menu-three .nav-link-sd.white):not(.is-past-hero) .navbar-brand-three .main-picto{filter:brightness(0) invert(1)}
+@media(prefers-reduced-motion:reduce){.navbar-logo-center .navbar-brand-three .main-picto{transition:none}}
 @media(prefers-reduced-motion:reduce){.navbar-logo-center .btn-sd.nav{transition:none}}
 @media(max-width:991px){
 .navbar-logo-center .burger-menu-wrap .line-burger{transition:background-color 400ms ease}
