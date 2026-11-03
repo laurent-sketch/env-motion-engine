@@ -42,6 +42,8 @@
       color=mix(color,cream,(1.-smoothstep(-.17,-.09,d))*.95);
       float grain=hash(gl_FragCoord.xy)-.5;
       color+=grain*.043;
+      // Site dark blue (#11263a), 30% overlay on the background only.
+      color=mix(color,vec3(17./255.,38./255.,58./255.),.30);
       gl_FragColor=vec4(color,1.);
     }`;
 
