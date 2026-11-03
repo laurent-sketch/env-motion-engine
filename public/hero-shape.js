@@ -54,6 +54,8 @@
     root.prepend(canvas);
     const gl=canvas.getContext('webgl',{alpha:true,antialias:false,depth:false,stencil:false,powerPreference:'low-power'});
     const abort=new AbortController();
+    // The decorative layer ignores pointer events; listen on its visible hero.
+    const interaction=root.closest('.hero-motion, .hero-wrapper') || root;
     let frame=0,alive=true,visible=false,ready=false,last=0,clock=0;
     let width=1,height=1,px=0,py=0,tx=0,ty=0,vx=0,vy=0,bx=0,by=0,cx=0,cy=0,hover=0,targetHover=0;
     let resize,intersection,texture,program,buffer;
@@ -114,11 +116,11 @@
       ready=true;
       resize=new ResizeObserver(fit);resize.observe(root);
       intersection=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;restart();});intersection.observe(root);
-      root.addEventListener('pointermove',e=>{
+      interaction.addEventListener('pointermove',e=>{
         if(!fine.matches||reduced.matches||e.pointerType==='touch')return;
-        const r=root.getBoundingClientRect();tx=(e.clientX-r.left)/r.width*2-1;ty=1-(e.clientY-r.top)/r.height*2;targetHover=1;
+        const r=interaction.getBoundingClientRect();tx=(e.clientX-r.left)/r.width*2-1;ty=1-(e.clientY-r.top)/r.height*2;targetHover=1;
       },{passive:true,signal:abort.signal});
-      root.addEventListener('pointerleave',()=>{tx=ty=targetHover=0;},{signal:abort.signal});
+      interaction.addEventListener('pointerleave',()=>{tx=ty=targetHover=0;},{signal:abort.signal});
       document.addEventListener('visibilitychange',restart,{signal:abort.signal});
       canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();stop();ready=false;},{signal:abort.signal});
       canvas.addEventListener('webglcontextrestored',()=>{destroy();mount(root);},{signal:abort.signal});

@@ -1,0 +1,28 @@
+import { readFileSync } from 'node:fs';
+import { afterEach, expect, it, vi } from 'vitest';
+const source = readFileSync('public/hero-shape.js', 'utf8');
+afterEach(() => { (window as any).ENVHeroShape?.destroy(); document.body.innerHTML=''; vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+it('receives pointer motion through hero content while the decorative embed ignores clicks', () => {
+  document.body.innerHTML='<section class="hero-motion"><a>Content</a><div class="w-embed"><div data-env-hero-shape style="pointer-events:none"></div></div></section>';
+  const hero=document.querySelector('section')!;
+  vi.spyOn(hero, 'getBoundingClientRect').mockReturnValue({left:0,top:0,width:1000,height:600} as DOMRect);
+  const uniform2f=vi.fn();
+  const gl:any=new Proxy({uniform2f,getUniformLocation:(_:any,name:string)=>name,getShaderParameter:()=>true,getProgramParameter:()=>true,getAttribLocation:()=>0,createShader:()=>({}),createProgram:()=>({}),createBuffer:()=>({})},{get:(obj,key)=>key in obj?obj[key]:()=>{}});
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(gl);
+  vi.stubGlobal('matchMedia', (query:string)=>({matches:!query.includes('reduced'),addEventListener(){},removeEventListener(){}}));
+  const frames=new Map<number,FrameRequestCallback>();let id=0;
+  vi.stubGlobal('requestAnimationFrame',(cb:FrameRequestCallback)=>{frames.set(++id,cb);return id;});
+  vi.stubGlobal('cancelAnimationFrame',(n:number)=>frames.delete(n));
+  vi.stubGlobal('ResizeObserver',class{constructor(public cb:any){}observe(){this.cb();}disconnect(){}});
+  vi.stubGlobal('IntersectionObserver',class{constructor(public cb:any){}observe(){this.cb([{isIntersecting:true}]);}disconnect(){}});
+  window.eval(source);
+  const step=(time:number)=>{const pending=[...frames.values()];frames.clear();pending.forEach(cb=>cb(time));};
+  step(16);
+  expect(uniform2f.mock.calls.find(c=>c[0]==='pointer')?.slice(1)).toEqual([0,0]);
+  document.querySelector('a')!.dispatchEvent(Object.assign(new Event('pointermove',{bubbles:true}),{clientX:900,clientY:100,pointerType:'mouse'}));
+  for(let i=2;i<40;i++)step(i*16);
+  const values=uniform2f.mock.calls.filter(c=>c[0]==='pointer').at(-1)!;
+  expect(values[1]).toBeGreaterThan(.2);
+  expect(values[2]).toBeGreaterThan(.2);
+  expect(document.querySelector('[data-env-hero-shape]')!.getAttribute('style')).toBe('pointer-events:none');
+});

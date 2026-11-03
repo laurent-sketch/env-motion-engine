@@ -59,7 +59,7 @@ Add the combo class `hero-motion` to a hero section with an authored height and 
 <div data-env-hero-shape aria-hidden="true"></div>
 ```
 
-No inline initializer or additional script is needed; use the corresponding published alternative navigation module. The shapes render behind the hero content and do not intercept links or scrolling. WebGL failure leaves the green fallback background.
+No inline initializer or additional script is needed; use the corresponding published alternative navigation module. The shapes render behind the hero content and do not intercept links or scrolling. Pointer events are observed on the containing `.hero-motion` / `.hero-wrapper`, not on the decorative layer with `pointer-events:none`, so hovering text and links still drives the shapes. WebGL failure leaves the green fallback background.
 
 
 ## Menu picto and early scroll
