@@ -1,10 +1,17 @@
+// A small hysteresis prevents flicker from elastic scrolling near the top.
+export function menuHasScrolled(scroll, previous = false) {
+  return Math.max(0, scroll) > (previous ? 2 : 8);
+}
+export function menuBrandElements(brand) {
+  return [brand?.querySelector('.main-picto') || brand?.querySelector('.nav-link-sd'), brand?.querySelector('.logo-nav')];
+}
 // The light Home has two mobile logo images; inner pages have a single dark logo.
 export function installMobileMenuStyles(doc = document) {
   if (doc.querySelector('style[data-env-sd-mobile-nav]')) return;
   const style = doc.createElement('style'); style.dataset.envSdMobileNav = '';
   style.textContent = `.navbar-logo-center .btn-sd.nav{transition:color 400ms ease,background-color 400ms ease,border-color 400ms ease,transform 400ms cubic-bezier(.23,1,.32,1)}
 .navbar-logo-center:not(.is-past-hero) .btn-sd.nav:not(:hover):not(:focus-visible){color:var(--_colors---dark-blue,var(--nav-dark-blue,#11263a));background-color:transparent;background-image:none;border-color:transparent;box-shadow:none}
-.navbar-logo-center:has(.navbar-brand-three .nav-link-sd.white):not(.is-past-hero) .btn-sd.nav:not(:hover):not(:focus-visible){color:#fff;background-color:transparent;background-image:none;border-color:transparent;box-shadow:none}
+.navbar-logo-center:has(.nav-menu-three .nav-link-sd.white):not(.is-past-hero) .btn-sd.nav:not(:hover):not(:focus-visible){color:#fff;background-color:transparent;background-image:none;border-color:transparent;box-shadow:none}
 .navbar-logo-center .link-box:has(a.w--current) .dot-link,.navbar-logo-center .link-box.w--current .dot-link{opacity:1;width:100%;transform:translateY(0)}
 @media(prefers-reduced-motion:reduce){.navbar-logo-center .btn-sd.nav{transition:none}}
 @media(max-width:991px){

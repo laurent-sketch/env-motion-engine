@@ -60,3 +60,8 @@ Add the combo class `hero-motion` to a hero section with an authored height and 
 ```
 
 No inline initializer or additional script is needed; use the corresponding published alternative navigation module. The shapes render behind the hero content and do not intercept links or scrolling. WebGL failure leaves the green fallback background.
+
+
+## Menu picto and early scroll
+
+The desktop brand now selects `.main-picto` before the legacy `.nav-link-sd`, then transitions to `.logo-nav` using the authored position and dimensions. Image load and resize recompute alignment. Across all pages, the white navbar layer and normal logo activate after 8px of scroll, and reset at 2px or less; this small hysteresis avoids top-edge flicker. Hero height and the old 320px threshold are no longer used. The contact button's white/dark transparent state follows `.nav-menu-three .nav-link-sd.white`, independent of the brand's former text element. Native hover styles remain active.

@@ -15,7 +15,7 @@ import testInline from './test-inline.json';
 const routes = { ...legacyRoutes, ...testRoutes };
 const validation = { profiles: routes, inlineScripts: testInline, persistentContact: true };
 import { runFallback } from './boot.js';
-import { installMobileMenuStyles } from './menu.js';
+import { installMobileMenuStyles, menuHasScrolled, menuBrandElements } from './menu.js';
 import { wrap, validate, syncMenuVariants, syncMenuImages } from './layout.js';
 
 // Keep authored reveal targets hidden until the page mask has cleared.
@@ -82,18 +82,13 @@ function menu() {
   cleanMenu();
   const nav = document.querySelector('.navbar-logo-center');
   const brand = nav?.querySelector('.navbar-brand-three');
-  const text = brand?.querySelector('.nav-link-sd'), logo = brand?.querySelector('.logo-nav');
+  const [text, logo] = menuBrandElements(brand);
   if (!nav) return;
   installMobileMenuStyles();
   const abort = new AbortController();
   let state, animations = [], pending = false;
   function update(force = false) {
-    const home = path() === '/home-sd-2026-vf' || path() === '/';
-    const hero = home ? document.querySelector('.hero-wrapper') : null;
-    const scroll = Math.max(0, Math.round(window.scrollY));
-    const show = home
-      ? !hero || hero.getBoundingClientRect().bottom <= 0
-      : state === undefined ? scroll >= 320 : state ? scroll >= 80 : scroll >= 320;
+    const show = menuHasScrolled(window.scrollY, state);
     nav.classList.toggle('is-past-hero', show);
     if (!force && show === state) return;
     const initial = state === undefined; state = show;
@@ -116,7 +111,7 @@ function menu() {
   function schedule() { if (pending) return; pending = true; requestAnimationFrame(() => { pending = false; update(); }); }
   addEventListener('scroll', schedule, { passive: true, signal: abort.signal });
   addEventListener('resize', () => update(true), { signal: abort.signal });
-  logo?.addEventListener('load', () => update(true), { signal: abort.signal });
+  [text, logo].forEach(image => image?.addEventListener('load', () => update(true), { signal: abort.signal }));
   update();
   document.querySelectorAll('.navbar-logo-center a[href]').forEach(a => {
     const url = new URL(a.href); const current = url.origin === location.origin && url.pathname === location.pathname && !url.hash;
