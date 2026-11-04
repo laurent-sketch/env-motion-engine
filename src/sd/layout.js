@@ -10,7 +10,7 @@ export function wrap(doc) {
   if (footer) root.append(footer);
   return root;
 }
-export function validate(doc, pathname, expectedSheets, { refreshRuntime = false, gsapScripts, profiles = routes, inlineScripts = [], persistentContact = false } = {}) {
+export function validate(doc, pathname, expectedSheets, { refreshRuntime = false, gsapScripts, profiles = routes, inlineScripts = [], persistentContact = false, auditedCores = [] } = {}) {
   const scripts = [...doc.scripts].map(s => s.getAttribute('src')).filter(s => s?.includes('/js/webflow.'));
   const known = profiles[pathname];
   const record = known || Object.values(profiles).find(r => JSON.stringify(r.scripts) === JSON.stringify(scripts)) || (refreshRuntime ? routes['/home-sd'] : undefined);
@@ -18,7 +18,7 @@ export function validate(doc, pathname, expectedSheets, { refreshRuntime = false
   const runtimeChanged = JSON.stringify(scripts) !== JSON.stringify(record.scripts);
   if (runtimeChanged && !refreshRuntime) throw Error('Webflow export changed; rebuild SD snapshots');
   // Keep the audited shared core; publication-specific chunks/bootstrap may rotate.
-  if (runtimeChanged && !Object.values(profiles).some(profile => profile.scripts.slice(0, 2).every(url => scripts.includes(url)))) throw Error('Webflow shared core changed');
+  if (runtimeChanged && ![...Object.values(profiles).map(profile => profile.scripts.slice(0, 2)), ...auditedCores].some(core => core.length === 2 && core.every(url => scripts.includes(url)))) throw Error('Webflow shared core changed');
   const bootstrap = scripts.find(url => /\/js\/webflow\.(?![sa]chunk\.)[^/]+\.js$/.test(url));
   if (runtimeChanged && !bootstrap) throw Error('Missing Webflow data bootstrap');
   if (gsapScripts && [...doc.scripts].map(s => s.src).filter(url => url.includes('/gsap/')).some(url => !gsapScripts.includes(url))) throw Error('New GSAP dependency requires native navigation');

@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { menuHasScrolled, menuBrandElements, menuBrandFrames } from '../src/sd/menu.js';
+import { menuHasScrolled, menuBrandElements, menuBrandFrames, installMobileMenuStyles } from '../src/sd/menu.js';
 it('activates the menu near the top and avoids flicker on small scroll reversals', () => {
   let active = false;
   const values = [0, 7, 9, 6, 3, 2, 5, 9, 0, -15];
@@ -22,4 +22,15 @@ it('keeps the picto visible and reveals the wordmark at its authored position to
   expect(menuBrandFrames(picto, logo, true)).toEqual([{transform:'none',opacity:1},{transform:'translateX(0px)',opacity:1}]);
   expect(menuBrandFrames(picto, logo, false)).toEqual([{transform:'none',opacity:1},{transform:'translateX(-10px)',opacity:0}]);
   document.body.innerHTML = '';
+});
+
+it('keeps the wordmark hidden when its Web Animations effect is removed during navigation', () => {
+  document.head.querySelector('style[data-env-sd-mobile-nav]')?.remove();
+  document.body.innerHTML='<nav class="navbar-logo-center"><a class="navbar-brand-three"><img class="main-picto"><img class="logo-nav"></a></nav>';
+  installMobileMenuStyles(document);
+  const logo=document.querySelector('.navbar-brand-three .logo-nav')!;
+  expect(getComputedStyle(logo).opacity).toBe('0');
+  document.querySelector('nav')!.classList.add('is-past-hero');
+  expect(getComputedStyle(logo).opacity).toBe('0');
+  document.head.querySelector('style[data-env-sd-mobile-nav]')?.remove();document.body.innerHTML='';
 });

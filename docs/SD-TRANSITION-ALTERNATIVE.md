@@ -70,3 +70,10 @@ The procedural hero background includes a 30% dark-blue (`#11263a`) overlay insi
 
 
 The current horizontal picto/wordmark arrangement retains the authored 12px gap. `.main-picto` remains visible at all scroll positions. On scroll, `.logo-nav` fades/slides 10px into its natural position to the right; returning to the top reverses only the wordmark. In the white-link menu variant the existing monochrome picto image is filtered white before scrolling; on the white navbar it uses the bundled `sd-picto-blue.svg`, a copy of the authored white SVG with its path fill changed to `#11263a`. The engine supplies this asset automatically; no Designer SVG replacement is required. Legacy text-brand markup retains its former swap behavior.
+
+
+## November 4 Webflow runtime update
+
+The published shared core changed from `0e4a7967fd438f05` to `86352264da6a98d3`, then `c4dfe6d040dda842`. The first revision adds the external-scroll-style guard and native dialog/form dismissal behavior; the second removes the unused EDITOR environment enum and renames minified bindings. Navbar, IX2 and IX3 lifecycle contracts remain compatible. Exact additional core URL pairs are listed in `audited-cores.json`; unknown cores still fall back to native navigation. Current Home VF, Work, About and Press profiles and the isolated slider factory were refreshed from their published exports. IX configuration is still extracted as literal data rather than executed.
+
+A persistent CSS default keeps the picto brand's `.logo-nav` at opacity 0 whenever its Web Animations effect is canceled, preventing the authored opacity 1 from flashing between page mounts. The scroll animation overrides this default only when the letters should be visible.

@@ -171,3 +171,15 @@ it('allows only an audited persistent contact form and known inline adapters in 
   doc.querySelector('main')!.append(doc.querySelector('.w-form')!);
   expect(() => validate(doc, '/about', undefined, { persistentContact: true, inlineScripts: [script.textContent] })).toThrow('Unsupported page widget');
 });
+
+it('accepts an explicitly audited shared core and continues rejecting unknown cores', () => {
+  const doc = fixture('/home-sd');
+  const scripts = [...doc.querySelectorAll('script[src]')];
+  const pair = scripts.slice(0,2).map(s => s.getAttribute('src')!);
+  pair[1] = pair[1].replace(/schunk\.[^.]+/, 'schunk.audited');
+  scripts[1].setAttribute('src', pair[1]);
+  expect(() => validate(doc, '/home-sd', undefined, { refreshRuntime:true })).toThrow('shared core changed');
+  expect(validate(doc, '/home-sd', undefined, { refreshRuntime:true, auditedCores:[pair] }).runtimeChanged).toBe(true);
+  scripts[1].setAttribute('src', pair[1].replace('audited','unknown'));
+  expect(() => validate(doc, '/home-sd', undefined, { refreshRuntime:true, auditedCores:[pair] })).toThrow('shared core changed');
+});
