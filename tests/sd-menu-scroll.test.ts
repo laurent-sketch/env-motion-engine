@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { menuHasScrolled, menuBrandElements, menuBrandFrames, installMobileMenuStyles } from '../src/sd/menu.js';
+import { menuHasScrolled, menuBrandElements, menuBrandFrames, installMobileMenuStyles, prepareMenuPictoImages } from '../src/sd/menu.js';
 it('activates the menu near the top and avoids flicker on small scroll reversals', () => {
   let active = false;
   const values = [0, 7, 9, 6, 3, 2, 5, 9, 0, -15];
@@ -46,4 +46,17 @@ it('restores authored primary-button styles on the white navbar without altering
   document.querySelector('nav')!.classList.add('is-past-hero');
   expect(getComputedStyle(button).backgroundColor).toBe('rgb(47, 127, 255)');
   baseline.remove();document.head.querySelector('style[data-env-sd-mobile-nav]')?.remove();document.body.innerHTML='';
+});
+
+it('colors the single mobile picto without replacing unrelated mobile wordmarks', () => {
+  document.body.innerHTML='<nav><div class="navbar-brand-three"><img class="main-picto" src="icon.svg"></div><div class="logo-mobile"><img class="logo-nav mobile" src="https://cdn.example.com/id_sd-picto.svg"></div></nav>';
+  const nav=document.querySelector('nav')!, mobile=document.querySelector('.logo-mobile img')!;
+  prepareMenuPictoImages(nav,'https://cdn.example.com/sd-picto-blue.svg');
+  expect(mobile.getAttribute('src')).toBe('https://cdn.example.com/sd-picto-blue.svg');
+  expect(mobile.classList.contains('is-env-nav-picto')).toBe(true);
+  mobile.setAttribute('src','https://cdn.example.com/SD.svg');mobile.classList.remove('is-env-nav-picto');
+  prepareMenuPictoImages(nav,'https://cdn.example.com/sd-picto-blue.svg');
+  expect(mobile.getAttribute('src')).toBe('https://cdn.example.com/SD.svg');
+  expect(mobile.classList.contains('is-env-nav-picto')).toBe(false);
+  document.body.innerHTML='';
 });

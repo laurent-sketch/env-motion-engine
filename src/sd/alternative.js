@@ -16,7 +16,7 @@ import auditedCores from './audited-cores.json';
 const routes = { ...legacyRoutes, ...testRoutes };
 const validation = { profiles: routes, inlineScripts: testInline, persistentContact: true, auditedCores };
 import { runFallback } from './boot.js';
-import { installMobileMenuStyles, menuHasScrolled, menuBrandElements, menuBrandFrames } from './menu.js';
+import { installMobileMenuStyles, menuHasScrolled, menuBrandElements, menuBrandFrames, prepareMenuPictoImages } from './menu.js';
 import { wrap, validate, syncMenuVariants, syncMenuImages } from './layout.js';
 
 // Keep authored reveal targets hidden until the page mask has cleared.
@@ -83,8 +83,7 @@ function menu() {
   cleanMenu();
   const nav = document.querySelector('.navbar-logo-center');
   const brand = nav?.querySelector('.navbar-brand-three');
-  const picto = brand?.querySelector('img.main-picto');
-  if (picto) { picto.removeAttribute('srcset'); picto.src = new URL('sd-picto-blue.svg', base).href; }
+  prepareMenuPictoImages(nav, new URL('sd-picto-blue.svg', base).href);
   const [text, logo] = menuBrandElements(brand);
   if (!nav) return;
   installMobileMenuStyles();

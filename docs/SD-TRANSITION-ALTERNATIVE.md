@@ -84,3 +84,6 @@ A persistent CSS default keeps the picto brand's `.logo-nav` at opacity 0 whenev
 The navbar `.btn-primary` is transparent only while the menu has no white background and the button is neither hovered nor keyboard-focused. Its two text layers (`.btn-text-main`, `.btn-text-scd`) inherit the appropriate white/dark-blue menu color in that state. Hover/focus and the scrolled white navbar retain the authored `.btn-primary` styling and native text rollover animation. Other primary buttons on the page are not changed. Page handovers include both text-layer colors.
 
 At viewport widths <=767px, `.project-item .btn-sd.more.mobile` is always visible, unshifted and interactive, including on desktop computers with fine pointers. This targets the authored mobile button variant; authored display breakpoints remain in control, and the desktop cursor-follow button is unchanged.
+
+
+The single mobile `sd-picto.svg` now uses the same bundled dark-blue SVG as the desktop picto, with a white filter only while a white-link navbar is transparent. It does not require a second `.bis` image. Other mobile wordmark assets retain the existing one/two-image behavior. Variant detection is repeated after each page handover.

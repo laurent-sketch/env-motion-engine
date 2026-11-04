@@ -5,6 +5,14 @@ export function menuHasScrolled(scroll, previous = false) {
 export function menuBrandElements(brand) {
   return [brand?.querySelector('.main-picto') || brand?.querySelector('.nav-link-sd'), brand?.querySelector('.logo-nav')];
 }
+export function prepareMenuPictoImages(nav, darkSrc) {
+  nav?.querySelectorAll('.navbar-brand-three img.main-picto, .logo-mobile img.logo-nav').forEach(image => {
+    if (!image.matches('.main-picto') && !/sd-picto(?:-blue)?\.svg(?:[?#]|$)/i.test(image.getAttribute('src') || '')) return;
+    image.classList.add('is-env-nav-picto');
+    image.removeAttribute('srcset');
+    image.src = darkSrc;
+  });
+}
 export function menuBrandFrames(first, logo, show) {
   if (first.matches('.main-picto')) return [
     { transform: 'none', opacity: 1 },
@@ -40,10 +48,12 @@ export function installMobileMenuStyles(doc = document) {
 .navbar-logo-center .burger-menu-wrap .line-burger{transition:background-color 400ms ease}
 .navbar-logo-center.is-past-hero .burger-menu-wrap .line-burger{background-color:var(--_colors---dark-blue,var(--nav-dark-blue,#11263a))}
 .navbar-logo-center .logo-mobile>.logo-nav{transition:opacity 400ms ease}
+.navbar-logo-center .logo-mobile>.logo-nav.is-env-nav-picto{filter:brightness(1) invert(0);transition:opacity 400ms ease,filter 400ms ease}
+.navbar-logo-center:has(.nav-menu-three .nav-link-sd.white):not(.is-past-hero) .logo-mobile>.logo-nav.is-env-nav-picto{filter:brightness(0) invert(1)}
 .navbar-logo-center .logo-mobile>.logo-nav.bis{position:absolute;top:0;left:0;margin:0;opacity:0}
 .navbar-logo-center.is-past-hero .logo-mobile:has(>.logo-nav.bis)>.logo-nav:not(.bis){opacity:0}
 .navbar-logo-center.is-past-hero .logo-mobile>.logo-nav.bis{opacity:1}
 }
-@media(prefers-reduced-motion:reduce){.navbar-logo-center .logo-mobile>.logo-nav,.navbar-logo-center .burger-menu-wrap .line-burger{transition:none}}`;
+@media(prefers-reduced-motion:reduce){.navbar-logo-center .logo-mobile>.logo-nav,.navbar-logo-center .logo-mobile>.logo-nav.is-env-nav-picto,.navbar-logo-center .burger-menu-wrap .line-burger{transition:none}}`;
   doc.head.append(style);
 }
