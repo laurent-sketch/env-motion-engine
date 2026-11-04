@@ -87,3 +87,6 @@ At viewport widths <=767px, `.project-item .btn-sd.more.mobile` is always visibl
 
 
 The single mobile `sd-picto.svg` now uses the same bundled dark-blue SVG as the desktop picto, with a white filter only while a white-link navbar is transparent. It does not require a second `.bis` image. Other mobile wordmark assets retain the existing one/two-image behavior. Variant detection is repeated after each page handover.
+
+
+The later November 4 export uses the additional audited core pair `181a2070a530b302` / `471ffd7ff3ef9f20`. It adds code-island and supporting library modules; the currently published Home, Work, About and Press contain no code-island widgets. The IX2/IX3 and navbar lifecycle entry points remain available, and current page interaction data is still parsed as literal configuration. The slider chunk remains `bdf58efcee47c042`. Initial mount plus Home-to-About mask navigation were verified against fresh published HTML in the local mirror. Unknown future pairs remain subject to compatibility review.
