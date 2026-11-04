@@ -34,3 +34,16 @@ it('keeps the wordmark hidden when its Web Animations effect is removed during n
   expect(getComputedStyle(logo).opacity).toBe('0');
   document.head.querySelector('style[data-env-sd-mobile-nav]')?.remove();document.body.innerHTML='';
 });
+
+it('restores authored primary-button styles on the white navbar without altering page buttons', () => {
+  const baseline=document.createElement('style');baseline.textContent='.btn-primary{background-color:rgb(47,127,255);color:rgb(255,255,255)}';document.head.append(baseline);
+  document.body.innerHTML='<nav class="navbar-logo-center"><div class="nav-menu-three"><a class="nav-link-sd white">Work</a></div><a class="btn-primary"><span class="btn-text-main">Talk</span></a></nav><main><a class="btn-primary">Other</a></main>';
+  installMobileMenuStyles(document);
+  const button=document.querySelector('nav .btn-primary')!;
+  expect(getComputedStyle(button).backgroundColor).toBe('rgba(0, 0, 0, 0)');
+  expect(getComputedStyle(button).color).toBe('rgb(255, 255, 255)');
+  expect(getComputedStyle(document.querySelector('main .btn-primary')!).backgroundColor).toBe('rgb(47, 127, 255)');
+  document.querySelector('nav')!.classList.add('is-past-hero');
+  expect(getComputedStyle(button).backgroundColor).toBe('rgb(47, 127, 255)');
+  baseline.remove();document.head.querySelector('style[data-env-sd-mobile-nav]')?.remove();document.body.innerHTML='';
+});

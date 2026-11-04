@@ -77,3 +77,10 @@ The current horizontal picto/wordmark arrangement retains the authored 12px gap.
 The published shared core changed from `0e4a7967fd438f05` to `86352264da6a98d3`, then `c4dfe6d040dda842`. The first revision adds the external-scroll-style guard and native dialog/form dismissal behavior; the second removes the unused EDITOR environment enum and renames minified bindings. Navbar, IX2 and IX3 lifecycle contracts remain compatible. Exact additional core URL pairs are listed in `audited-cores.json`; unknown cores still fall back to native navigation. Current Home VF, Work, About and Press profiles and the isolated slider factory were refreshed from their published exports. IX configuration is still extracted as literal data rather than executed.
 
 A persistent CSS default keeps the picto brand's `.logo-nav` at opacity 0 whenever its Web Animations effect is canceled, preventing the authored opacity 1 from flashing between page mounts. The scroll animation overrides this default only when the letters should be visible.
+
+
+## New primary contact button and mobile project buttons
+
+The navbar `.btn-primary` is transparent only while the menu has no white background and the button is neither hovered nor keyboard-focused. Its two text layers (`.btn-text-main`, `.btn-text-scd`) inherit the appropriate white/dark-blue menu color in that state. Hover/focus and the scrolled white navbar retain the authored `.btn-primary` styling and native text rollover animation. Other primary buttons on the page are not changed. Page handovers include both text-layer colors.
+
+At viewport widths <=767px, `.project-item .btn-sd.more.mobile` is always visible, unshifted and interactive, including on desktop computers with fine pointers. This targets the authored mobile button variant; authored display breakpoints remain in control, and the desktop cursor-follow button is unchanged.
