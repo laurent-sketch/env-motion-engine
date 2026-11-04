@@ -233,15 +233,15 @@
           const animation = el.animate([
             { opacity: 0, scale: '0.99', ...(blur ? { filter: blurFrames(blockOpacity.filter.base).from } : {}) },
             { opacity: blockOpacity.end, scale: endScale, ...(blur ? { filter: blurFrames(blockOpacity.filter.base).to } : {}) }
-          ], { duration: 750, delay: (delay + 0.2) * 1000, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
+          ], { duration: duration * 1000, delay: (delay + 0.2) * 1000, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
           nativeAnimations.add(animation);
           animation.finished.then(() => { nativeAnimations.delete(animation); animation.cancel(); }, () => nativeAnimations.delete(animation));
           return;
         }
         const timeline = gsap.timeline({ delay: scrub ? 0 : delay, ...(scrub ? { scrollTrigger: scroll } : {}), onComplete: () => restoreOpacity([blockOpacity]) });
         if (scale) {
-          timeline.from(el, { scale: 0.99, duration: 0.75, ease: scrub ? 'none' : 'power3.out' }, scrub ? 0 : 0.2);
-          timeline.fromTo(el, { opacity: 0 }, { opacity: blockOpacity.end, duration: 0.5, ease: 'none', immediateRender: true }, scrub ? 0 : 0.2);
+          timeline.from(el, { scale: 0.99, duration, ease: scrub ? 'none' : 'power3.out' }, scrub ? 0 : 0.2);
+          timeline.fromTo(el, { opacity: 0 }, { opacity: blockOpacity.end, duration: Math.min(0.5, duration), ease: 'none', immediateRender: true }, scrub ? 0 : 0.2);
         } else {
           timeline.from(el, {
             ...(!text || effect === 'up' ? { y: 16 } : {}),
