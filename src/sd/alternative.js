@@ -16,6 +16,7 @@ import auditedCores from './audited-cores.json';
 const routes = { ...legacyRoutes, ...testRoutes };
 const validation = { profiles: routes, inlineScripts: testInline, persistentContact: true, auditedCores };
 import { runFallback } from './boot.js';
+import { waitForWebflowRuntime } from './webflow-runtime.js';
 import { installMobileMenuStyles, menuHasScrolled, menuBrandElements, menuBrandFrames, prepareMenuPictoImages } from './menu.js';
 import { wrap, validate, syncMenuVariants, syncMenuImages } from './layout.js';
 
@@ -174,14 +175,15 @@ async function start() {
   const useMask = window.ENVSDTransition === 'mask';
   document.documentElement.dataset.envTransitionMode = useMask ? 'mask' : 'classic';
   const runtime = window.Webflow;
-  const ix2 = runtime?.require('ix2'), ix3 = runtime?.require('ix3');
+  const compatibility = await waitForWebflowRuntime(runtime);
+  const { ix2, ix3 } = compatibility;
+  const compatibleValidation = { ...validation, runtimeCompatible: compatibility.compatible };
   let native;
-  if (!ix2?.init || !ix3?.ready) throw Error('Webflow runtime unavailable');
   // A CSS-only Webflow publish changes the URL without changing the audited JS runtime.
   // Use the styles actually loaded in this document as the navigation compatibility baseline.
   const activeSheets = [...document.querySelectorAll('link[rel="stylesheet"]')].map(el => el.getAttribute('href'));
   const gsapScripts = [...document.scripts].map(el => el.src).filter(url => url.includes('/gsap/'));
-  const profile = validate(document, path(), activeSheets, { refreshRuntime: true, gsapScripts, ...validation });
+  const profile = validate(document, path(), activeSheets, { refreshRuntime: true, gsapScripts, ...compatibleValidation });
   let configModule;
   const configuration = async record => {
     if (!record.runtimeChanged && !record.currentExport) return config;
@@ -204,7 +206,7 @@ async function start() {
     window.webpackChunk.push([[`env-sd-slider-${Date.now()}`], {}, require => { require(slider.factory); registered = true; }]);
     if (!registered || !runtime.require('slider')?.ready) throw Error('Audited slider factory unavailable');
   };
-  native = ['slider', 'navbar', 'dropdown', 'tabs'].map(name => runtime.require(name)).filter(Boolean);
+  native = compatibility.native;
   wrap(document);
   gradient = useMask ? null : installGradient();
   document.head.querySelectorAll('style').forEach(el => { if (profile.styles.includes(el.textContent)) el.dataset.envSdPageStyle = ''; });
@@ -241,7 +243,7 @@ async function start() {
   swup.hooks.replace('content:replace', async (visit, args, replace) => {
     const doc = visit.to.document;
     if (!doc || !replace) throw Error('Missing incoming page');
-    const record = validate(doc, new URL(visit.to.url, location.href).pathname, activeSheets, { refreshRuntime: true, gsapScripts, ...validation });
+    const record = validate(doc, new URL(visit.to.url, location.href).pathname, activeSheets, { refreshRuntime: true, gsapScripts, ...compatibleValidation });
     const incomingConfig = await configuration(record);
     if (doc.querySelectorAll('.navbar-logo-center a[href]').length !== document.querySelectorAll('.navbar-logo-center a[href]').length) throw Error('Menu structure changed');
     const next = wrap(doc); next.classList.add('env-sd-pending'); if (useMask) next.setAttribute('data-env-alt-reveal-wait', '');

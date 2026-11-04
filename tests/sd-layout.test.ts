@@ -183,3 +183,13 @@ it('accepts an explicitly audited shared core and continues rejecting unknown co
   scripts[1].setAttribute('src', pair[1].replace('audited','unknown'));
   expect(() => validate(doc, '/home-sd', undefined, { refreshRuntime:true, auditedCores:[pair] })).toThrow('shared core changed');
 });
+
+it('allows rotated official core names only with a verified compatible live runtime', () => {
+  const doc=fixture('/home-sd');
+  const scripts=[...doc.querySelectorAll('script[src]')];
+  scripts.slice(0,2).forEach((s,i)=>s.setAttribute('src',s.getAttribute('src')!.replace(/schunk\.[^.]+/,`schunk.${i?'bbbbbbbbbbbbbbbb':'aaaaaaaaaaaaaaaa'}`)));
+  expect(()=>validate(doc,'/home-sd',undefined,{refreshRuntime:true})).toThrow('shared core changed');
+  expect(validate(doc,'/home-sd',undefined,{refreshRuntime:true,runtimeCompatible:true}).runtimeChanged).toBe(true);
+  scripts[1].setAttribute('src',scripts[1].getAttribute('src')!.replace('cdn.prod.website-files.com','untrusted.example'));
+  expect(()=>validate(doc,'/home-sd',undefined,{refreshRuntime:true,runtimeCompatible:true})).toThrow('shared core changed');
+});

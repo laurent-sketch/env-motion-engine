@@ -10,15 +10,26 @@ export function wrap(doc) {
   if (footer) root.append(footer);
   return root;
 }
-export function validate(doc, pathname, expectedSheets, { refreshRuntime = false, gsapScripts, profiles = routes, inlineScripts = [], persistentContact = false, auditedCores = [] } = {}) {
+export function validate(doc, pathname, expectedSheets, { refreshRuntime = false, gsapScripts, profiles = routes, inlineScripts = [], persistentContact = false, auditedCores = [], runtimeCompatible = false } = {}) {
   const scripts = [...doc.scripts].map(s => s.getAttribute('src')).filter(s => s?.includes('/js/webflow.'));
   const known = profiles[pathname];
   const record = known || Object.values(profiles).find(r => JSON.stringify(r.scripts) === JSON.stringify(scripts)) || (refreshRuntime ? routes['/home-sd'] : undefined);
   if (!record || doc.documentElement.getAttribute('data-wf-site') !== record.site || !doc.documentElement.getAttribute('data-wf-page') || (known && doc.documentElement.getAttribute('data-wf-page') !== known.page)) throw Error('Uncertified page');
   const runtimeChanged = JSON.stringify(scripts) !== JSON.stringify(record.scripts);
   if (runtimeChanged && !refreshRuntime) throw Error('Webflow export changed; rebuild SD snapshots');
-  // Keep the audited shared core; publication-specific chunks/bootstrap may rotate.
-  if (runtimeChanged && ![...Object.values(profiles).map(profile => profile.scripts.slice(0, 2)), ...auditedCores].some(core => core.length === 2 && core.every(url => scripts.includes(url)))) throw Error('Webflow shared core changed');
+  // Known cores remain supported. A newly named core is allowed only after the
+  // live runtime passed the navigation API check, and only from official assets.
+  const knownCore = [...Object.values(profiles).map(profile => profile.scripts.slice(0, 2)), ...auditedCores].some(core => core.length === 2 && core.every(url => scripts.includes(url)));
+  if (runtimeChanged && !knownCore) {
+    const core = scripts.slice(0, 2);
+    const trusted = core.length === 2 && core.every(value => {
+      try {
+        const url = new URL(value);
+        return url.origin === 'https://cdn.prod.website-files.com' && url.pathname.startsWith(`/${record.site}/js/webflow.schunk.`) && /\.[a-f0-9]{16}\.js$/.test(url.pathname) && !url.search && !url.hash && !url.username && !url.password;
+      } catch (_) { return false; }
+    });
+    if (!runtimeCompatible || !trusted) throw Error('Webflow shared core changed');
+  }
   const bootstrap = scripts.find(url => /\/js\/webflow\.(?![sa]chunk\.)[^/]+\.js$/.test(url));
   if (runtimeChanged && !bootstrap) throw Error('Missing Webflow data bootstrap');
   if (gsapScripts && [...doc.scripts].map(s => s.src).filter(url => url.includes('/gsap/')).some(url => !gsapScripts.includes(url))) throw Error('New GSAP dependency requires native navigation');

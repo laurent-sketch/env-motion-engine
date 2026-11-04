@@ -90,3 +90,12 @@ The single mobile `sd-picto.svg` now uses the same bundled dark-blue SVG as the 
 
 
 The later November 4 export uses the additional audited core pair `181a2070a530b302` / `471ffd7ff3ef9f20`. It adds code-island and supporting library modules; the currently published Home, Work, About and Press contain no code-island widgets. The IX2/IX3 and navbar lifecycle entry points remain available, and current page interaction data is still parsed as literal configuration. The slider chunk remains `bdf58efcee47c042`. Initial mount plus Home-to-About mask navigation were verified against fresh published HTML in the local mirror. Unknown future pairs remain subject to compatibility review.
+
+
+## Functional compatibility gate (supersedes filename-only checks)
+
+Alternative navigation now checks the live Webflow lifecycle before mounting: `require`, IX2 `init/destroy`, IX3 `ready/destroy/getInstance`, the live IX3 instance `register/setFeatures`, and the lifecycle methods of loaded native widgets. It waits up to 4 seconds for the initial asynchronous IX3 instance instead of initializing it a second time. The inspection itself never destroys or restarts the current page.
+
+New shared-core filenames no longer disable transitions on their own when that functional check passes. Such cores must still use immutable hashed URLs on the official site's Webflow CDN. The exact audited URL list remains a legacy baseline, not the sole gate in alternative mode. Destination interaction config remains parsed as literal data, and page layout, shared menu, stylesheet, custom-script and widget compatibility checks remain in place. Unsupported runtime APIs, unknown data syntax and failed reinitialization retain the native navigation fallback. Genuine Webflow API/feature changes can still require an adapter; this is not a guarantee against all future changes.
+
+Verification: regressions for rotated core names, untrusted hosts, missing lifecycle methods, asynchronous readiness and readiness timeout; local mirror Work → Home (four native slider dots, one active) → About with the horizontal mask and no console errors.
