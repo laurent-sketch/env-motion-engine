@@ -65,3 +65,23 @@ it('shows text without animation for reduced motion and for elements already pas
   expect(first.getAttribute('data-env-about-reveal')).toBe('visible');
   expect(Element.prototype.animate).not.toHaveBeenCalled();
 });
+
+it('scrubs every story element independently and reverts its contexts on unmount', () => {
+  const fromTo = vi.fn(), revert = vi.fn(), registerPlugin = vi.fn();
+  const plugin = { refresh: vi.fn() };
+  vi.stubGlobal('gsap', { fromTo, registerPlugin, context: (callback: any) => { callback(); return { revert }; } });
+  vi.stubGlobal('ScrollTrigger', plugin);
+  setup();
+  expect(registerPlugin).toHaveBeenCalledWith(plugin);
+  expect(fromTo).toHaveBeenCalledTimes(5);
+  expect(observe).not.toHaveBeenCalled();
+  const [target, from, to] = fromTo.mock.calls[0];
+  expect(target).toBe(document.querySelector('.line-one'));
+  expect(from.transform()).toContain('64px,0px');
+  expect(to.scrollTrigger).toEqual({ trigger: target, start: 'top 90%', end: 'top 55%', scrub: .6, invalidateOnRefresh: true });
+  expect(to.ease).toBe('none');
+  expect(document.querySelector('.line-one')!.getAttribute('data-env-about-reveal')).toBe('scrub');
+  (window as any).ENVAboutReveals.destroy();
+  expect(revert).toHaveBeenCalledTimes(5);
+  expect(document.querySelector('.line-one')!.hasAttribute('data-env-about-reveal')).toBe(false);
+});

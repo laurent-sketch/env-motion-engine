@@ -121,3 +121,7 @@ The shared injected stylesheet animates images inside `.see-more-bloc` once per 
 The text SVGs are set to eager loading while mounted to avoid zero-size lazy images delaying intersection detection. Initial deep visits show already-passed elements immediately. Reduced motion reveals content without animation. Destroy restores original inline properties/loading attributes and cancels observers/animations. Mask navigation initializes this module only after the mask has cleared, alongside the regular ENV reveals.
 
 The desktop `.logo-nav` wordmark uses the same white filter as the picto on the transparent light menu. It returns to its authored blue asset when the navbar has its white background. The transparent dark-menu variant keeps the blue wordmark. Hover/focus affects visibility only, and the filter follows menu theme/scroll state; reduced motion disables its filter transition.
+
+### Scrub mode for the native About story
+
+With the GSAP and ScrollTrigger already provided by Webflow, `about-reveals.js` now drives each SVG/text reveal with scroll position: `start: top 90%`, `end: top 55%`, `scrub: 0.6`, `ease: none`. Scrolling up reverses the opacity, offset and blur. There is no timed stagger; each line has its own trigger. This supersedes the one-time trigger behavior described above. GSAP contexts are reverted on unmount and honor reduced motion. SVG image loads and font readiness refresh trigger measurements. If GSAP/ScrollTrigger are absent, the former one-time viewport reveal remains as a fallback.
