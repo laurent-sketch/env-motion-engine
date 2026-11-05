@@ -303,27 +303,31 @@ it('restores incoming hero positioning on an aborted mask and leaves the menu fi
   expect(menu.style.position).toBe('fixed');
 });
 
-it('starts a departure before incoming content is ready and continues from its visible position', async () => {
+it('keeps the outgoing page stationary until the mask and shares one spatial animation clock', async () => {
   const { runtime, cancel } = fixture();
   runtime.capture(); runtime.depart(); runtime.depart();
   const overlay = document.querySelector('[data-env-transition-snapshot]') as HTMLElement;
   const shade = document.querySelector('[data-env-transition-shade]') as HTMLElement;
-  expect(vi.mocked(Element.prototype.animate).mock.calls).toHaveLength(2);
+  expect(vi.mocked(Element.prototype.animate).mock.calls).toHaveLength(1);
+  expect(vi.mocked(Element.prototype.animate).mock.instances[0]).toBe(shade);
+  expect(vi.mocked(Element.prototype.animate).mock.calls[0][0]).toEqual([{ opacity: 0 }, { opacity: 0.08 }]);
   expect(document.querySelector('#env-sd-page')!.getAttribute('style')).toBeNull();
-  overlay.style.transform = 'translateY(-10px) scale(1.003)'; shade.style.opacity = '.04';
+  expect(overlay.style.transform).toBe('');
+  shade.style.opacity = '.04';
   const root = document.querySelector('#env-sd-page') as HTMLElement;
   runtime.prepare(root); await runtime.reveal(root);
   const calls = vi.mocked(Element.prototype.animate).mock.calls;
-  expect(calls).toHaveLength(5);
-  expect(calls[2][0][0].transform).toBe('translateY(-10px) scale(1.003)');
-  expect(calls[4][0][0].opacity).toBe(.04);
-  expect(cancel).toHaveBeenCalledTimes(5);
+  expect(calls).toHaveLength(4);
+  expect(calls[1][0][0].transform).toBe('translateY(0) scale(1)');
+  expect(calls[1][1]).toEqual(calls[2][1]);
+  expect(calls[3][0][0].opacity).toBe(.04);
+  expect(cancel).toHaveBeenCalledTimes(4);
   expect(document.querySelector('[data-env-transition-snapshot]')).toBeNull();
 });
 it('cleans early departure effects and releases scroll on failed navigation', () => {
   const { runtime, cancel } = fixture();
   runtime.capture(); runtime.depart(); runtime.cleanup();
-  expect(cancel).toHaveBeenCalledTimes(2);
+  expect(cancel).toHaveBeenCalledTimes(1);
   expect(document.querySelector('[data-env-transition-snapshot]')).toBeNull();
   expect(document.documentElement.hasAttribute('data-env-transition-active')).toBe(false);
 });
