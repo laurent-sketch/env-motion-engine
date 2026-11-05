@@ -89,3 +89,17 @@ it('does not turn touch taps into a sticky hover preview', () => {
   picto.dispatchEvent(touch);
   expect(change).not.toHaveBeenCalled(); controller.abort(); document.body.innerHTML = '';
 });
+
+it('shows a white desktop wordmark only on the transparent light menu', () => {
+  document.head.querySelector('style[data-env-sd-mobile-nav]')?.remove();
+  document.body.innerHTML='<nav class="navbar-logo-center"><div class="nav-menu-three"><a class="nav-link-sd white">Work</a></div><a class="navbar-brand-three"><img class="main-picto"><img class="logo-nav"></a></nav>';
+  installMobileMenuStyles(document);
+  const nav=document.querySelector('nav')!, logo=document.querySelector('.navbar-brand-three .logo-nav')!;
+  expect(getComputedStyle(logo).filter).toBe('brightness(0) invert(1)');
+  nav.classList.add('is-past-hero');
+  expect(getComputedStyle(logo).filter).toBe('brightness(1) invert(0)');
+  nav.classList.remove('is-past-hero');
+  document.querySelector('.nav-link-sd')!.classList.remove('white');
+  expect(getComputedStyle(logo).filter).toBe('brightness(1) invert(0)');
+  document.head.querySelector('style[data-env-sd-mobile-nav]')?.remove();document.body.innerHTML='';
+});

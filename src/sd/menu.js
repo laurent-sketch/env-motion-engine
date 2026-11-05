@@ -60,9 +60,11 @@ export function installMobileMenuStyles(doc = document) {
 @media(prefers-reduced-motion:reduce){.navbar-logo-center .btn-primary,.navbar-logo-center .btn-primary :is(.btn-text-main,.btn-text-scd){transition:none}}
 .navbar-logo-center .link-box:has(a.w--current) .dot-link,.navbar-logo-center .link-box.w--current .dot-link{opacity:1;width:100%;transform:translateY(0)}
 .navbar-logo-center .navbar-brand-three:has(.main-picto) .logo-nav{opacity:0}
+.navbar-logo-center .navbar-brand-three .logo-nav{filter:brightness(1) invert(0);transition:filter 400ms ease}
+.navbar-logo-center:has(.nav-menu-three .nav-link-sd.white):not(.is-past-hero) .navbar-brand-three .logo-nav{filter:brightness(0) invert(1)}
 .navbar-logo-center .navbar-brand-three .main-picto{filter:brightness(1) invert(0);transition:filter 400ms ease}
 .navbar-logo-center:has(.nav-menu-three .nav-link-sd.white):not(.is-past-hero) .navbar-brand-three .main-picto{filter:brightness(0) invert(1)}
-@media(prefers-reduced-motion:reduce){.navbar-logo-center .navbar-brand-three .main-picto{transition:none}}
+@media(prefers-reduced-motion:reduce){.navbar-logo-center .navbar-brand-three .main-picto,.navbar-logo-center .navbar-brand-three .logo-nav{transition:none}}
 @media(prefers-reduced-motion:reduce){.navbar-logo-center .btn-sd.nav{transition:none}}
 @media(max-width:991px){
 .navbar-logo-center .burger-menu-wrap .line-burger{transition:background-color 400ms ease}
