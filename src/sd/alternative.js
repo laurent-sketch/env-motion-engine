@@ -123,6 +123,7 @@ function menu() {
   cleanMenu = () => { abort.abort(); animations.forEach(a => a.cancel()); };
 }
 async function animations() {
+  if (document.querySelector('.section-animation-about, .section.hero-about + .section.about-second')) await script('about-reveals.js', true);
   if (!document.querySelector('[data-env-reveal],[data-env-text]')) return;
   if (!window.gsap) throw Error('GSAP unavailable');
   let done;
@@ -156,6 +157,7 @@ async function mount({ deferReveals = false } = {}) {
   }
 }
 function unmount() {
+  window.ENVAboutReveals?.destroy();
   window.ENVHeroShape?.destroy();
   window.ENVOrganicBlob?.destroy();
   window.ENVCTABlob?.destroy();

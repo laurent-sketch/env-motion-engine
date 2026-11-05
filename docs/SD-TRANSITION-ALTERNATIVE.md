@@ -113,3 +113,9 @@ On fine-pointer devices, entering `.navbar-brand-three .main-picto` previews the
 ### Read-more arrow hover
 
 The shared injected stylesheet animates images inside `.see-more-bloc` once per hover: 10px up/right with fade out, then re-entry from 10px down/left, over 450ms. Keyboard focus inside the block or on an enclosing link triggers the same effect. Text does not move. Reduced motion disables it. The persistent stylesheet covers fetched CMS items and later page visits without listeners or per-page code.
+
+### Native About story reveals
+
+`about-reveals.js` loads only when the live page contains `.section-animation-about` or the currently published sibling structure `.section.hero-about + .section.about-second` followed by `.section.third-bloc`. No required new attributes. Within that group, `.bloc-big-text > img` enters from alternating right/left (64px desktop, 30px up to 767px), with opacity and an 8px blur over 1100ms. Text inside `.float-text-left`, `.float-text-right` and `.center-bloc` uses a 22px upward reveal, 5px blur, 850ms. Each element reveals once per page mount, at 90% of viewport height. Their authored end opacity, transform, filter and layout are preserved. Existing `data-env-reveal` / `data-env-text` targets (including the hero logo) and ignored trees are skipped. Decorative gradient layers are untouched.
+
+The text SVGs are set to eager loading while mounted to avoid zero-size lazy images delaying intersection detection. Initial deep visits show already-passed elements immediately. Reduced motion reveals content without animation. Destroy restores original inline properties/loading attributes and cancels observers/animations. Mask navigation initializes this module only after the mask has cleared, alongside the regular ENV reveals.

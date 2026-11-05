@@ -13,15 +13,15 @@ function Qe() {
     let c = 1, f = 1, p = 0, b = 0, y = 0, v = !1, m = !1, T = 0, l = 0, E = 0, O = 0, I = 0, N = 0;
     function _() {
       d.clearRect(0, 0, c, f);
-      const L = n.matches ? 0 : y, R = Math.min(c * 0.38, 500) * 2.1 * 1.35, x = Math.min(f * 0.49, 350) * 2.1 * 0.78, P = c * 0.23 + E + Math.sin(L * 0.29) * c * 0.13, z = f * 0.98 + O + Math.cos(L * 0.23) * f * 0.075, B = [];
+      const L = n.matches ? 0 : y, R = Math.min(c * 0.38, 500) * 2.1 * 1.35, x = Math.min(f * 0.49, 350) * 2.1 * 0.78, B = c * 0.23 + E + Math.sin(L * 0.29) * c * 0.13, z = f * 0.98 + O + Math.cos(L * 0.23) * f * 0.075, j = [];
       for (let U = 0; U < 10; U++) {
         const k = U / 10 * Math.PI * 2, V = 1 + 0.55 * (0.2 * Math.sin(k * 3 + L * 0.33) + 0.13 * Math.cos(k * 2 - L * 0.25) + 0.07 * Math.sin(k * 5 + L * 0.17));
-        B.push({ x: P + Math.cos(k) * R * V, y: z + Math.sin(k) * x * V });
+        j.push({ x: B + Math.cos(k) * R * V, y: z + Math.sin(k) * x * V });
       }
-      d.beginPath(), B.forEach((U, k) => {
-        const V = B[(k + 9) % 10], $ = B[(k + 1) % 10];
+      d.beginPath(), j.forEach((U, k) => {
+        const V = j[(k + 9) % 10], $ = j[(k + 1) % 10];
         k || d.moveTo((V.x + U.x) / 2, (V.y + U.y) / 2), d.quadraticCurveTo(U.x, U.y, (U.x + $.x) / 2, (U.y + $.y) / 2);
-      }), d.closePath(), d.save(), d.translate(P, z), d.scale(R / x, 1);
+      }), d.closePath(), d.save(), d.translate(B, z), d.scale(R / x, 1);
       const W = d.createRadialGradient(-x * 0.12, -x * 0.2, 0, 0, 0, x * 0.94);
       [[0, 0.5], [0.28, 0.36], [0.6, 0.15], [0.82, 0.035], [1, 0]].forEach(([U, k]) => W.addColorStop(U, `rgba(238,69,43,${k})`)), d.fillStyle = W, d.fill(), d.restore();
     }
@@ -1030,12 +1030,12 @@ const Se = (t) => typeof t == "object" && t != null && t.nodeType === 1, Re = (t
   let _ = T - I, S = O - N;
   const g = [];
   for (let h = 0; h < f.length; h++) {
-    const u = f[h], { height: w, width: M, top: C, right: L, bottom: R, left: x } = u.getBoundingClientRect(), P = getComputedStyle(u), z = parseInt(P.borderLeftWidth, 10), B = parseInt(P.borderTopWidth, 10), W = parseInt(P.borderRightWidth, 10), U = parseInt(P.borderBottomWidth, 10);
+    const u = f[h], { height: w, width: M, top: C, right: L, bottom: R, left: x } = u.getBoundingClientRect(), B = getComputedStyle(u), z = parseInt(B.borderLeftWidth, 10), j = parseInt(B.borderTopWidth, 10), W = parseInt(B.borderRightWidth, 10), U = parseInt(B.borderBottomWidth, 10);
     let k = 0, V = 0;
-    const $ = "offsetWidth" in u ? u.offsetWidth - u.clientWidth - z - W : 0, De = "offsetHeight" in u ? u.offsetHeight - u.clientHeight - B - U : 0, oe = "offsetWidth" in u ? u.offsetWidth === 0 ? 0 : M / u.offsetWidth : 0, se = "offsetHeight" in u ? u.offsetHeight === 0 ? 0 : w / u.offsetHeight : 0;
+    const $ = "offsetWidth" in u ? u.offsetWidth - u.clientWidth - z - W : 0, De = "offsetHeight" in u ? u.offsetHeight - u.clientHeight - j - U : 0, oe = "offsetWidth" in u ? u.offsetWidth === 0 ? 0 : M / u.offsetWidth : 0, se = "offsetHeight" in u ? u.offsetHeight === 0 ? 0 : w / u.offsetHeight : 0;
     if (c === u) k = _, V = S, k = Math.max(0, k + y), V = Math.max(0, V + b);
     else {
-      k = _ - C - B, V = S - x - z;
+      k = _ - C - j, V = S - x - z;
       const { scrollLeft: Ie, scrollTop: ve } = u;
       k = se === 0 ? 0 : Math.max(0, Math.min(ve + k / se, u.scrollHeight - w / se + De)), V = oe === 0 ? 0 : Math.max(0, Math.min(Ie + V / oe, u.scrollWidth - M / oe + $)), _ += ve - k, S += Ie - V;
     }
@@ -4584,7 +4584,7 @@ let me = () => {
 const Me = /* @__PURE__ */ new Set(), ae = () => {
   document.documentElement.classList.remove("env-sd-boot"), window.dispatchEvent(new Event("env:sd-ready"));
 }, je = (t) => new Promise((e) => setTimeout(e, t));
-function j(t, e = !1) {
+function P(t, e = !1) {
   return !e && Me.has(t) ? Promise.resolve() : new Promise((n, a) => {
     const o = document.createElement("script");
     o.src = new URL(t, ie).href;
@@ -4662,7 +4662,7 @@ function Ye() {
   };
 }
 async function ze() {
-  if (!document.querySelector("[data-env-reveal],[data-env-text]")) return;
+  if (document.querySelector(".section-animation-about, .section.hero-about + .section.about-second") && await P("about-reveals.js", !0), !document.querySelector("[data-env-reveal],[data-env-text]")) return;
   if (!window.gsap) throw Error("GSAP unavailable");
   let t;
   const e = new Promise((n) => {
@@ -4670,7 +4670,7 @@ async function ze() {
   });
   window.addEventListener("env:animations-ready", t, { once: !0 });
   try {
-    await j("animations.js", !0), await Promise.race([e, je(1500)]);
+    await P("animations.js", !0), await Promise.race([e, je(1500)]);
   } finally {
     window.removeEventListener("env:animations-ready", t);
   }
@@ -4679,17 +4679,17 @@ async function xe({ deferReveals: t = !1 } = {}) {
   Ye(), Xe(), Qe(), window.ENVVideos?.refresh(), window.gsap && window.ScrollTrigger && document.querySelectorAll("#env-sd-page .section.mask").forEach((n) => {
     n.dataset.maskInitialized || (n.dataset.maskInitialized = "true", ge.push(window.gsap.fromTo(n, { clipPath: "inset(10%)" }, { clipPath: "inset(0%)", ease: "none", scrollTrigger: { trigger: n, start: "top bottom", end: "top 15%", scrub: 0.6, invalidateOnRefresh: !0 } })));
   }), await Promise.all([
-    document.querySelector(".hero-wrapper .sd-slider") ? j("hero.js", !0) : Promise.resolve(),
-    document.querySelector("#env-sd-page [data-env-hero-shape]") ? j("hero-shape.js", !0) : Promise.resolve(),
+    document.querySelector(".hero-wrapper .sd-slider") ? P("hero.js", !0) : Promise.resolve(),
+    document.querySelector("#env-sd-page [data-env-hero-shape]") ? P("hero-shape.js", !0) : Promise.resolve(),
     t ? Promise.resolve() : ze()
   ]);
   const e = [...document.querySelectorAll(".swiper-news[data-env-news]")];
   e.length && (te = new IntersectionObserver((n) => {
-    n.some((a) => a.isIntersecting) && (te.disconnect(), j("news.js", !0).catch(console.error));
+    n.some((a) => a.isIntersecting) && (te.disconnect(), P("news.js", !0).catch(console.error));
   }, { rootMargin: "600px" }), e.forEach((n) => te.observe(n)));
 }
 function $n() {
-  window.ENVHeroShape?.destroy(), window.ENVOrganicBlob?.destroy(), window.ENVCTABlob?.destroy(), ge.forEach((e) => {
+  window.ENVAboutReveals?.destroy(), window.ENVHeroShape?.destroy(), window.ENVOrganicBlob?.destroy(), window.ENVCTABlob?.destroy(), ge.forEach((e) => {
     e.scrollTrigger?.kill(), e.kill();
   }), ge = [], window.ScrollTrigger?.getAll().filter((e) => e.trigger?.matches?.("#env-sd-page .section.mask")).forEach((e) => e.kill()), me(), te?.disconnect(), document.querySelector(".hero-wrapper")?.__envHeroCleanup?.(), window.ENVAnimations?.destroy(), window.ENVNews?.destroy(), window.ENVNewsMarquee?.destroy();
   const t = document.querySelector("#env-sd-page");
@@ -4718,7 +4718,7 @@ async function Kn() {
   }, v = async () => {
     if (n.require("slider")?.ready) return;
     const l = f.slider || be["/home-sd"].slider;
-    await j(l.script);
+    await P(l.script);
     let E = !1;
     if (window.webpackChunk.push([[`env-sd-slider-${Date.now()}`], {}, (O) => {
       O(l.factory), E = !0;
@@ -4793,7 +4793,7 @@ async function Kn() {
   m.hooks.on("visit:fail", T), m.hooks.on("visit:abort", T), ae(), (async () => {
     if (!window.lenis && !F.matches)
       try {
-        await j("https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js"), window.lenis = new window.Lenis({ duration: 1.2, smoothWheel: !0, easing: (l) => Math.min(1, 1.001 - Math.pow(2, -10 * l)) }), requestAnimationFrame(function l(E) {
+        await P("https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js"), window.lenis = new window.Lenis({ duration: 1.2, smoothWheel: !0, easing: (l) => Math.min(1, 1.001 - Math.pow(2, -10 * l)) }), requestAnimationFrame(function l(E) {
           window.lenis?.raf(E), requestAnimationFrame(l);
         });
       } catch (l) {
@@ -4802,7 +4802,7 @@ async function Kn() {
   })();
 }
 const Zn = () => Kn().catch((t) => {
-  console.error("[ENV SD] Native navigation retained", t), Un(() => j("env.js"), () => {
+  console.error("[ENV SD] Native navigation retained", t), Un(() => P("env.js"), () => {
     [...document.scripts].some((e) => /const brand =/.test(e.textContent) && !/ENV SD/.test(e.textContent)) || Ye();
   }).catch((e) => console.error("[ENV SD] Widget fallback failed", e)).finally(ae);
 });
