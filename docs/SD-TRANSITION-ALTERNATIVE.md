@@ -125,3 +125,7 @@ The desktop `.logo-nav` wordmark uses the same white filter as the picto on the 
 ### Scrub mode for the native About story
 
 With the GSAP and ScrollTrigger already provided by Webflow, `about-reveals.js` now drives each SVG/text reveal with scroll position: `start: top 90%`, `end: top 55%`, `scrub: 0.6`, `ease: none`. Scrolling up reverses the opacity, offset and blur. There is no timed stagger; each line has its own trigger. This supersedes the one-time trigger behavior described above. GSAP contexts are reverted on unmount and honor reduced motion. SVG image loads and font readiness refresh trigger measurements. If GSAP/ScrollTrigger are absent, the former one-time viewport reveal remains as a fallback.
+
+### Large About lines only — alternating composition
+
+The latest About module targets only the six `.bloc-big-text > img` SVG lines. Small `.regular-text` elements and their native Webflow interactions are never selected. Odd lines align to the left and arrive from the left; even lines align to the right and arrive from the right. Horizontal travel is 42vw on desktop / 55vw on mobile, capped at 720px. Opacity and translation scrub together from `top 110%` to `top 65%`, with 0.7s smoothing. No blur is added. The story wrapper uses `overflow-x: clip` to avoid horizontal scroll without creating a scroll container. Destroy restores authored alignment and overflow. This supersedes the earlier small-text, blur and short-offset behavior.

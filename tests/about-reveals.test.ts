@@ -26,29 +26,32 @@ afterEach(() => {
 
 it('finds the published unclassed story and skips the existing hero and mask copies', () => {
   setup();
-  expect(observe).toHaveBeenCalledTimes(5);
+  expect(observe).toHaveBeenCalledTimes(4);
   expect(document.querySelector('.line-one')!.getAttribute('loading')).toBe('eager');
   expect((document.querySelector('.line-one') as HTMLElement).style.opacity).toBe('0');
   expect(document.querySelector('.big--logo')!.hasAttribute('data-env-about-reveal')).toBe(false);
   expect(document.querySelector('[data-env-transition-snapshot] img')!.hasAttribute('data-env-about-reveal')).toBe(false);
-  (window as any).ENVAboutReveals.refresh(); expect(observe).toHaveBeenCalledTimes(5);
+  (window as any).ENVAboutReveals.refresh(); expect(observe).toHaveBeenCalledTimes(4);
 });
 
-it('alternates SVG line entrances, preserves authored end opacity, and reveals once', () => {
+it('alternates wide entrances and alignment while leaving regular text to Webflow', () => {
   setup();
   const first = document.querySelector('.line-one')!, second = document.querySelector('.line-two')!;
-  const text = document.querySelector('.regular-text')!;
-  callback([first, second, text].map(target => ({ target, isIntersecting: true })));
+  const text = document.querySelector('.regular-text') as HTMLElement;
+  callback([first, second].map(target => ({ target, isIntersecting: true })));
   const calls = vi.mocked(Element.prototype.animate).mock.calls;
-  expect(calls[0][0][0].transform).toContain('64px,0px');
-  expect(calls[1][0][0].transform).toContain('-64px,0px');
-  expect(calls[2][0][0].transform).toContain('0px,22px');
-  expect(calls[2][0][1].opacity).toBe('0.7');
+  expect(calls[0][0][0].transform).toMatch(/^translate3d\(-[0-9.]+px,0px/);
+  expect(calls[1][0][0].transform).toMatch(/^translate3d\([0-9.]+px,0px/);
+  expect(calls[0][0][0]).not.toHaveProperty('filter');
+  expect((first as HTMLElement).style.alignSelf).toBe('flex-start');
+  expect((second as HTMLElement).style.alignSelf).toBe('flex-end');
+  expect(text.style.opacity).toBe('0.7');
+  expect(text.hasAttribute('data-env-about-reveal')).toBe(false);
   callback([{ target: first, isIntersecting: true }]);
-  expect(Element.prototype.animate).toHaveBeenCalledTimes(3);
+  expect(Element.prototype.animate).toHaveBeenCalledTimes(2);
   (window as any).ENVAboutReveals.destroy();
-  expect(cancel).toHaveBeenCalledTimes(3);
-  expect((text as HTMLElement).style.opacity).toBe('0.7');
+  expect(cancel).toHaveBeenCalledTimes(2);
+  expect((first as HTMLElement).style.alignSelf).toBe('');
   expect(first.getAttribute('loading')).toBe('lazy');
   expect(first.hasAttribute('data-env-about-reveal')).toBe(false);
 });
@@ -73,15 +76,17 @@ it('scrubs every story element independently and reverts its contexts on unmount
   vi.stubGlobal('ScrollTrigger', plugin);
   setup();
   expect(registerPlugin).toHaveBeenCalledWith(plugin);
-  expect(fromTo).toHaveBeenCalledTimes(5);
+  expect(fromTo).toHaveBeenCalledTimes(4);
   expect(observe).not.toHaveBeenCalled();
   const [target, from, to] = fromTo.mock.calls[0];
   expect(target).toBe(document.querySelector('.line-one'));
-  expect(from.transform()).toContain('64px,0px');
-  expect(to.scrollTrigger).toEqual({ trigger: target, start: 'top 90%', end: 'top 55%', scrub: .6, invalidateOnRefresh: true });
+  expect(from.transform()).toMatch(/^translate3d\(-[0-9.]+px,0,/);
+  expect(from).not.toHaveProperty('filter');
+  expect(to).not.toHaveProperty('filter');
+  expect(to.scrollTrigger).toEqual({ trigger: target, start: 'top 110%', end: 'top 65%', scrub: .7, invalidateOnRefresh: true });
   expect(to.ease).toBe('none');
   expect(document.querySelector('.line-one')!.getAttribute('data-env-about-reveal')).toBe('scrub');
   (window as any).ENVAboutReveals.destroy();
-  expect(revert).toHaveBeenCalledTimes(5);
+  expect(revert).toHaveBeenCalledTimes(4);
   expect(document.querySelector('.line-one')!.hasAttribute('data-env-about-reveal')).toBe(false);
 });

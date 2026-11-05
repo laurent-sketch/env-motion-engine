@@ -5,11 +5,11 @@
   const preference = matchMedia('(prefers-reduced-motion: reduce)');
   const controller = new AbortController();
   const records = new Map();
+  const rootStyles = new Map();
   let observer;
   const scrub = window.gsap && window.ScrollTrigger;
   if (scrub) window.gsap.registerPlugin(window.ScrollTrigger);
   const lineSelector = '.bloc-big-text > img';
-  const textSelector = '.float-text-left .regular-text, .float-text-right .regular-text, .center-bloc .regular-text';
   const save = (element, property) => [element.style.getPropertyValue(property), element.style.getPropertyPriority(property)];
   const restore = (element, property, [value, priority]) => {
     if (value) element.style.setProperty(property, value, priority);
@@ -28,14 +28,14 @@
     record.element.dataset.envAboutReveal = 'visible';
     if (!animate || preference.matches) { finish(record); return; }
     const { element, line, index, baseline } = record;
-    const distance = innerWidth <= 767 ? 30 : 64;
-    const x = line ? (index % 2 ? -distance : distance) : 0;
-    const y = line ? 0 : 22;
+    const distance = Math.min(innerWidth * (innerWidth <= 767 ? .55 : .42), 720);
+    const x = index % 2 ? distance : -distance;
+    const y = 0;
     const transform = `translate3d(${x}px,${y}px,0) ${baseline.transform === 'none' ? '' : baseline.transform}`;
-    element.style.setProperty('will-change', 'opacity,transform,filter');
+    element.style.setProperty('will-change', 'opacity,transform');
     record.animation = element.animate([
-      { opacity: 0, transform, filter: `blur(${line ? 8 : 5}px) ${baseline.filter === 'none' ? '' : baseline.filter}` },
-      { opacity: baseline.opacity, transform: baseline.transform, filter: baseline.filter }
+      { opacity: 0, transform },
+      { opacity: baseline.opacity, transform: baseline.transform }
     ], {
       duration: line ? 1100 : 850,
       delay: line ? index % 2 * 65 : 0,
@@ -46,18 +46,17 @@
   function scrubReveal(record) {
     const { element, line, index, baseline } = record;
     const from = () => {
-      const distance = innerWidth <= 767 ? 30 : 64;
-      const x = line ? (index % 2 ? -distance : distance) : 0;
+      const distance = Math.min(innerWidth * (innerWidth <= 767 ? .55 : .42), 720);
+      const x = index % 2 ? distance : -distance;
       return { opacity: 0,
-        transform: `translate3d(${x}px,${line ? 0 : 22}px,0) ${baseline.transform === 'none' ? '' : baseline.transform}`,
-        filter: `blur(${line ? 8 : 5}px) ${baseline.filter === 'none' ? '' : baseline.filter}` };
+        transform: `translate3d(${x}px,0,0) ${baseline.transform === 'none' ? '' : baseline.transform}` };
     };
     element.dataset.envAboutReveal = 'scrub';
     record.context = window.gsap.context(() => {
-      window.gsap.fromTo(element, { opacity: 0, transform: () => from().transform, filter: from().filter }, {
-        opacity: baseline.opacity, transform: baseline.transform, filter: `blur(0px) ${baseline.filter === 'none' ? '' : baseline.filter}`,
+      window.gsap.fromTo(element, { opacity: 0, transform: () => from().transform }, {
+        opacity: baseline.opacity, transform: baseline.transform,
         duration: 1, ease: 'none',
-        scrollTrigger: { trigger: element, start: 'top 90%', end: 'top 55%', scrub: .6, invalidateOnRefresh: true }
+        scrollTrigger: { trigger: element, start: 'top 110%', end: 'top 65%', scrub: .7, invalidateOnRefresh: true }
       });
     }, element);
   }
@@ -83,17 +82,22 @@
   }
   function refresh() {
     roots().forEach(root => {
-      const candidates = root.querySelectorAll(`${lineSelector},${textSelector}`);
+      if (!rootStyles.has(root)) {
+        rootStyles.set(root, save(root, 'overflow-x'));
+        root.style.setProperty('overflow-x', 'clip');
+      }
+      const candidates = root.querySelectorAll(lineSelector);
       candidates.forEach(element => {
         if (records.has(element) || element.closest('[data-env-reveal],[data-env-text],[data-env-ignore]')) return;
         const line = element.matches(lineSelector);
         const index = line ? [...element.parentElement.querySelectorAll(':scope > img')].indexOf(element) : 0;
         const css = getComputedStyle(element);
         const record = { element, line, index, revealed: false, animation: null, context: null,
-          opacity: save(element, 'opacity'), willChange: save(element, 'will-change'),
+          alignSelf: save(element, 'align-self'), opacity: save(element, 'opacity'), willChange: save(element, 'will-change'),
           marker: element.getAttribute('data-env-about-reveal'), loading: element.getAttribute('loading'),
           baseline: { opacity: css.opacity, transform: css.transform, filter: css.filter } };
         records.set(element, record);
+        element.style.setProperty('align-self', index % 2 ? 'flex-end' : 'flex-start');
         // SVG text without authored dimensions must load before it reaches the viewport.
         if (line) element.setAttribute('loading', 'eager');
         if (scrub && !preference.matches) {
@@ -111,6 +115,7 @@
     controller.abort(); observer?.disconnect();
     records.forEach(record => {
       finish(record);
+      restore(record.element, 'align-self', record.alignSelf);
       if (record.marker === null) record.element.removeAttribute('data-env-about-reveal');
       else record.element.setAttribute('data-env-about-reveal', record.marker);
       if (record.line) {
@@ -119,6 +124,7 @@
       }
     });
     records.clear();
+    rootStyles.forEach((value, root) => restore(root, 'overflow-x', value)); rootStyles.clear();
   }
   preference.addEventListener('change', () => {
     if (!preference.matches) return;
