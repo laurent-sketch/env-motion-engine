@@ -62,6 +62,7 @@ export function createAlternativeTransition({ doc = document, win = window } = {
     const originals = [root, ...root.querySelectorAll('*')];
     const copies = [copy, ...copy.querySelectorAll('*')];
     const stickies = [];
+    const rows = [];
     copies.forEach((element, index) => {
       const css = win.getComputedStyle(originals[index]);
       for (let i = 0; i < css.length; i++) { const property = css[i]; element.style.setProperty(property, css.getPropertyValue(property)); }
@@ -69,6 +70,9 @@ export function createAlternativeTransition({ doc = document, win = window } = {
         stickies.push({ element, rect: originals[index].getBoundingClientRect() });
         element.style.position = 'relative';
         element.style.inset = 'auto';
+      }
+      if (originals[index].matches('.main-row')) {
+        rows.push({ element, rect: originals[index].getBoundingClientRect() });
       }
       element.style.setProperty('animation', 'none', 'important');
       element.style.setProperty('transition', 'none', 'important');
@@ -135,6 +139,16 @@ export function createAlternativeTransition({ doc = document, win = window } = {
       return { element, x: rect.left - captured.left, y: rect.top - captured.top };
     });
     corrections.forEach(({ element, x, y }) => {
+      if (Math.abs(x) < .1 && Math.abs(y) < .1) return;
+      const transform = element.style.transform;
+      element.style.transform = `translate(${x}px,${y}px) ${transform === 'none' ? '' : transform}`;
+    });
+    // A resolved width can stop a nested main-row from being centered by its
+    // block parent. Section-only corrections miss this inner displacement.
+    // Process outer rows first so nested rows do not compensate twice.
+    rows.forEach(({ element, rect }) => {
+      const captured = element.getBoundingClientRect();
+      const x = rect.left - captured.left, y = rect.top - captured.top;
       if (Math.abs(x) < .1 && Math.abs(y) < .1) return;
       const transform = element.style.transform;
       element.style.transform = `translate(${x}px,${y}px) ${transform === 'none' ? '' : transform}`;

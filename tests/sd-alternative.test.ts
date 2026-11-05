@@ -221,3 +221,19 @@ it('isolates Home grid containers from native IX2 restart without losing their c
   expect((document.querySelector('#env-sd-page .project-row') as HTMLElement).style.filter).toBe('blur(10px)');
   runtime.cleanup();
 });
+
+it('preserves centered CMS Next rows inside an otherwise aligned section', () => {
+  const { runtime } = fixture();
+  document.querySelector('.main-wrapper')!.innerHTML = '<section class="section next-project"><div class="main-row"><div class="w-dyn-list"><div class="next-project-row"><a class="next-project-media">Next</a></div></div></div></section>';
+  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function () {
+    const row = this.matches('.main-row');
+    const snapshot = !!this.closest('[data-env-transition-snapshot]');
+    const left = row ? (snapshot ? 48 : 173.333) : 0;
+    return { top: 200, left, bottom: 750, right: left + 1360, width: 1360, height: 550, x: left, y: 200, toJSON() {} };
+  });
+  runtime.capture();
+  const row = document.querySelector('[data-env-transition-snapshot] .main-row') as HTMLElement;
+  expect(row.style.transform).toContain('translate(125.333');
+  expect((document.querySelector('#env-sd-page .main-row') as HTMLElement).style.transform).toBe('');
+  runtime.cleanup();
+});

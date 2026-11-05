@@ -1,5 +1,6 @@
 import { installOrganicBlob } from './organic-blob.js';
 import { normalizeAboutComponent } from './about-component.js';
+import { syncPageAnimation } from './page-animation.js';
 import { installCTABlob } from './cta-blob.js';
 import { resumePageVisit, syncDestinationScroll } from './alternative-history.js';
 import { beginMenuColors } from './alternative-menu-colors.js';
@@ -63,6 +64,7 @@ function script(name, again = false) {
 function metadata(doc) {
   const finishColors = beginMenuColors();
   try {
+  syncPageAnimation(document, doc);
   syncMenuVariants(document, doc);
   syncMenuImages(document, doc);
   const liveLinks = [...document.querySelectorAll('.navbar-logo-center a[href]')];
@@ -124,7 +126,10 @@ function menu() {
   cleanMenu = () => { abort.abort(); animations.forEach(a => a.cancel()); };
 }
 async function animations() {
-  if (document.querySelector('.section-animation-about, .section.hero-about + .section.about-second')) await script('about-reveals.js', true);
+  if (document.querySelector('[data-env-page-animation="about"]')) {
+    await script('about-page.js');
+    window.ENVAboutPage?.init();
+  }
   if (!document.querySelector('[data-env-reveal],[data-env-text]')) return;
   if (!window.gsap) throw Error('GSAP unavailable');
   let done;
@@ -160,6 +165,7 @@ async function mount({ deferReveals = false } = {}) {
 function unmount() {
   // Cancel entrance effects before removing their component-owned layers.
   window.ENVAnimations?.destroy();
+  window.ENVAboutPage?.destroy();
   window.ENVAboutReveals?.destroy();
   window.ENVHeroShape?.destroy();
   window.ENVOrganicBlob?.destroy();

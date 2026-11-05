@@ -114,18 +114,37 @@ On fine-pointer devices, entering `.navbar-brand-three .main-picto` previews the
 
 The shared injected stylesheet animates images inside `.see-more-bloc` once per hover: 10px up/right with fade out, then re-entry from 10px down/left, over 450ms. Keyboard focus inside the block or on an enclosing link triggers the same effect. Text does not move. Reduced motion disables it. The persistent stylesheet covers fetched CMS items and later page visits without listeners or per-page code.
 
-### About component: isolated scrub and logo entrance
+### Next Project snapshot alignment
 
-The global alternative loader downloads `about-reveals.js` only if `.section-animation-about` or the published `.section.hero-about + .section.about-second` group is present. Roots outside `#env-sd-page` and outgoing mask snapshots are excluded. No About targets are created on other pages.
+The outgoing snapshot now compensates nested `.main-row` containers after top-level sections are aligned and before sticky boxes are frozen. A centered CMS Next Project row could lose its block-parent centering when all resolved sizes were copied, shifting its title/media horizontally inside an otherwise correctly placed section. On the published Marc Jacobs mirror at a wide viewport, the media shifted from x=710.833px to 585.5px; the correction retains x=710.833px and the original y=205.573px. The live layout and hover styles are unchanged. Rows are corrected outer-first so nested layouts do not double-compensate.
 
-Only `.bloc-big-text > img` is animated: alternating horizontal travel of 42vw desktop / 55vw mobile, capped at 720px, opacity 0 → authored opacity, `power2.out`, `scrub: .6`. Start/end are the line's layout position at 110% / 65% viewport height, measured relative to the untransformed story root. Webflow's translated section does not feed back into the measurements. Authored alignment is preserved; regular-text elements, gradients and native small-text animations are untouched. Image-load/font refreshes are coalesced per animation frame. Reduced motion shows content immediately; without GSAP a one-time viewport reveal remains available.
+### About: explicit page script, no component auto-activation
 
-The hero image keeps its Designer attributes (`data-env-reveal="fade-scale"`, `data-env-blur`, `data-env-duration`, `data-env-delay`). The component inserts a transparent grid layer around the logo, keeping its authored size and centered position. ENV entrance opacity/scale/blur animate this layer; native IX2 continues to own the image's scroll scale/blur. The background is not faded. These independent layers allow scrolling during the entrance without two engines overwriting the same properties.
+The global navigation no longer auto-loads `about-reveals.js` when it finds the About component. `about-page.js` is a separate file opted into only by a script tag on the desired page:
 
-On navigation, ENV entrance effects are cancelled before component contexts/layers are reverted. Mask visits initialize reveals after the mask clears. There is no whole-document mutation observer. One structurally identical menu copy inside the About main wrapper is removed when the persistent menu already exists outside it; different secondary navigation and other pages are left alone.
+```html
+<script defer src="RELEASE_BASE/about-page.js"
+  data-env-page-animation="about"
+  data-env-about-first-end="35"
+  data-env-about-last-end="40"
+  data-env-about-last-duration="0.95"></script>
+```
 
-**Installation:** replace the global `sd-navigation-alternative.js` URL with this release and remove the former page-inline About scrub IIFE (the one containing `const lines = [...root.querySelectorAll(".bloc-big-text > img")]` and `ENVAboutReveals?.destroy()`). Remove any separate `about-reveals.js` loader as well. Do not remove the logo's attributes, native Webflow interactions, contact-modal script or SD head block. Arbitrary inline code is still rejected by navigation validation; this integration does not weaken that check. Publish the affected pages together so their shared stylesheet stays consistent.
+Replace `RELEASE_BASE` with the same immutable `dist-alternative` release directory as the global engine. Remove the earlier inline test IIFE and older About loader on that page. Keep the SD head, native Webflow interactions and hero logo attributes. Unknown inline scripts are still rejected; incoming executable scripts are never copied or evaluated.
 
-Verified with 63 targeted tests, plus a fresh local mirror of the published pages: About New → Work → browser Back retains the document and mask, mounts six scrubbed lines and one logo layer, and leaves zero About layers/line markers on Work. Duplicate menu/form count changes from two to one on About. The Webflow site itself is not modified by the repository release.
+The global adapter copies only declarative `data-env-page-animation` / `data-env-about-*` settings into a metadata marker and loads the known separate module after the mask. On departure it destroys the page module, cancels progress-following tweens and clears the marker; other pages never acquire About effects. On return it initializes the module once. Without the alternative navigation engine, the page script initializes using Webflow's ready queue.
 
-The desktop `.logo-nav` wordmark uses the same white filter as the picto on the transparent light menu. It returns to its authored blue asset when the navbar has its white background. The transparent dark-menu variant keeps the blue wordmark. Hover/focus affects visibility only; reduced motion disables the filter transition.
+Only `.bloc-big-text > img` is animated. Lines 1–4 and lines 5–6 each have independent start/end, distance, blur and follow durations. All lines retain their authored final placement. The two groups default to:
+
+| Setting | First four | Last two |
+| --- | --- | --- |
+| start / end (% viewport) | 110 / 35 | 105 / 40 |
+| horizontal distance (desktop / mobile viewport fraction) | .42 / .55 | .32 / .42 |
+| blur (px) | 20 | 20 |
+| follow duration down / up (seconds) | .7 / .55 | .95 / .7 |
+
+Set attributes with prefix `data-env-about-first-` or `data-env-about-last-` and suffix `start`, `end`, `distance`, `mobile-distance`, `blur`, `duration`, `up-duration`. Values are bounded numbers. Each line follows scroll progress with `power3.out` down and `power1.out` up; progress remains continuous when direction changes. These are direction-dependent smoothing curves, not separate automatic animations. Regular text remains exclusively under authored Webflow control. SVG-load/font refreshes are coalesced per animation frame. Reduced motion keeps content visible.
+
+The hero image retains its original `data-env-reveal="fade-scale"`, blur, duration and delay attributes. A transparent layer owns the entrance while the image keeps native IX2 scroll scale/blur, preserving the background and logo placement. ENV entrance effects are cancelled before the module removes its layer. Page-only observers, markers, styles and loading attributes are restored on unmount. One identical duplicate menu inside About is still normalized while the persistent menu stays outside the replaceable root.
+
+Verified locally: Marc Jacobs → Brookfield with an 8-second simulated response delay retains the exact Next Project x/y while the snapshot is displayed; About New → Work → browser Back keeps the same document and mask, clears all About markers/layers on Work, then mounts six line effects and one logo layer on return with no console errors. The repository release does not itself change published Webflow code.
