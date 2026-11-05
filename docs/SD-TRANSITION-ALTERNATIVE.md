@@ -156,3 +156,7 @@ About's published native IX2 events e-451/e-452 resolve `.step-single-item` by c
 After copying computed styles, snapshot cards lose only the `step-single-item` and `bg-services-wrapper` targeting classes. Their live originals keep every class and animation. Frozen nodes also lose `data-reveal-text` markers, alongside existing ID/services/reveal sanitization, so destination text interactions cannot split or animate them. The retained inline transform/filter preserve the exact appearance at click, including an entrance that was only partially complete. No Step CSS or authored interaction is disabled on the live page.
 
 Verification: 24 targeted transition/history tests, including destination-style reset simulation and native text marker isolation. On a fresh local mirror, About → Work with a delayed response preserved two Steps at scale 1 / blur 0 and the next at scale .965388 / blur 2.8843px; frozen Step/background selector counts were zero and navigation finished without console errors. The explicit page-only About animation module is unchanged.
+
+### Hover video touch taps
+
+The separately installed Head `videos.js` now starts unlinked `data-env-video="hover"` blocks on touch/pen tap. Linked cards retain navigation on the first tap. Playback restarts at zero and tap activation clears outside the viewport. Replace the Head video controller to opt into this behavior; the global Footer URL need not change. See VIDEOS-EXPERIMENT.md for installation and validation.

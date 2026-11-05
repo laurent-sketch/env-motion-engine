@@ -141,3 +141,60 @@ it('restarts hover videos on re-entry without resetting during ordinary playback
   root.dispatchEvent(new Event('pointerenter'));
   expect(video.currentTime).toBe(0);
 });
+
+it('plays an unlinked hover video from a touch tap and stops it outside the viewport', async () => {
+  const f = await setup(true, true), root = document.querySelector('.project-item')!, wrapper = document.querySelector('.item-video')!, video = document.querySelector('#project') as HTMLVideoElement;
+  f.enter(0, wrapper); f.enter(1, wrapper);
+  expect(f.play).not.toHaveBeenCalled();
+  video.currentTime = 3;
+  root.dispatchEvent(new Event('click', { bubbles: true, cancelable: true }));
+  expect(video.querySelector('source')?.getAttribute('src')).toBe('project.mp4');
+  expect(f.play).toHaveBeenCalled();
+  expect(video.currentTime).toBe(0);
+  video.dispatchEvent(new Event('playing'));
+  expect(root.classList.contains('is-env-video-playing')).toBe(true);
+  root.dispatchEvent(new Event('pointerleave'));
+  expect(root.classList.contains('is-env-video-playing')).toBe(true);
+  f.enter(1, wrapper, false);
+  expect(root.classList.contains('is-env-video-playing')).toBe(false);
+  f.play.mockClear();
+  f.enter(1, wrapper);
+  expect(f.play).not.toHaveBeenCalled();
+});
+
+it.each(['wrapper', 'child'])('preserves first-tap navigation through a %s link', async where => {
+  const f = await setup(true, true), root = document.querySelector('.project-item')!, wrapper = document.querySelector('.item-video')!;
+  f.enter(1, wrapper);
+  const anchor = document.createElement('a'); anchor.href = '/work';
+  const span = document.createElement('span'); span.textContent = 'Open project';
+  if (where === 'wrapper') { root.before(anchor); anchor.append(root); root.append(span); }
+  else { root.append(anchor); anchor.append(span); }
+  const click = new Event('click', { bubbles: true, cancelable: true });
+  span.dispatchEvent(click);
+  expect(click.defaultPrevented).toBe(false);
+  expect(f.play).not.toHaveBeenCalled();
+  expect(document.querySelector('#project source')!.hasAttribute('src')).toBe(false);
+});
+
+it('recognizes a touch tap on hybrid devices while retaining ordinary desktop hover', async () => {
+  const f = await setup(true), root = document.querySelector('.project-item')!, wrapper = document.querySelector('.item-video')!;
+  f.enter(1, wrapper);
+  root.dispatchEvent(new Event('click', { bubbles: true }));
+  expect(f.play).not.toHaveBeenCalled();
+  const down = new Event('pointerdown');
+  Object.defineProperty(down, 'pointerType', { value: 'touch' });
+  root.dispatchEvent(down);
+  root.dispatchEvent(new Event('click', { bubbles: true }));
+  expect(f.play).toHaveBeenCalled();
+});
+
+it('does not turn other controls into video playback gestures', async () => {
+  const f = await setup(true, true), root = document.querySelector('.project-item')!, wrapper = document.querySelector('.item-video')!;
+  f.enter(1, wrapper);
+  const button = document.createElement('button'); root.append(button);
+  button.dispatchEvent(new Event('click', { bubbles: true, cancelable: true }));
+  expect(f.play).not.toHaveBeenCalled();
+  (api() as any).release(root);
+  root.dispatchEvent(new Event('click', { bubbles: true }));
+  expect(f.play).not.toHaveBeenCalled();
+});

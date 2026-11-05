@@ -17,7 +17,7 @@
   function allowed(record) {
     if (document.hidden || preference.matches || !record.visible) return false;
     const slider = record.video.closest('.sd-slider');
-    if (!slider) return !record.hoverRoot || (hoverDevice.matches && (record.hovering || record.focused));
+    if (!slider) return !record.hoverRoot || record.tapped || (hoverDevice.matches && (record.hovering || record.focused));
     return record.video.closest('.w-slide') === activeSlide(slider);
   }
   function play(record) {
@@ -35,13 +35,29 @@
       record = { video, loaded: false, visible: false, sources: new Map(), direct: null,
         autoplay: video.hasAttribute('autoplay'), preload: video.getAttribute('preload'), aria: video.getAttribute('aria-hidden'), early: false };
       record.hoverRoot = !video.closest('.sd-slider') ? video.closest('[data-env-video="hover"]') : null;
-      record.hovering = false; record.focused = false;
+      record.hovering = false; record.focused = false; record.tapped = false;
       record.controller = new AbortController();
       records.set(video, record);
       if (record.hoverRoot) {
         const root = record.hoverRoot;
         const activate = () => { if (allowed(record)) hydrate(record, true); else play(record); };
-        root.addEventListener('pointerenter', event => { if (event.pointerType === 'touch') return; record.hovering = true; record.restartPending = true; activate(); }, { signal: record.controller.signal });
+        let pointerType = '';
+        root.addEventListener('pointerdown', event => { pointerType = event.pointerType || ''; }, { signal: record.controller.signal });
+        root.addEventListener('click', event => {
+          const touch = event.pointerType === 'touch' || event.pointerType === 'pen' || pointerType === 'touch' || pointerType === 'pen' || !hoverDevice.matches;
+          pointerType = '';
+          if (!touch || event.defaultPrevented) return;
+          const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+          if (!target || target.closest('[data-env-video="hover"]') !== root) return;
+          // Navigation always wins; a first tap never gets consumed to preview.
+          if (target.closest('a[href],area[href]') || root.closest('a[href],area[href]')) return;
+          if (target.closest('button,input,select,textarea,summary,[contenteditable]:not([contenteditable="false"]),video[controls]')) return;
+          record.tapped = true;
+          record.restartPending = true;
+          // Keep load/play in the user gesture for iPhone/Safari. Never await.
+          activate();
+        }, { signal: record.controller.signal });
+        root.addEventListener('pointerenter', event => { if (event.pointerType === 'touch') return; record.tapped = false; record.hovering = true; record.restartPending = true; activate(); }, { signal: record.controller.signal });
         root.addEventListener('pointerleave', () => { record.hovering = false; activate(); }, { signal: record.controller.signal });
         root.addEventListener('focusin', event => { record.focused = event.target.matches(':focus-visible'); if (record.focused && !record.hovering) record.restartPending = true; activate(); }, { signal: record.controller.signal });
         root.addEventListener('focusout', event => { if (!root.contains(event.relatedTarget)) { record.focused = false; activate(); } }, { signal: record.controller.signal });
@@ -125,6 +141,7 @@
       entries.forEach(entry => records.forEach(record => {
         if (record.region !== entry.target) return;
         record.visible = entry.isIntersecting;
+        if (!record.visible) record.tapped = false;
         if (record.visible && !preference.matches) {
           if (!record.video.closest('.sd-slider') && (!record.hoverRoot || allowed(record))) hydrate(record, true);
         } else play(record);
@@ -146,6 +163,7 @@
   observer.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['src', 'autoplay', 'class', 'aria-hidden'] });
   document.querySelectorAll('video').forEach(capture);
   const preferenceChanged = () => {
+    if (document.hidden || preference.matches) records.forEach(record => { record.tapped = false; });
     records.forEach(record => { if (record.visible && !document.hidden && !preference.matches && !record.video.closest('.sd-slider') && (!record.hoverRoot || allowed(record))) hydrate(record, true); else play(record); });
     syncHero();
   };

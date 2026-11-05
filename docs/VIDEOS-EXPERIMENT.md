@@ -38,3 +38,13 @@ Unmarked projects retain the original near-viewport hydration/visible playback. 
 On touch/coarse-pointer devices and with reduced motion, hover projects retain their covers and sources stay deferred. The project link remains unchanged: no first-tap interception. Provide a poster or a cover so touch/reduced-motion visitors have a useful static visual. This setting is static at initial capture: set it in the Designer before publishing, rather than toggling via late JS.
 
 Verification: 55 tests, including unchanged unmarked project and hero behavior, opt-in source deferral, readiness-gated cover, late playback after pointerleave, touch and reduced motion. Browser fixture: unmarked video plays on visibility; marked video has no source until pointer entry, reveals cover on actual playback, pauses and restores cover on exit while unmarked video continues.
+
+## Tap on touch devices for hover-mode media
+
+`data-env-video="hover"` keeps desktop hover/keyboard behavior. On coarse-pointer/no-hover mobile and tablet devices, tapping a non-linked part of the opted-in root loads and starts its video synchronously within the user gesture, restarting at zero. Touch/pen pointer events on hybrid devices are also recognized. Moving the finger away does not immediately pause playback. Leaving the viewport or hiding the document clears the tap activation; another tap is required after returning.
+
+An actual tapped `a[href]` (including an enclosing linked card) always retains first-tap navigation; the video controller does not prevent default navigation or start an intermediate preview. Buttons, form fields, editable content, native controlled videos and nested opt-in roots retain their own actions. Swipe/scroll gestures are not intercepted. Existing reduced-motion behavior, lazy sources, posters, hero autoplay and per-page record release remain unchanged.
+
+Replace the previous ENV Videos controller in the global Webflow Head, in its early position before body media is parsed. A synchronous `<script src="RELEASE_BASE/videos.js"></script>` is supported; do not add defer/async. Keep the SD boot/loading head blocks. Remove the old inline video IIFE rather than loading two controllers: the duplicate-instance guard intentionally keeps the first installed controller. Updating the Footer module alone does not update this Head controller.
+
+Verification: 15 video-controller tests pass, covering touch activation/reset, leaving/re-entering the viewport, ancestor and descendant links, hybrid touch, desktop hover, reduced motion, controls, lazy hydration and page-record release. Physical iPhone/Safari playback has not been tested in this run.
