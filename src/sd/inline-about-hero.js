@@ -8,6 +8,12 @@ export function mountInlineHeroRelease() {
 
   if (!hero || !content) return;
 
+  // The shorter mobile story can remain stuck below the viewport top.
+  // Use the following flow section and the real footer as release boundaries too.
+  const following = content.nextElementSibling;
+  const page = hero.closest('#env-sd-page') || document;
+  const footer = page.querySelector('footer, .section.footer');
+
   hero.__envReleaseCleanup?.();
 
   const controller = new AbortController();
@@ -27,7 +33,9 @@ export function mountInlineHeroRelease() {
 
     hero.toggleAttribute(
       "data-env-hero-released",
-      content.getBoundingClientRect().top <= 0
+      content.getBoundingClientRect().top <= 0 ||
+      (following && following.getBoundingClientRect().top <= 0) ||
+      (footer && footer.getBoundingClientRect().top < innerHeight)
     );
   }
 
