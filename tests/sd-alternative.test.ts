@@ -268,3 +268,37 @@ it('removes all native text reveal markers from frozen copies only', () => {
   expect((document.querySelector('[data-env-transition-snapshot] p') as HTMLElement).style.opacity).toBe('0.6');
   runtime.cleanup();
 });
+
+it('clips the incoming fixed About hero even when the page root begins below the viewport', async () => {
+  const { runtime } = fixture();
+  runtime.capture();
+  const root = document.querySelector('#env-sd-page') as HTMLElement;
+  root.innerHTML='<main style="position:relative"><section class="section hero-about" style="position:fixed;top:0;left:0;height:720px">Hero</section></main>';
+  const hero=root.querySelector('.hero-about') as HTMLElement;
+  const original=hero.getAttribute('style');
+  vi.spyOn(root,'getBoundingClientRect').mockReturnValue({top:720,left:0,width:1280,height:9000} as DOMRect);
+  vi.spyOn(hero,'getBoundingClientRect').mockImplementation(()=>({top:hero.style.position==='absolute'?720:0,left:0,width:1280,height:720} as DOMRect));
+  runtime.prepare(root);
+  expect(hero.style.position).toBe('absolute');
+  expect(root.style.display).toBe('flow-root');
+  expect(hero.style.top).toBe('-720px');
+  runtime.prepare(root); // Same-page setup must not overwrite the saved fixed style.
+  await runtime.reveal(root);
+  const calls=vi.mocked(Element.prototype.animate).mock.calls;
+  expect(calls[1][0][0].clipPath).toContain(`${window.innerHeight-720}px`);
+  expect(calls[1][0][1].clipPath).toContain('-720px');
+  expect(hero.getAttribute('style')).toBe(original);
+});
+
+it('restores incoming hero positioning on an aborted mask and leaves the menu fixed', () => {
+  const { runtime } = fixture();
+  const menu=document.querySelector('nav') as HTMLElement;menu.style.position='fixed';
+  runtime.capture();
+  const root=document.querySelector('#env-sd-page') as HTMLElement;
+  root.insertAdjacentHTML('beforeend','<section class="section hero-about" style="position:fixed">Hero</section>');
+  runtime.prepare(root);
+  expect((root.querySelector('.hero-about') as HTMLElement).style.position).toBe('absolute');
+  runtime.cleanup();
+  expect((root.querySelector('.hero-about') as HTMLElement).style.position).toBe('fixed');
+  expect(menu.style.position).toBe('fixed');
+});

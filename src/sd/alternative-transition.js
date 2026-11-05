@@ -35,6 +35,7 @@ export function freezePageMotion(root, win = window) {
 // Temporary visual experiment. Keeps the stable navigation entry unchanged.
 export function createAlternativeTransition({ doc = document, win = window } = {}) {
   let overlay, shade, incoming, originalStyle, releaseMotion, animations = [], generation = 0;
+  let fixedHeroes = [];
   const reduced = () => win.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const blockScroll = event => event.preventDefault();
   function cleanup() {
@@ -42,6 +43,11 @@ export function createAlternativeTransition({ doc = document, win = window } = {
     animations.forEach(animation => animation.cancel()); animations = [];
     overlay?.remove(); overlay = null; shade = null;
     releaseMotion?.(); releaseMotion = null;
+    fixedHeroes.forEach(({ element, style }) => {
+      if (style === null) element.removeAttribute('style');
+      else element.setAttribute('style', style);
+    });
+    fixedHeroes = [];
     if (incoming) {
       if (originalStyle === null) incoming.removeAttribute('style');
       else incoming.setAttribute('style', originalStyle);
@@ -172,17 +178,31 @@ export function createAlternativeTransition({ doc = document, win = window } = {
     win.addEventListener('touchmove', blockScroll, { capture: true, passive: false });
   }
   function prepare(root) {
-    if (!overlay || reduced()) return;
+    if (!overlay || reduced() || incoming === root) return;
     incoming = root; originalStyle = root.getAttribute('style');
-    Object.assign(root.style, { position: 'relative', zIndex: '9', clipPath: 'polygon(0% 100%,100% 100%,100% 100%,0% 100%)', backgroundColor: '#fff', willChange: 'clip-path' });
-
+    // A viewport-fixed About hero can paint outside the incoming page's clip.
+    // Keep its rendered box, but make it a clipped page descendant for the mask.
+    fixedHeroes = [...root.querySelectorAll('.section.hero-about')]
+      .filter(element => win.getComputedStyle(element).position === 'fixed')
+      .map(element => ({ element, style: element.getAttribute('style'), rect: element.getBoundingClientRect() }));
+    // Contain the first child's top margin inside the mask box. Otherwise an
+    // offset root can leave its viewport hero outside the clipping reference.
+    Object.assign(root.style, { display: 'flow-root', position: 'relative', zIndex: '9', clipPath: 'polygon(0% 100%,100% 100%,100% 100%,0% 100%)', backgroundColor: '#fff', willChange: 'clip-path' });
+    fixedHeroes.forEach(({ element, rect }) => {
+      Object.assign(element.style, { position: 'absolute', top: '0px', left: '0px', right: 'auto', bottom: 'auto', margin: '0px', width: `${rect.width}px`, height: `${rect.height}px` });
+      const placed = element.getBoundingClientRect();
+      element.style.left = `${rect.left - placed.left}px`;
+      element.style.top = `${rect.top - placed.top}px`;
+    });
   }
   async function reveal(root) {
     if (!overlay || reduced()) { cleanup(); return; }
     if (!incoming) prepare(root);
     const revision = generation;
     // The mask travels through the viewport, not the full (potentially very tall) page.
-    const top = Math.max(0, -root.getBoundingClientRect().top);
+    // A first-child margin can put the root below the viewport while its fixed
+    // hero is still at y=0. Negative local coordinates must remain valid here.
+    const top = -root.getBoundingClientRect().top;
     const height = win.innerHeight;
     const startClip = `polygon(0 ${top + height}px,100% ${top + height}px,100% 100%,0 100%)`;
     const endClip = `polygon(0 ${top}px,100% ${top}px,100% 100%,0 100%)`;
