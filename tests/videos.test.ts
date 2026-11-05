@@ -2,9 +2,13 @@ import { readFileSync } from 'node:fs';
 import { afterEach, expect, it, vi } from 'vitest';
 const source = readFileSync('public/videos.js', 'utf8');
 const api = () => (window as Window & { ENVVideos?: { destroy(): void; audit(): {loaded: boolean}[] } }).ENVVideos!;
-afterEach(() => { api()?.destroy(); vi.restoreAllMocks(); vi.unstubAllGlobals(); document.body.replaceChildren(); });
-async function setup(hover = false, touch = false) {
+afterEach(() => { api()?.destroy(); vi.useRealTimers(); delete (navigator as Navigator & { connection?: unknown }).connection; vi.restoreAllMocks(); vi.unstubAllGlobals(); document.body.replaceChildren(); });
+async function setup(hover = false, touch = false, slideCount = 2) {
   document.body.innerHTML = '<div class="project-item"><div class="item-video w-background-video" data-poster-url="poster.jpg"><video id="project" autoplay loop><source src="project.mp4"></video></div></div><div class="sd-slider"><div class="w-slider-mask"><div class="w-slide"><div class="slide-video w-background-video"><video id="hero" autoplay><source src="hero.mp4"></video></div></div><div class="w-slide" aria-hidden="true"><div class="slide-video w-background-video"><video id="next" autoplay><source src="next.mp4"></video></div></div></div><div class="w-slider-dot w-active"></div><div class="w-slider-dot"></div></div>';
+  for (let i = 2; i < slideCount; i++) {
+    document.querySelector('.w-slider-mask')!.insertAdjacentHTML('beforeend', `<div class="w-slide"><div class="w-background-video"><video id="hero-${i}"><source src="hero-${i}.mp4"></video></div></div>`);
+    document.querySelector('.sd-slider')!.insertAdjacentHTML('beforeend', '<div class="w-slider-dot"></div>');
+  }
   if (hover) document.querySelector('.project-item')!.setAttribute('data-env-video', 'hover');
   vi.spyOn(document, 'readyState', 'get').mockReturnValue('complete');
   vi.spyOn(document, 'hidden', 'get').mockReturnValue(false);
@@ -18,7 +22,7 @@ async function setup(hover = false, touch = false) {
   });
   let changed!: () => void;
   const media = { matches: false, addEventListener: vi.fn((_n, cb) => { changed = cb; }), removeEventListener: vi.fn() };
-  vi.stubGlobal('matchMedia', (query: string) => query.includes('pointer: fine') ? { matches: !touch, addEventListener() {}, removeEventListener() {} } : media);
+  vi.stubGlobal('matchMedia', (query: string) => query.includes('pointer: coarse') ? { matches: touch, addEventListener() {}, removeEventListener() {} } : query.includes('pointer: fine') ? { matches: !touch, addEventListener() {}, removeEventListener() {} } : media);
   new Function(source)(); await Promise.resolve();
   return { play, load, media, changed: () => changed(), enter(i: number, target: Element, visible = true) { ios[i].cb([{ target, isIntersecting: visible }] as IntersectionObserverEntry[], {} as IntersectionObserver); } };
 }
@@ -197,4 +201,71 @@ it('does not turn other controls into video playback gestures', async () => {
   (api() as any).release(root);
   root.dispatchEvent(new Event('click', { bubbles: true }));
   expect(f.play).not.toHaveBeenCalled();
+});
+
+
+it('waits for active playback then prepares desktop slides one at a time', async () => {
+  vi.useFakeTimers();
+  const f = await setup(false, false, 5);
+  const hero = document.querySelector('#hero') as HTMLVideoElement;
+  vi.spyOn(hero, 'readyState', 'get').mockReturnValue(2);
+  f.enter(1, document.querySelector('.sd-slider')!);
+  hero.dispatchEvent(new Event('loadeddata'));
+  await vi.advanceTimersByTimeAsync(1600);
+  expect(document.querySelector('#next source')!.hasAttribute('src')).toBe(false);
+  hero.dispatchEvent(new Event('playing'));
+  await vi.advanceTimersByTimeAsync(801);
+  expect(document.querySelector('#next source')!.getAttribute('src')).toBe('next.mp4');
+  expect(document.querySelector('#hero-2 source')!.hasAttribute('src')).toBe(false);
+  document.querySelector('#next')!.dispatchEvent(new Event('loadeddata'));
+  await vi.advanceTimersByTimeAsync(1600);
+  expect(document.querySelector('#hero-2 source')!.hasAttribute('src')).toBe(false);
+  for (const [ready, following] of [['next', 'hero-2'], ['hero-2', 'hero-3'], ['hero-3', 'hero-4']]) {
+    document.getElementById(ready)!.dispatchEvent(new Event('canplaythrough'));
+    await vi.advanceTimersByTimeAsync(801);
+    expect(document.querySelector(`#${following} source`)!.hasAttribute('src')).toBe(true);
+  }
+});
+
+it('keeps one slide ahead on touch and immediately prioritizes a selected distant slide', async () => {
+  vi.useFakeTimers();
+  const f = await setup(false, true, 5);
+  const hero = document.querySelector('#hero') as HTMLVideoElement;
+  vi.spyOn(hero, 'readyState', 'get').mockReturnValue(2);
+  f.enter(1, document.querySelector('.sd-slider')!);
+  hero.dispatchEvent(new Event('playing'));
+  await vi.advanceTimersByTimeAsync(801);
+  document.querySelector('#next')!.dispatchEvent(new Event('canplaythrough'));
+  await vi.advanceTimersByTimeAsync(1600);
+  expect(document.querySelector('#hero-2 source')!.hasAttribute('src')).toBe(false);
+  const dots = document.querySelectorAll('.w-slider-dot');
+  dots[0].classList.remove('w-active'); dots[3].classList.add('w-active');
+  await Promise.resolve(); await Promise.resolve();
+  expect(document.querySelector('#hero-3 source')!.hasAttribute('src')).toBe(true);
+  expect(document.querySelector('#hero-4 source')!.hasAttribute('src')).toBe(false);
+});
+
+it('does not speculate on data saver', async () => {
+  vi.useFakeTimers();
+  const f = await setup(false, false, 5);
+  const hero = document.querySelector('#hero') as HTMLVideoElement;
+  vi.spyOn(hero, 'readyState', 'get').mockReturnValue(2);
+  Object.defineProperty(navigator, 'connection', { configurable: true, get: () => ({ saveData: true }) });
+  f.enter(1, document.querySelector('.sd-slider')!);
+  hero.dispatchEvent(new Event('playing'));
+  await vi.advanceTimersByTimeAsync(801);
+  expect(document.querySelector('#next source')!.hasAttribute('src')).toBe(false);
+});
+
+
+it('drops scheduled hero preparation when the page is released', async () => {
+  vi.useFakeTimers();
+  const f = await setup(false, false, 5);
+  const slider = document.querySelector('.sd-slider')!;
+  const hero = document.querySelector('#hero') as HTMLVideoElement;
+  vi.spyOn(hero, 'readyState', 'get').mockReturnValue(2);
+  f.enter(1, slider); hero.dispatchEvent(new Event('playing'));
+  (api() as ReturnType<typeof api> & { release(root: Element): void }).release(slider);
+  await vi.advanceTimersByTimeAsync(1600);
+  expect(slider.querySelector('#next source')!.hasAttribute('src')).toBe(false);
 });

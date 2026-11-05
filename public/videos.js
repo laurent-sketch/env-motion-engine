@@ -8,6 +8,7 @@
   const records = new Map(), abort = new AbortController();
   const preference = matchMedia('(prefers-reduced-motion: reduce)');
   const hoverDevice = matchMedia('(hover: hover) and (pointer: fine)');
+  const compactDevice = matchMedia('(max-width: 991px), (pointer: coarse)');
   const coverStyle = document.createElement('style');
   coverStyle.textContent = '[data-env-video="hover"]:not(.is-env-video-playing) .cover-project{opacity:1!important}[data-env-video="hover"].is-env-video-playing .cover-project{opacity:0!important}';
   document.head.append(coverStyle);
@@ -72,7 +73,11 @@
       record.poster = video.getAttribute('poster');
       if (poster && !record.poster) video.poster = poster;
       video.addEventListener('play', () => { if (!allowed(record)) pause(video); }, { signal: record.controller.signal });
-      video.addEventListener('loadeddata', () => { play(record); prefetch(); }, { signal: record.controller.signal });
+      video.addEventListener('loadeddata', () => { play(record); }, { signal: record.controller.signal });
+      video.addEventListener('playing', () => { record.playing = true; prefetch(); }, { signal: record.controller.signal });
+      video.addEventListener('pause', () => { record.playing = false; }, { signal: record.controller.signal });
+      video.addEventListener('canplaythrough', () => { record.bufferReady = true; prefetch(); }, { signal: record.controller.signal });
+      video.addEventListener('error', () => { record.failed = true; record.playing = false; prefetch(); }, { signal: record.controller.signal });
       if (ready) observe(record);
     }
     if (record.loaded) return;
@@ -111,20 +116,34 @@
       if (record.visible && record.video.closest('.w-slide') === activeSlide(slider)) hydrate(record, true);
       else pause(record.video);
     });
+    prefetch();
   }
   function prefetch() {
     clearTimeout(timer);
     timer = setTimeout(() => {
-      if (destroyed || document.hidden || preference.matches) return;
-      document.querySelectorAll('.sd-slider').forEach(slider => {
+      const connection = navigator.connection;
+      if (destroyed || document.hidden || preference.matches || connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType || '') || document.documentElement.hasAttribute('data-env-transition-active')) return;
+      const page = document.querySelector('#env-sd-page') || document;
+      page.querySelectorAll('.sd-slider').forEach(slider => {
         const slides = [...slider.querySelectorAll('.w-slider-mask > .w-slide')];
         const active = activeSlide(slider);
         const current = [...records.values()].find(r => r.video.closest('.w-slide') === active);
-        if (!current?.visible || current.video.readyState < 2 || slider.getAttribute('data-env-video-prefetch-next') === 'false') return;
-        const next = slides[(slides.indexOf(active) + 1) % slides.length];
-        records.forEach(record => { if (record.video.closest('.w-slide') === next) hydrate(record); });
+        // Do not compete with the first frame: real playback must start first.
+        if (!current?.visible || !current.playing || current.failed || current.video.readyState < 2 || slider.getAttribute('data-env-video-prefetch-next') === 'false') return;
+        const count = compactDevice.matches ? Math.min(1, slides.length - 1) : slides.length - 1;
+        for (let offset = 1; offset <= count; offset++) {
+          const next = slides[(slides.indexOf(active) + offset) % slides.length];
+          const candidates = [...records.values()].filter(r => r.video.closest('.w-slide') === next);
+          for (const record of candidates) {
+            if (record.failed) continue;
+            if (!record.loaded) { hydrate(record); return; }
+            // Prepare only one new resource at a time. canplaythrough is a browser
+            // readiness estimate, not a guarantee that every byte is downloaded.
+            if (!record.bufferReady && record.video.readyState < 4) return;
+          }
+        }
       });
-    }, 1500);
+    }, 800);
   }
   function observe(record) {
     const region = record.video.closest('.sd-slider') || record.video.closest('.w-background-video') || record.hoverRoot || record.video;
@@ -169,6 +188,7 @@
   };
   preference.addEventListener('change', preferenceChanged);
   hoverDevice.addEventListener('change', preferenceChanged);
+  compactDevice.addEventListener('change', preferenceChanged);
   document.addEventListener('visibilitychange', preferenceChanged, { signal: abort.signal });
   window.ENVVideos = {
     stage(root = document) { root.querySelectorAll('video').forEach(capture); },
@@ -184,7 +204,7 @@
     audit() { return [...records.values()].map(r => ({ id: r.video.id, loaded: r.loaded, visible: r.visible, interceptionPossiblyLate: r.early, sources: r.sources.size + Number(!!r.direct) })); },
     destroy() {
       if (destroyed) return; destroyed = true; observer.disconnect(); near?.disconnect(); visible?.disconnect();
-      clearTimeout(timer); abort.abort(); preference.removeEventListener('change', preferenceChanged); hoverDevice.removeEventListener('change', preferenceChanged); coverStyle.remove();
+      clearTimeout(timer); abort.abort(); preference.removeEventListener('change', preferenceChanged); hoverDevice.removeEventListener('change', preferenceChanged); compactDevice.removeEventListener('change', preferenceChanged); coverStyle.remove();
       records.forEach(record => {
         record.controller.abort();
         record.hoverRoot?.classList.remove('is-env-video-playing');
