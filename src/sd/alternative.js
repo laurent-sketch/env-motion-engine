@@ -1,6 +1,9 @@
 import { installOrganicBlob } from './organic-blob.js';
 import { normalizeAboutComponent } from './about-component.js';
 import { syncPageAnimation } from './page-animation.js';
+import { inspectInlineAbout, prepareInlineLogo } from './inline-about-adapter.js';
+import { mountInlineAbout } from './inline-about-motion.js';
+import { mountInlineHeroRelease } from './inline-about-hero.js';
 import { installCTABlob } from './cta-blob.js';
 import { resumePageVisit, syncDestinationScroll } from './alternative-history.js';
 import { beginMenuColors } from './alternative-menu-colors.js';
@@ -48,6 +51,8 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const main = () => document.querySelector('main.main-wrapper');
 let cleanMenu = () => {}, newsObserver, busyAnimation, gradient;
 let pageMasks = [];
+let inlinePage = { sources: [], story: null, hero: false, mask: false };
+let releaseInlineLogo = () => {};
 const loaded = new Set();
 const releaseBoot = () => { document.documentElement.classList.remove('env-sd-boot'); window.dispatchEvent(new Event('env:sd-ready')); };
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -126,7 +131,11 @@ function menu() {
   cleanMenu = () => { abort.abort(); animations.forEach(a => a.cancel()); };
 }
 async function animations() {
-  if (document.querySelector('[data-env-page-animation="about"]')) {
+  if (inlinePage.story) {
+    releaseInlineLogo();
+    releaseInlineLogo = prepareInlineLogo(document);
+    mountInlineAbout(inlinePage.story.groups, inlinePage.story.responsive);
+  } else if (document.querySelector('[data-env-page-animation="about"]')) {
     await script('about-page.js');
     window.ENVAboutPage?.init();
   }
@@ -140,6 +149,7 @@ async function animations() {
 }
 async function mount({ deferReveals = false } = {}) {
   menu();
+  if (inlinePage.hero) mountInlineHeroRelease();
   installCTABlob();
   installOrganicBlob();
   window.ENVVideos?.refresh();
@@ -147,7 +157,7 @@ async function mount({ deferReveals = false } = {}) {
     document.querySelectorAll('#env-sd-page .section.mask').forEach(section => {
       if (section.dataset.maskInitialized) return;
       section.dataset.maskInitialized = 'true';
-      pageMasks.push(window.gsap.fromTo(section, { clipPath: 'inset(10%)' }, { clipPath: 'inset(0%)', ease: 'none', scrollTrigger: { trigger: section, start: 'top bottom', end: 'top 15%', scrub: .6, invalidateOnRefresh: true } }));
+      pageMasks.push(window.gsap.fromTo(section, { clipPath: inlinePage.mask ? 'inset(15%)' : 'inset(10%)' }, { clipPath: 'inset(0%)', ease: 'none', scrollTrigger: { trigger: section, start: 'top bottom', end: 'top 15%', scrub: .6, invalidateOnRefresh: true } }));
     });
   }
   await Promise.all([
@@ -165,6 +175,9 @@ async function mount({ deferReveals = false } = {}) {
 function unmount() {
   // Cancel entrance effects before removing their component-owned layers.
   window.ENVAnimations?.destroy();
+  window.ENVAboutPageTest?.destroy();
+  releaseInlineLogo(); releaseInlineLogo = () => {};
+  document.querySelector('#env-sd-page .hero-about')?.__envReleaseCleanup?.();
   window.ENVAboutPage?.destroy();
   window.ENVAboutReveals?.destroy();
   window.ENVHeroShape?.destroy();
@@ -198,7 +211,12 @@ async function start() {
   const activeSheets = [...document.querySelectorAll('link[rel="stylesheet"]')].map(el => el.getAttribute('href'));
   const gsapScripts = [...document.scripts].map(el => el.src).filter(url => url.includes('/gsap/'));
   normalizeAboutComponent(document);
-  const profile = validate(document, path(), activeSheets, { refreshRuntime: true, gsapScripts, ...compatibleValidation });
+  inlinePage = inspectInlineAbout(document);
+  const profile = validate(document, path(), activeSheets, { refreshRuntime: true, gsapScripts, ...compatibleValidation, inlineScripts: [...testInline, ...inlinePage.sources] });
+  // The entry-page inline code has already run in the browser. Replace only
+  // recognized instances with our lifecycle-managed equivalent, once.
+  if (inlinePage.story) window.ENVAboutPageTest?.destroy();
+  if (inlinePage.hero) document.querySelector('.hero-about')?.__envReleaseCleanup?.();
   let configModule;
   const configuration = async record => {
     if (!record.runtimeChanged && !record.currentExport) return config;
@@ -263,7 +281,8 @@ async function start() {
     const doc = visit.to.document;
     if (!doc || !replace) throw Error('Missing incoming page');
     normalizeAboutComponent(doc);
-    const record = validate(doc, new URL(visit.to.url, location.href).pathname, activeSheets, { refreshRuntime: true, gsapScripts, ...compatibleValidation });
+    const nextInline = inspectInlineAbout(doc);
+    const record = validate(doc, new URL(visit.to.url, location.href).pathname, activeSheets, { refreshRuntime: true, gsapScripts, ...compatibleValidation, inlineScripts: [...testInline, ...nextInline.sources] });
     const incomingConfig = await configuration(record);
     if (doc.querySelectorAll('.navbar-logo-center a[href]').length !== document.querySelectorAll('.navbar-logo-center a[href]').length) throw Error('Menu structure changed');
     const next = wrap(doc); next.classList.add('env-sd-pending'); if (useMask) next.setAttribute('data-env-alt-reveal-wait', '');
@@ -275,6 +294,7 @@ async function start() {
     unmount(); native.forEach(module => module.destroy?.()); ix2.destroy(); ix3.destroy();
     busyAnimation?.cancel();
     await replace(visit, args);
+    inlinePage = nextInline;
     metadata(doc);
     gradient?.prepare();
     syncDestinationScroll(visit);

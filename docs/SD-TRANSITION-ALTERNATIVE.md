@@ -160,3 +160,15 @@ Verification: 24 targeted transition/history tests, including destination-style 
 ### Hover video touch taps
 
 The separately installed Head `videos.js` now starts unlinked `data-env-video="hover"` blocks on touch/pen tap. Linked cards retain navigation on the first tap. Playback restarts at zero and tap activation clears outside the viewport. Replace the Head video controller to opt into this behavior; the global Footer URL need not change. See VIDEOS-EXPERIMENT.md for installation and validation.
+
+### Audited inline About scripts can retain mask navigation
+
+The published About New page kept the full responsive inline story, section clip and hero-release code. The earlier navigation validator rejected those blocks (`Additional inline script needs an adapter`) and deliberately retained native navigation despite `ENVSDTransition="mask"`.
+
+Navigation now recognizes the audited legacy and responsive About script structures plus the separate mask/hero-release blocks. It reads the two plain-data settings objects with JSON parsing and bounded type/field validation. Whitespace/comments and valid firstGroup/secondGroup settings changes are accepted; unknown fields, executable expressions or changed executable logic are not. Unknown inline scripts still follow the existing native fallback. Incoming script text is never executed/evaluated: bundled lifecycle adapters implement the recognized behavior instead.
+
+At initial entry, recognized already-running story/hero instances are retired before mounting one managed instance. At incoming visits, the adapters mount from the destination's profile: hero release and the section mask during page setup, story after the page mask clears. On departure, direction-following tweens/media contexts and hero listeners are destroyed. The logo entrance still uses an independent transparent layer. No body-wide mutation observer is needed by the managed story instance.
+
+The authored full code remains in that page; no about-page.js tag is required in this mode. The responsive version retains mobile opacity .1→1 at ≤767px, desktop left/right+blur, and independent 1–4 / 5–6 settings. The native section clip starts at 15% when the recognized page block is present. Ordinary pages without these recognized scripts acquire no About animation.
+
+Verification: 61 targeted tests pass for recognition/validation, responsive mount, mask snapshots, settings handover and video touch behavior. A fresh local mirror uses the current published About New HTML with its inline scripts unchanged, changing only the global module URL to the local build. About New → Work → browser Back retains the same document and mask with no console warnings/errors; no About logo layers or line elements remain on Work. The published Webflow site itself still needs its global loader URL replaced.
