@@ -202,3 +202,22 @@ it('never resumes motion belonging to an outgoing page that has been removed', (
   expect(tween.resume).not.toHaveBeenCalled();
   expect(lenis.start).not.toHaveBeenCalled();
 });
+
+it('isolates Home grid containers from native IX2 restart without losing their captured appearance', () => {
+  const { runtime } = fixture();
+  document.querySelector('.main-wrapper')!.innerHTML = '<section class="project-work grid is-padding" style="transform:translateY(5px)"><div class="project-row grid-8" style="filter:blur(2px);transform:scale(.99)"><a class="project-item home">Project</a></div></section>';
+  runtime.capture();
+  const snapshot = document.querySelector('[data-env-transition-snapshot]')!;
+  expect(snapshot.querySelector('.project-row,.project-work')).toBeNull();
+  // Model the real native IX2 global selector that resets targets on page change.
+  document.querySelectorAll('.project-row.grid-8').forEach(element => {
+    const target = element as HTMLElement;
+    target.style.filter = 'blur(10px)'; target.style.transform = 'scale(.95)';
+  });
+  const frozenRow = snapshot.querySelector('section > div') as HTMLElement;
+  expect(frozenRow.style.filter).toBe('blur(2px)');
+  expect(frozenRow.style.transform).toBe('scale(.99)');
+  expect((snapshot.querySelector('section') as HTMLElement).style.transform).toBe('translateY(5px)');
+  expect((document.querySelector('#env-sd-page .project-row') as HTMLElement).style.filter).toBe('blur(10px)');
+  runtime.cleanup();
+});

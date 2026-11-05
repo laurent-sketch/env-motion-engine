@@ -191,7 +191,7 @@ function We({ doc: t = document, win: e = window } = {}) {
         const M = u[v];
         g.style.setProperty(M, u.getPropertyValue(M));
       }
-      u.position === "sticky" && (w.push({ element: g, rect: l[I].getBoundingClientRect() }), g.style.position = "relative", g.style.inset = "auto"), g.style.setProperty("animation", "none", "important"), g.style.setProperty("transition", "none", "important"), g.classList.remove("w-slider", "w-slide", "w-slider-mask", "w-slider-nav", "w-slider-dot"), g.classList.remove("footer"), l[I].matches(".project-item.work.left, .project-item.work.right") && g.removeAttribute("class"), l[I].closest('[data-services="reveal"]') && g.removeAttribute("class");
+      u.position === "sticky" && (w.push({ element: g, rect: l[I].getBoundingClientRect() }), g.style.position = "relative", g.style.inset = "auto"), g.style.setProperty("animation", "none", "important"), g.style.setProperty("transition", "none", "important"), g.classList.remove("w-slider", "w-slide", "w-slider-mask", "w-slider-nav", "w-slider-dot"), g.classList.remove("footer"), l[I].matches(".project-row, .project-work, .project-item.work.left, .project-item.work.right") && g.removeAttribute("class"), l[I].closest('[data-services="reveal"]') && g.removeAttribute("class");
     });
     const O = l.map((g, I) => ({ element: g, copy: y[I] })).filter(({ element: g }) => g.parentElement === b || g.parentElement?.matches("main.main-wrapper")).filter(({ element: g }) => !g.matches("main.main-wrapper")).map(({ element: g, copy: I }) => ({ copy: I, rect: g.getBoundingClientRect() }));
     T.querySelectorAll("script").forEach((g) => g.remove()), [T, ...T.querySelectorAll("*")].forEach((g) => {

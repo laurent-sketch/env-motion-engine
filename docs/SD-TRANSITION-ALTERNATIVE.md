@@ -103,3 +103,5 @@ Verification: regressions for rotated core names, untrusted hosts, missing lifec
 ### Freeze the outgoing page at navigation start
 
 Mask visits capture the outgoing viewport in `visit:start`, before Swup applies its navigation classes or scroll hooks. During loading and the mask, outgoing-page Web Animations, GSAP tweens and ScrollTriggers are paused without reverting transforms or pin positions; Lenis is stopped. The persistent menu and mask keep their own animations. Incoming reveals retain their existing gate and start after the mask clears. Same-page anchors, classic navigation and reduced-motion visits do not use this freeze. On failed/aborted visits the connected outgoing page resumes; removed page instances are never resumed.
+
+Home's native IX2 scroll targets `.project-row.grid-8` and `.project-work.grid.is-padding` must also be isolated in the frozen snapshot. Their computed appearance is copied first, then their class attribute is removed only from the clone. This prevents a destination IX2 restart from resetting the outgoing grid to its initial blur/scale while the mask is moving; the live page retains its classes.
