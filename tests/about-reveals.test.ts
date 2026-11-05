@@ -4,7 +4,7 @@ const source = readFileSync('public/about-reveals.js', 'utf8');
 let callback: any, observe: any, unobserve: any, cancel: any;
 function setup(reduced = false) {
   document.body.innerHTML = `<div id="env-sd-page"><div>
-    <section class="section hero-about"><img class="big--logo" data-env-reveal="fade-scale"></section>
+    <section class="section hero-about"><img class="big--logo middle" data-env-reveal="fade-scale" data-env-blur="12" data-env-duration="1.2"></section>
     <section class="section about-second"><div class="bloc-big-text"><img class="line-one" loading="lazy"><img class="line-two"></div>
     <div class="float-text-left"><div class="regular-text" style="opacity:.7">Copy</div></div></section>
     <section class="section third-bloc"><div class="bloc-big-text"><img class="line-five"><img class="line-six"></div></section>
@@ -34,7 +34,7 @@ it('finds the published unclassed story and skips the existing hero and mask cop
   (window as any).ENVAboutReveals.refresh(); expect(observe).toHaveBeenCalledTimes(4);
 });
 
-it('alternates wide entrances and alignment while leaving regular text to Webflow', () => {
+it('alternates wide entrances without changing authored alignment or regular text', () => {
   setup();
   const first = document.querySelector('.line-one')!, second = document.querySelector('.line-two')!;
   const text = document.querySelector('.regular-text') as HTMLElement;
@@ -43,8 +43,8 @@ it('alternates wide entrances and alignment while leaving regular text to Webflo
   expect(calls[0][0][0].transform).toMatch(/^translate3d\(-[0-9.]+px,0px/);
   expect(calls[1][0][0].transform).toMatch(/^translate3d\([0-9.]+px,0px/);
   expect(calls[0][0][0]).not.toHaveProperty('filter');
-  expect((first as HTMLElement).style.alignSelf).toBe('flex-start');
-  expect((second as HTMLElement).style.alignSelf).toBe('flex-end');
+  expect((first as HTMLElement).style.alignSelf).toBe('');
+  expect((second as HTMLElement).style.alignSelf).toBe('');
   expect(text.style.opacity).toBe('0.7');
   expect(text.hasAttribute('data-env-about-reveal')).toBe(false);
   callback([{ target: first, isIntersecting: true }]);
@@ -83,10 +83,28 @@ it('scrubs every story element independently and reverts its contexts on unmount
   expect(from.transform()).toMatch(/^translate3d\(-[0-9.]+px,0,/);
   expect(from).not.toHaveProperty('filter');
   expect(to).not.toHaveProperty('filter');
-  expect(to.scrollTrigger).toEqual({ trigger: target, start: 'top 110%', end: 'top 65%', scrub: .7, invalidateOnRefresh: true });
-  expect(to.ease).toBe('none');
+  expect(to.scrollTrigger.trigger).toBe(document.querySelector('.hero-about')!.parentElement);
+  expect(to.scrollTrigger.start()).toBe('top+=0 110%');
+  expect(to.scrollTrigger.end()).toBe('top+=0 65%');
+  expect(to.scrollTrigger.scrub).toBe(.6);
+  expect(to.ease).toBe('power2.out');
   expect(document.querySelector('.line-one')!.getAttribute('data-env-about-reveal')).toBe('scrub');
   (window as any).ENVAboutReveals.destroy();
   expect(revert).toHaveBeenCalledTimes(4);
   expect(document.querySelector('.line-one')!.hasAttribute('data-env-about-reveal')).toBe(false);
+});
+
+it('isolates logo entry while retaining the authored image attributes and native scroll target', () => {
+  setup();
+  const logo = document.querySelector('.big--logo')!;
+  const hero = document.querySelector('.hero-about')!;
+  expect(logo.parentElement!.hasAttribute('data-env-about-logo-layer')).toBe(true);
+  expect(logo.closest('.hero-about')).toBe(hero);
+  expect(logo.getAttribute('data-env-blur')).toBe('12');
+  expect(logo.getAttribute('data-env-reveal')).toBe('fade-scale');
+  (window as any).ENVAboutReveals.refresh();
+  expect(document.querySelectorAll('[data-env-about-logo-layer]')).toHaveLength(1);
+  (window as any).ENVAboutReveals.destroy();
+  expect(logo.parentElement).toBe(hero);
+  expect(logo.getAttribute('data-env-duration')).toBe('1.2');
 });

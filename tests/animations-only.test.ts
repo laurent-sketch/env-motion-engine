@@ -372,3 +372,21 @@ it('keeps Webflow scroll translation independent from the scale reveal after a b
     expect(cancel).toHaveBeenCalledOnce();
   } finally { delete (Element.prototype as any).animate; }
 });
+
+it('runs About logo entry on its layer without writing to the native scroll image', async () => {
+  const animation = { finished: new Promise(() => {}), cancel: vi.fn() };
+  const animate = vi.fn(() => animation);
+  Object.defineProperty(Element.prototype, 'animate', { configurable: true, writable: true, value: animate });
+  const f = await setup('<div data-env-about-logo-layer><img class="big--logo middle" data-env-reveal="fade-scale" data-env-blur="12" data-env-duration="1.2" style="filter:blur(8px);transform:scale(.8)"></div>');
+  const logo = document.querySelector('img')!;
+  f.enter(logo);
+  expect(animate).toHaveBeenCalledTimes(1);
+  expect(animate.mock.contexts[0]).toBe(logo.parentElement);
+  expect(animate.mock.calls[0][0][0].filter).toBe('blur(12px)');
+  expect(animate.mock.calls[0][1].duration).toBe(1200);
+  expect(logo.style.transform).toBe('scale(.8)');
+  expect(logo.style.filter).toBe('blur(8px)');
+  expect(gsap.getTweensOf(logo)).toHaveLength(0);
+  api().destroy();
+  expect(animation.cancel).toHaveBeenCalled();
+});

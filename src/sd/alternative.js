@@ -1,4 +1,5 @@
 import { installOrganicBlob } from './organic-blob.js';
+import { normalizeAboutComponent } from './about-component.js';
 import { installCTABlob } from './cta-blob.js';
 import { resumePageVisit, syncDestinationScroll } from './alternative-history.js';
 import { beginMenuColors } from './alternative-menu-colors.js';
@@ -157,6 +158,8 @@ async function mount({ deferReveals = false } = {}) {
   }
 }
 function unmount() {
+  // Cancel entrance effects before removing their component-owned layers.
+  window.ENVAnimations?.destroy();
   window.ENVAboutReveals?.destroy();
   window.ENVHeroShape?.destroy();
   window.ENVOrganicBlob?.destroy();
@@ -165,7 +168,7 @@ function unmount() {
   window.ScrollTrigger?.getAll().filter(trigger => trigger.trigger?.matches?.('#env-sd-page .section.mask')).forEach(trigger => trigger.kill());
   cleanMenu(); newsObserver?.disconnect();
   document.querySelector('.hero-wrapper')?.__envHeroCleanup?.();
-  window.ENVAnimations?.destroy(); window.ENVNews?.destroy(); window.ENVNewsMarquee?.destroy();
+  window.ENVNews?.destroy(); window.ENVNewsMarquee?.destroy();
   const root = document.querySelector('#env-sd-page'); if (root) window.ENVVideos?.release(root);
 }
 async function fade(el, from, to, duration) {
@@ -188,6 +191,7 @@ async function start() {
   // Use the styles actually loaded in this document as the navigation compatibility baseline.
   const activeSheets = [...document.querySelectorAll('link[rel="stylesheet"]')].map(el => el.getAttribute('href'));
   const gsapScripts = [...document.scripts].map(el => el.src).filter(url => url.includes('/gsap/'));
+  normalizeAboutComponent(document);
   const profile = validate(document, path(), activeSheets, { refreshRuntime: true, gsapScripts, ...compatibleValidation });
   let configModule;
   const configuration = async record => {
@@ -252,6 +256,7 @@ async function start() {
   swup.hooks.replace('content:replace', async (visit, args, replace) => {
     const doc = visit.to.document;
     if (!doc || !replace) throw Error('Missing incoming page');
+    normalizeAboutComponent(doc);
     const record = validate(doc, new URL(visit.to.url, location.href).pathname, activeSheets, { refreshRuntime: true, gsapScripts, ...compatibleValidation });
     const incomingConfig = await configuration(record);
     if (doc.querySelectorAll('.navbar-logo-center a[href]').length !== document.querySelectorAll('.navbar-logo-center a[href]').length) throw Error('Menu structure changed');

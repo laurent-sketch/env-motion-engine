@@ -224,6 +224,18 @@
           return;
         }
         const scale = !text && el.dataset.envReveal === 'fade-scale';
+        const aboutLayer = el.matches('.big--logo.middle') && el.parentElement?.matches('[data-env-about-logo-layer]') ? el.parentElement : null;
+        if (!scrub && scale && aboutLayer && typeof aboutLayer.animate === 'function') {
+          // The image keeps native IX2 scroll scale/blur. Entrance lives on its
+          // transparent parent, so scrolling during entry cannot overwrite it.
+          const animation = aboutLayer.animate([
+            { opacity: 0, transform: 'scale(.99)', ...(blur ? { filter: `blur(${blur}px)` } : {}) },
+            { opacity: 1, transform: 'scale(1)', ...(blur ? { filter: 'blur(0px)' } : {}) }
+          ], { duration: duration * 1000, delay: (delay + .2) * 1000, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
+          nativeAnimations.add(animation);
+          animation.finished.then(() => { nativeAnimations.delete(animation); animation.cancel(); }, () => nativeAnimations.delete(animation));
+          return;
+        }
         const blockOpacity = opacityState(el);
         // Webflow owns transform on these elements. An independent scale effect
         // must not cache its scroll translation when entering from below.
