@@ -206,11 +206,11 @@ function Ke({ doc: n = document, win: e = window } = {}) {
         const x = T[L];
         b.style.setProperty(x, T.getPropertyValue(x));
       }
-      T.position === "sticky" && (w.push({ element: b, rect: l[u].getBoundingClientRect() }), b.style.position = "relative", b.style.inset = "auto"), l[u].matches(".main-row") && I.push({ element: b, rect: l[u].getBoundingClientRect() }), b.style.setProperty("animation", "none", "important"), b.style.setProperty("transition", "none", "important"), b.classList.remove("w-slider", "w-slide", "w-slider-mask", "w-slider-nav", "w-slider-dot"), b.classList.remove("footer"), l[u].matches(".project-row, .project-work, .project-item.work.left, .project-item.work.right") && b.removeAttribute("class"), l[u].closest('[data-services="reveal"]') && b.removeAttribute("class");
+      T.position === "sticky" && (w.push({ element: b, rect: l[u].getBoundingClientRect() }), b.style.position = "relative", b.style.inset = "auto"), l[u].matches(".main-row") && I.push({ element: b, rect: l[u].getBoundingClientRect() }), b.style.setProperty("animation", "none", "important"), b.style.setProperty("transition", "none", "important"), b.classList.remove("w-slider", "w-slide", "w-slider-mask", "w-slider-nav", "w-slider-dot"), b.classList.remove("footer"), l[u].matches(".project-row, .project-work, .project-item.work.left, .project-item.work.right") && b.removeAttribute("class"), b.classList.remove("step-single-item", "bg-services-wrapper"), l[u].closest('[data-services="reveal"]') && b.removeAttribute("class");
     });
     const N = l.map((b, u) => ({ element: b, copy: E[u] })).filter(({ element: b }) => b.parentElement === g || b.parentElement?.matches("main.main-wrapper")).filter(({ element: b }) => !b.matches("main.main-wrapper")).map(({ element: b, copy: u }) => ({ copy: u, rect: b.getBoundingClientRect() }));
     v.querySelectorAll("script").forEach((b) => b.remove()), [v, ...v.querySelectorAll("*")].forEach((b) => {
-      b.removeAttribute("id"), b.removeAttribute("data-services");
+      b.removeAttribute("id"), b.removeAttribute("data-services"), b.removeAttribute("data-reveal-text");
       for (const u of [...b.attributes]) (u.name.startsWith("data-env-") || u.name.startsWith("data-w-id")) && b.removeAttribute(u.name);
     });
     const A = g.querySelectorAll("canvas");

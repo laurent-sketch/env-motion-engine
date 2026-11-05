@@ -83,6 +83,10 @@ export function createAlternativeTransition({ doc = document, win = window } = {
       // IX2 resolves these scroll targets globally on restart, including clones.
       // Home grid rows otherwise jump back to blur(10px)/scale(.95) under the mask.
       if (originals[index].matches('.project-row, .project-work, .project-item.work.left, .project-item.work.right')) element.removeAttribute('class');
+      // Native IX2 restarts resolve Step triggers by class across the whole
+      // document. These inert copies must not become new scale/blur/parallax
+      // targets when the destination resets its interaction state.
+      element.classList.remove('step-single-item', 'bg-services-wrapper');
       // Isolate class-filtered IX3 service action targets as well as the trigger.
       if (originals[index].closest('[data-services="reveal"]')) element.removeAttribute('class');
     });
@@ -97,6 +101,7 @@ export function createAlternativeTransition({ doc = document, win = window } = {
     [copy, ...copy.querySelectorAll('*')].forEach(el => {
       el.removeAttribute('id');
       el.removeAttribute('data-services'); // Native IX3 reveal must target only the live page.
+      el.removeAttribute('data-reveal-text');
       for (const attr of [...el.attributes]) if (attr.name.startsWith('data-env-') || attr.name.startsWith('data-w-id')) el.removeAttribute(attr.name);
     });
     // cloneNode copies canvas attributes, but never its painted pixels.

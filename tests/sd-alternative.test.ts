@@ -237,3 +237,34 @@ it('preserves centered CMS Next rows inside an otherwise aligned section', () =>
   expect((document.querySelector('#env-sd-page .main-row') as HTMLElement).style.transform).toBe('');
   runtime.cleanup();
 });
+
+it('keeps the frozen Step cards and background out of native IX2 restarts', () => {
+  const { runtime } = fixture();
+  document.querySelector('.main-wrapper')!.innerHTML = '<section><div class="step-single-item rev" style="transform:scale(.98);filter:blur(1px)"><div class="content-step"><div class="step-content">Consider</div></div><div class="bg-services-wrapper" style="transform:translateY(-12%)">Background</div></div></section>';
+  runtime.capture();
+  const snapshot = document.querySelector('[data-env-transition-snapshot]')!;
+  expect(snapshot.querySelector('.step-single-item,.bg-services-wrapper')).toBeNull();
+  // The published native events target .step-single-item globally, then its
+  // descendant background. Simulate the destination's initial-state reset.
+  document.querySelectorAll('.step-single-item').forEach(element => {
+    const card = element as HTMLElement;
+    card.style.transform = 'scale(.88)'; card.style.filter = 'blur(10px)';
+    (card.querySelector('.bg-services-wrapper') as HTMLElement).style.transform = 'translateY(0%)';
+  });
+  const card = snapshot.querySelector('.rev') as HTMLElement;
+  expect(card.style.transform).toBe('scale(.98)');
+  expect(card.style.filter).toBe('blur(1px)');
+  expect((card.lastElementChild as HTMLElement).style.transform).toBe('translateY(-12%)');
+  expect(document.querySelector('#env-sd-page .step-single-item.rev')).not.toBeNull();
+  runtime.cleanup();
+});
+
+it('removes all native text reveal markers from frozen copies only', () => {
+  const { runtime } = fixture();
+  document.querySelector('.main-wrapper')!.innerHTML = '<div data-reveal-text="trigger-about"><p data-reveal-text="text" style="opacity:.6">Copy</p></div>';
+  runtime.capture();
+  expect(document.querySelector('[data-env-transition-snapshot] [data-reveal-text]')).toBeNull();
+  expect(document.querySelectorAll('#env-sd-page [data-reveal-text]')).toHaveLength(2);
+  expect((document.querySelector('[data-env-transition-snapshot] p') as HTMLElement).style.opacity).toBe('0.6');
+  runtime.cleanup();
+});
