@@ -14,8 +14,8 @@ function fixture(links = 0) {
 }
 it('autoplays and loops without custom navigation links', async () => {
   const dots = fixture();
-  await vi.advanceTimersByTimeAsync(6000); expect(dots[1].classList.contains('w-active')).toBe(true);
-  await vi.advanceTimersByTimeAsync(6000); expect(dots[0].classList.contains('w-active')).toBe(true);
+  await vi.advanceTimersByTimeAsync(5000); expect(dots[1].classList.contains('w-active')).toBe(true);
+  await vi.advanceTimersByTimeAsync(5000); expect(dots[0].classList.contains('w-active')).toBe(true);
 });
 it('keeps custom navigation functional when present', async () => {
   const dots = fixture(2);
@@ -38,7 +38,7 @@ it('mounts only the live incoming hero while an outgoing snapshot is still prese
   page.insertAdjacentHTML('beforebegin', '<div data-env-transition-snapshot><div class="hero-wrapper"><div class="sd-slider"></div></div></div>');
   const error = vi.spyOn(console, 'error').mockImplementation(() => {});
   (window as any).Webflow[0]();
-  await vi.advanceTimersByTimeAsync(6000);
+  await vi.advanceTimersByTimeAsync(5000);
   expect(dots[1].classList.contains('w-active')).toBe(true);
   expect(error).not.toHaveBeenCalled();
 });

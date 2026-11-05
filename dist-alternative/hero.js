@@ -23,7 +23,7 @@ window.Webflow.push(function () {
   }
 
   hero.__envHeroCleanup?.();
-  const delay = 6000; // Full display time for each slide, in milliseconds.
+  const delay = 5000; // Full display time for each slide, in milliseconds.
   let timer;
   let current = -1;
   const controller = new AbortController();
