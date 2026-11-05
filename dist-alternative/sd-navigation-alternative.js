@@ -10,59 +10,59 @@ function Qe() {
     const d = r.getContext("2d");
     if (!d) return;
     s.append(r), i.prepend(s);
-    let c = 1, f = 1, p = 0, m = 0, E = 0, h = !1, b = !1, T = 0, l = 0, y = 0, w = 0, O = 0, A = 0;
-    function k() {
+    let c = 1, f = 1, p = 0, b = 0, y = 0, v = !1, m = !1, T = 0, l = 0, E = 0, O = 0, I = 0, N = 0;
+    function _() {
       d.clearRect(0, 0, c, f);
-      const L = n.matches ? 0 : E, S = Math.min(c * 0.38, 500) * 2.1 * 1.35, x = Math.min(f * 0.49, 350) * 2.1 * 0.78, P = c * 0.23 + y + Math.sin(L * 0.29) * c * 0.13, z = f * 0.98 + w + Math.cos(L * 0.23) * f * 0.075, B = [];
+      const L = n.matches ? 0 : y, R = Math.min(c * 0.38, 500) * 2.1 * 1.35, x = Math.min(f * 0.49, 350) * 2.1 * 0.78, P = c * 0.23 + E + Math.sin(L * 0.29) * c * 0.13, z = f * 0.98 + O + Math.cos(L * 0.23) * f * 0.075, B = [];
       for (let U = 0; U < 10; U++) {
-        const R = U / 10 * Math.PI * 2, V = 1 + 0.55 * (0.2 * Math.sin(R * 3 + L * 0.33) + 0.13 * Math.cos(R * 2 - L * 0.25) + 0.07 * Math.sin(R * 5 + L * 0.17));
-        B.push({ x: P + Math.cos(R) * S * V, y: z + Math.sin(R) * x * V });
+        const k = U / 10 * Math.PI * 2, V = 1 + 0.55 * (0.2 * Math.sin(k * 3 + L * 0.33) + 0.13 * Math.cos(k * 2 - L * 0.25) + 0.07 * Math.sin(k * 5 + L * 0.17));
+        B.push({ x: P + Math.cos(k) * R * V, y: z + Math.sin(k) * x * V });
       }
-      d.beginPath(), B.forEach((U, R) => {
-        const V = B[(R + 9) % 10], $ = B[(R + 1) % 10];
-        R || d.moveTo((V.x + U.x) / 2, (V.y + U.y) / 2), d.quadraticCurveTo(U.x, U.y, (U.x + $.x) / 2, (U.y + $.y) / 2);
-      }), d.closePath(), d.save(), d.translate(P, z), d.scale(S / x, 1);
+      d.beginPath(), B.forEach((U, k) => {
+        const V = B[(k + 9) % 10], $ = B[(k + 1) % 10];
+        k || d.moveTo((V.x + U.x) / 2, (V.y + U.y) / 2), d.quadraticCurveTo(U.x, U.y, (U.x + $.x) / 2, (U.y + $.y) / 2);
+      }), d.closePath(), d.save(), d.translate(P, z), d.scale(R / x, 1);
       const W = d.createRadialGradient(-x * 0.12, -x * 0.2, 0, 0, 0, x * 0.94);
-      [[0, 0.5], [0.28, 0.36], [0.6, 0.15], [0.82, 0.035], [1, 0]].forEach(([U, R]) => W.addColorStop(U, `rgba(238,69,43,${R})`)), d.fillStyle = W, d.fill(), d.restore();
+      [[0, 0.5], [0.28, 0.36], [0.6, 0.15], [0.82, 0.035], [1, 0]].forEach(([U, k]) => W.addColorStop(U, `rgba(238,69,43,${k})`)), d.fillStyle = W, d.fill(), d.restore();
     }
-    function N() {
-      if (!b || n.matches || !a.matches) {
-        O = A = 0;
+    function S() {
+      if (!m || n.matches || !a.matches) {
+        I = N = 0;
         return;
       }
       const L = i.getBoundingClientRect();
-      O = ((T - L.left) / c - 0.5) * Math.min(c * 0.65, 760) * 0.7, A = ((l - L.top) / f - 0.5) * Math.min(f * 0.28, 180) * 0.7;
+      I = ((T - L.left) / c - 0.5) * Math.min(c * 0.65, 760) * 0.7, N = ((l - L.top) / f - 0.5) * Math.min(f * 0.28, 180) * 0.7;
     }
     function g(L) {
-      if (p = 0, !h || document.hidden) return;
-      const S = Math.min((L - (m || L)) / 1e3, 0.05);
-      m = L, n.matches || (E += S);
-      const x = 1 - Math.exp(-S * 4.5);
-      y += (O - y) * x, w += (A - w) * x, k(), n.matches || (p = requestAnimationFrame(g));
+      if (p = 0, !v || document.hidden) return;
+      const R = Math.min((L - (b || L)) / 1e3, 0.05);
+      b = L, n.matches || (y += R);
+      const x = 1 - Math.exp(-R * 4.5);
+      E += (I - E) * x, O += (N - O) * x, _(), n.matches || (p = requestAnimationFrame(g));
     }
-    function I() {
-      cancelAnimationFrame(p), p = 0, m = 0;
+    function h() {
+      cancelAnimationFrame(p), p = 0, b = 0;
     }
     function u() {
-      !p && h && !document.hidden && (m = 0, p = requestAnimationFrame(g));
+      !p && v && !document.hidden && (b = 0, p = requestAnimationFrame(g));
     }
-    function v() {
-      b = !1, N();
+    function w() {
+      m = !1, S();
     }
     const M = new ResizeObserver(() => {
       const L = i.getBoundingClientRect();
       c = Math.max(L.width, 1), f = Math.max(L.height, 1);
-      const S = Math.min(devicePixelRatio || 1, 1.5);
-      r.width = Math.round(c * S), r.height = Math.round(f * S), d.setTransform(S, 0, 0, S, 0, 0), N(), k();
+      const R = Math.min(devicePixelRatio || 1, 1.5);
+      r.width = Math.round(c * R), r.height = Math.round(f * R), d.setTransform(R, 0, 0, R, 0, 0), S(), _();
     }), C = new IntersectionObserver((L) => {
-      h = L[0].isIntersecting, h ? u() : I();
+      v = L[0].isIntersecting, v ? u() : h();
     });
     M.observe(i), C.observe(i), i.addEventListener("pointermove", (L) => {
-      L.pointerType !== "touch" && (b = !0, T = L.clientX, l = L.clientY, N());
-    }, { passive: !0, signal: e }), i.addEventListener("pointerleave", v, { signal: e }), window.addEventListener("scroll", N, { passive: !0, signal: e }), window.addEventListener("blur", v, { signal: e }), document.addEventListener("visibilitychange", () => document.hidden ? I() : u(), { signal: e }), n.addEventListener("change", () => {
-      y = w = O = A = 0, k(), u();
-    }, { signal: e }), a.addEventListener("change", v, { signal: e }), o.push(() => {
-      I(), M.disconnect(), C.disconnect(), s.remove();
+      L.pointerType !== "touch" && (m = !0, T = L.clientX, l = L.clientY, S());
+    }, { passive: !0, signal: e }), i.addEventListener("pointerleave", w, { signal: e }), window.addEventListener("scroll", S, { passive: !0, signal: e }), window.addEventListener("blur", w, { signal: e }), document.addEventListener("visibilitychange", () => document.hidden ? h() : u(), { signal: e }), n.addEventListener("change", () => {
+      E = O = I = N = 0, _(), u();
+    }, { signal: e }), a.addEventListener("change", w, { signal: e }), o.push(() => {
+      h(), M.disconnect(), C.disconnect(), s.remove();
     });
   }), window.ENVOrganicBlob = { destroy() {
     t.abort(), o.forEach((i) => i()), window.ENVOrganicBlob === this && delete window.ENVOrganicBlob;
@@ -82,33 +82,33 @@ function Xe() {
     }
     i += (r - i) * 0.07, s += (d - s) * 0.07, o.style.setProperty("--blob-x", `${i.toFixed(2)}px`), o.style.setProperty("--blob-y", `${s.toFixed(2)}px`), Math.abs(r - i) + Math.abs(d - s) > 0.1 && (c = requestAnimationFrame(p));
   }
-  function m(b, T) {
-    r = b, d = T, c || (c = requestAnimationFrame(p));
+  function b(m, T) {
+    r = m, d = T, c || (c = requestAnimationFrame(p));
   }
-  function E() {
-    o && m(0, 0);
+  function y() {
+    o && b(0, 0);
   }
-  document.addEventListener("pointermove", (b) => {
-    if (!n.matches || a.matches || b.pointerType === "touch") {
+  document.addEventListener("pointermove", (m) => {
+    if (!n.matches || a.matches || m.pointerType === "touch") {
       f();
       return;
     }
-    const T = b.target instanceof Element ? b.target.closest(".section.cta") : null;
+    const T = m.target instanceof Element ? m.target.closest(".section.cta") : null;
     if (!T) {
-      E();
+      y();
       return;
     }
     T !== o && (f(), o = T);
     const l = o.getBoundingClientRect();
-    m(
-      ((b.clientX - l.left) / l.width - 0.5) * Math.min(l.width * 0.3, 320),
-      ((b.clientY - l.top) / l.height - 0.5) * Math.min(l.height * 0.12, 60)
+    b(
+      ((m.clientX - l.left) / l.width - 0.5) * Math.min(l.width * 0.3, 320),
+      ((m.clientY - l.top) / l.height - 0.5) * Math.min(l.height * 0.12, 60)
     );
-  }, { passive: !0, signal: e }), document.documentElement.addEventListener("pointerleave", E, { signal: e }), window.addEventListener("blur", E, { signal: e }), window.addEventListener("scroll", E, { passive: !0, signal: e });
-  const h = () => {
+  }, { passive: !0, signal: e }), document.documentElement.addEventListener("pointerleave", y, { signal: e }), window.addEventListener("blur", y, { signal: e }), window.addEventListener("scroll", y, { passive: !0, signal: e });
+  const v = () => {
     (!n.matches || a.matches) && f();
   };
-  n.addEventListener("change", h, { signal: e }), a.addEventListener("change", h, { signal: e }), window.ENVCTABlob = {
+  n.addEventListener("change", v, { signal: e }), a.addEventListener("change", v, { signal: e }), window.ENVCTABlob = {
     destroy() {
       t.abort(), f();
     }
@@ -175,91 +175,91 @@ function qe(t, e = window) {
 }
 function We({ doc: t = document, win: e = window } = {}) {
   let n, a, o, i, s, r = [], d = 0;
-  const c = () => e.matchMedia("(prefers-reduced-motion: reduce)").matches, f = (b) => b.preventDefault();
+  const c = () => e.matchMedia("(prefers-reduced-motion: reduce)").matches, f = (m) => m.preventDefault();
   function p() {
-    d++, r.forEach((b) => b.cancel()), r = [], n?.remove(), n = null, a = null, s?.(), s = null, o && (i === null ? o.removeAttribute("style") : o.setAttribute("style", i), o = null), e.removeEventListener("wheel", f, !0), e.removeEventListener("touchmove", f, !0), t.documentElement.removeAttribute("data-env-transition-active");
+    d++, r.forEach((m) => m.cancel()), r = [], n?.remove(), n = null, a = null, s?.(), s = null, o && (i === null ? o.removeAttribute("style") : o.setAttribute("style", i), o = null), e.removeEventListener("wheel", f, !0), e.removeEventListener("touchmove", f, !0), t.documentElement.removeAttribute("data-env-transition-active");
   }
-  function m() {
+  function b() {
     p();
-    const b = t.querySelector("#env-sd-page");
-    if (!b || c()) return;
-    s = qe(b, e);
-    const T = b.cloneNode(!0), l = [b, ...b.querySelectorAll("*")], y = [T, ...T.querySelectorAll("*")], w = [];
-    y.forEach((g, I) => {
-      const u = e.getComputedStyle(l[I]);
-      for (let v = 0; v < u.length; v++) {
-        const M = u[v];
+    const m = t.querySelector("#env-sd-page");
+    if (!m || c()) return;
+    s = qe(m, e);
+    const T = m.cloneNode(!0), l = [m, ...m.querySelectorAll("*")], E = [T, ...T.querySelectorAll("*")], O = [];
+    E.forEach((g, h) => {
+      const u = e.getComputedStyle(l[h]);
+      for (let w = 0; w < u.length; w++) {
+        const M = u[w];
         g.style.setProperty(M, u.getPropertyValue(M));
       }
-      u.position === "sticky" && (w.push({ element: g, rect: l[I].getBoundingClientRect() }), g.style.position = "relative", g.style.inset = "auto"), g.style.setProperty("animation", "none", "important"), g.style.setProperty("transition", "none", "important"), g.classList.remove("w-slider", "w-slide", "w-slider-mask", "w-slider-nav", "w-slider-dot"), g.classList.remove("footer"), l[I].matches(".project-row, .project-work, .project-item.work.left, .project-item.work.right") && g.removeAttribute("class"), l[I].closest('[data-services="reveal"]') && g.removeAttribute("class");
+      u.position === "sticky" && (O.push({ element: g, rect: l[h].getBoundingClientRect() }), g.style.position = "relative", g.style.inset = "auto"), g.style.setProperty("animation", "none", "important"), g.style.setProperty("transition", "none", "important"), g.classList.remove("w-slider", "w-slide", "w-slider-mask", "w-slider-nav", "w-slider-dot"), g.classList.remove("footer"), l[h].matches(".project-row, .project-work, .project-item.work.left, .project-item.work.right") && g.removeAttribute("class"), l[h].closest('[data-services="reveal"]') && g.removeAttribute("class");
     });
-    const O = l.map((g, I) => ({ element: g, copy: y[I] })).filter(({ element: g }) => g.parentElement === b || g.parentElement?.matches("main.main-wrapper")).filter(({ element: g }) => !g.matches("main.main-wrapper")).map(({ element: g, copy: I }) => ({ copy: I, rect: g.getBoundingClientRect() }));
+    const I = l.map((g, h) => ({ element: g, copy: E[h] })).filter(({ element: g }) => g.parentElement === m || g.parentElement?.matches("main.main-wrapper")).filter(({ element: g }) => !g.matches("main.main-wrapper")).map(({ element: g, copy: h }) => ({ copy: h, rect: g.getBoundingClientRect() }));
     T.querySelectorAll("script").forEach((g) => g.remove()), [T, ...T.querySelectorAll("*")].forEach((g) => {
       g.removeAttribute("id"), g.removeAttribute("data-services");
-      for (const I of [...g.attributes]) (I.name.startsWith("data-env-") || I.name.startsWith("data-w-id")) && g.removeAttribute(I.name);
+      for (const h of [...g.attributes]) (h.name.startsWith("data-env-") || h.name.startsWith("data-w-id")) && g.removeAttribute(h.name);
     });
-    const A = b.querySelectorAll("canvas");
-    T.querySelectorAll("canvas").forEach((g, I) => {
-      const u = A[I];
+    const N = m.querySelectorAll("canvas");
+    T.querySelectorAll("canvas").forEach((g, h) => {
+      const u = N[h];
       g.width = u.width, g.height = u.height;
       try {
         g.getContext("2d")?.drawImage(u, 0, 0);
       } catch {
       }
     });
-    const k = b.querySelectorAll("video");
-    T.querySelectorAll("video").forEach((g, I) => {
-      const u = k[I], v = t.createElement("canvas");
-      v.style.cssText = g.style.cssText, v.className = g.className;
+    const _ = m.querySelectorAll("video");
+    T.querySelectorAll("video").forEach((g, h) => {
+      const u = _[h], w = t.createElement("canvas");
+      w.style.cssText = g.style.cssText, w.className = g.className;
       const M = e.getComputedStyle(u);
-      for (const C of ["position", "top", "left", "right", "bottom", "width", "height", "minWidth", "minHeight", "maxWidth", "maxHeight", "objectFit", "objectPosition", "transform", "zIndex", "marginTop", "marginRight", "marginBottom", "marginLeft", "display", "boxSizing", "borderRadius"]) v.style[C] = M[C];
-      v.width = u.videoWidth || 320, v.height = u.videoHeight || 180;
+      for (const C of ["position", "top", "left", "right", "bottom", "width", "height", "minWidth", "minHeight", "maxWidth", "maxHeight", "objectFit", "objectPosition", "transform", "zIndex", "marginTop", "marginRight", "marginBottom", "marginLeft", "display", "boxSizing", "borderRadius"]) w.style[C] = M[C];
+      w.width = u.videoWidth || 320, w.height = u.videoHeight || 180;
       try {
         if (u.readyState < 2) throw Error("Video frame unavailable");
-        v.getContext("2d").drawImage(u, 0, 0, v.width, v.height), g.replaceWith(v);
+        w.getContext("2d").drawImage(u, 0, 0, w.width, w.height), g.replaceWith(w);
       } catch {
         const L = u.poster || u.closest(".w-background-video")?.getAttribute("data-poster-url");
         if (L) {
-          const S = t.createElement("img");
-          S.src = L, S.style.cssText = v.style.cssText, S.className = g.className, g.replaceWith(S);
+          const R = t.createElement("img");
+          R.src = L, R.style.cssText = w.style.cssText, R.className = g.className, g.replaceWith(R);
         } else g.remove();
       }
-    }), T.style.cssText = `position:absolute;left:0;top:${-e.scrollY}px;width:100%;margin:0;background:#fff;pointer-events:none;z-index:0;`, n = t.createElement("div"), n.dataset.envTransitionSnapshot = "", n.dataset.envIgnore = "", n.setAttribute("aria-hidden", "true"), n.inert = !0, n.style.cssText = "position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:8;background:#fff;transform-origin:50% 50%;", a = t.createElement("div"), a.dataset.envTransitionShade = "", a.style.cssText = "position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;z-index:1;", n.append(T, a), t.body.append(n), O.map(({ copy: g, rect: I }) => {
+    }), T.style.cssText = `position:absolute;left:0;top:${-e.scrollY}px;width:100%;margin:0;background:#fff;pointer-events:none;z-index:0;`, n = t.createElement("div"), n.dataset.envTransitionSnapshot = "", n.dataset.envIgnore = "", n.setAttribute("aria-hidden", "true"), n.inert = !0, n.style.cssText = "position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:8;background:#fff;transform-origin:50% 50%;", a = t.createElement("div"), a.dataset.envTransitionShade = "", a.style.cssText = "position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;z-index:1;", n.append(T, a), t.body.append(n), I.map(({ copy: g, rect: h }) => {
       const u = g.getBoundingClientRect();
-      return { element: g, x: I.left - u.left, y: I.top - u.top };
-    }).forEach(({ element: g, x: I, y: u }) => {
-      if (Math.abs(I) < 0.1 && Math.abs(u) < 0.1) return;
-      const v = g.style.transform;
-      g.style.transform = `translate(${I}px,${u}px) ${v === "none" ? "" : v}`;
-    }), w.forEach(({ element: g, rect: I }) => {
-      const u = g.getBoundingClientRect(), v = I.left - u.left, M = I.top - u.top;
-      if (Math.abs(v) < 0.1 && Math.abs(M) < 0.1) return;
+      return { element: g, x: h.left - u.left, y: h.top - u.top };
+    }).forEach(({ element: g, x: h, y: u }) => {
+      if (Math.abs(h) < 0.1 && Math.abs(u) < 0.1) return;
+      const w = g.style.transform;
+      g.style.transform = `translate(${h}px,${u}px) ${w === "none" ? "" : w}`;
+    }), O.forEach(({ element: g, rect: h }) => {
+      const u = g.getBoundingClientRect(), w = h.left - u.left, M = h.top - u.top;
+      if (Math.abs(w) < 0.1 && Math.abs(M) < 0.1) return;
       const C = g.style.transform;
-      g.style.transform = `translate(${v}px,${M}px) ${C === "none" ? "" : C}`;
+      g.style.transform = `translate(${w}px,${M}px) ${C === "none" ? "" : C}`;
     }), t.documentElement.setAttribute("data-env-transition-active", ""), e.addEventListener("wheel", f, { capture: !0, passive: !1 }), e.addEventListener("touchmove", f, { capture: !0, passive: !1 });
   }
-  function E(b) {
-    !n || c() || (o = b, i = b.getAttribute("style"), Object.assign(b.style, { position: "relative", zIndex: "9", clipPath: "polygon(0% 100%,100% 100%,100% 100%,0% 100%)", backgroundColor: "#fff", willChange: "clip-path" }));
+  function y(m) {
+    !n || c() || (o = m, i = m.getAttribute("style"), Object.assign(m.style, { position: "relative", zIndex: "9", clipPath: "polygon(0% 100%,100% 100%,100% 100%,0% 100%)", backgroundColor: "#fff", willChange: "clip-path" }));
   }
-  async function h(b) {
+  async function v(m) {
     if (!n || c()) {
       p();
       return;
     }
-    o || E(b);
-    const T = d, l = Math.max(0, -b.getBoundingClientRect().top), y = e.innerHeight, w = `polygon(0 ${l + y}px,100% ${l + y}px,100% 100%,0 100%)`, O = `polygon(0 ${l}px,100% ${l}px,100% 100%,0 100%)`, A = { duration: 850, easing: "cubic-bezier(.76,0,.24,1)", fill: "both" };
+    o || y(m);
+    const T = d, l = Math.max(0, -m.getBoundingClientRect().top), E = e.innerHeight, O = `polygon(0 ${l + E}px,100% ${l + E}px,100% 100%,0 100%)`, I = `polygon(0 ${l}px,100% ${l}px,100% 100%,0 100%)`, N = { duration: 850, easing: "cubic-bezier(.76,0,.24,1)", fill: "both" };
     r = [
-      n.animate([{ transform: "translateY(0) scale(1)" }, { transform: "translateY(-12vh) scale(1.04)" }], A),
-      b.animate([{ clipPath: w }, { clipPath: O }], A),
-      a.animate([{ opacity: 0 }, { opacity: 0.35 }], A)
+      n.animate([{ transform: "translateY(0) scale(1)" }, { transform: "translateY(-12vh) scale(1.04)" }], N),
+      m.animate([{ clipPath: O }, { clipPath: I }], N),
+      a.animate([{ opacity: 0 }, { opacity: 0.35 }], N)
     ];
-    const k = t.timeline?.currentTime;
-    k != null && r.forEach((N) => {
-      N.startTime = k;
-    }), await Promise.all(r.map((N) => N.finished.catch(() => {
+    const _ = t.timeline?.currentTime;
+    _ != null && r.forEach((S) => {
+      S.startTime = _;
+    }), await Promise.all(r.map((S) => S.finished.catch(() => {
     }))), T === d && p();
   }
-  return { capture: m, prepare: E, reveal: h, cleanup: p };
+  return { capture: b, prepare: y, reveal: v, cleanup: p };
 }
 const le = /* @__PURE__ */ new WeakMap();
 function re(t, e, n, a) {
@@ -282,43 +282,43 @@ function $e(t, e) {
 }
 function Ue(t, e, n, a = {}) {
   if (Array.isArray(e)) {
-    for (const h of e)
-      Ue(t, h, n, a);
+    for (const v of e)
+      Ue(t, v, n, a);
     return;
   }
   const o = e, { signal: i, base: s = document } = a;
   if (i?.aborted)
     return;
-  const { once: r, ...d } = a, c = s instanceof Document ? s.documentElement : s, f = !!(typeof a == "object" ? a.capture : a), p = (h) => {
-    const b = $e(h, String(t));
-    if (b) {
-      const T = Object.assign(h, { delegateTarget: b });
-      n.call(c, T), r && (c.removeEventListener(o, p, d), re(!1, c, n, m));
+  const { once: r, ...d } = a, c = s instanceof Document ? s.documentElement : s, f = !!(typeof a == "object" ? a.capture : a), p = (v) => {
+    const m = $e(v, String(t));
+    if (m) {
+      const T = Object.assign(v, { delegateTarget: m });
+      n.call(c, T), r && (c.removeEventListener(o, p, d), re(!1, c, n, b));
     }
-  }, m = JSON.stringify({ selector: t, type: o, capture: f });
-  re(!0, c, n, m) || c.addEventListener(o, p, d), i?.addEventListener("abort", () => {
-    re(!1, c, n, m);
+  }, b = JSON.stringify({ selector: t, type: o, capture: f });
+  re(!0, c, n, b) || c.addEventListener(o, p, d), i?.addEventListener("abort", () => {
+    re(!1, c, n, b);
   });
 }
-function _() {
-  return _ = Object.assign ? Object.assign.bind() : function(t) {
+function A() {
+  return A = Object.assign ? Object.assign.bind() : function(t) {
     for (var e = 1; e < arguments.length; e++) {
       var n = arguments[e];
       for (var a in n) ({}).hasOwnProperty.call(n, a) && (t[a] = n[a]);
     }
     return t;
-  }, _.apply(null, arguments);
+  }, A.apply(null, arguments);
 }
 const Ve = (t, e) => String(t).toLowerCase().replace(/[\s/_.]+/g, "-").replace(/[^\w-]+/g, "").replace(/--+/g, "-").replace(/^-+|-+$/g, "") || e || "", Y = ({ hash: t } = {}) => window.location.pathname + window.location.search + (t ? window.location.hash : ""), Ke = (t, e = {}) => {
-  const n = _({ url: t = t || Y({ hash: !0 }), random: Math.random(), source: "swup" }, e);
+  const n = A({ url: t = t || Y({ hash: !0 }), random: Math.random(), source: "swup" }, e);
   window.history.pushState(n, "", t);
 }, X = (t = null, e = {}) => {
   t = t || Y({ hash: !0 });
-  const n = _({}, window.history.state || {}, { url: t, random: Math.random(), source: "swup" }, e);
+  const n = A({}, window.history.state || {}, { url: t, random: Math.random(), source: "swup" }, e);
   window.history.replaceState(n, "", t);
 }, Ze = (t, e, n, a) => {
   const o = new AbortController();
-  return a = _({}, a, { signal: o.signal }), Ue(t, e, n, a), { destroy: () => o.abort() };
+  return a = A({}, a, { signal: o.signal }), Ue(t, e, n, a), { destroy: () => o.abort() };
 };
 let G = class ne extends URL {
   constructor(e, n = document.baseURI) {
@@ -343,22 +343,22 @@ class K extends Error {
 async function Je(t, e = {}) {
   var n;
   t = G.fromUrl(t).url;
-  const { visit: a = this.visit } = e, o = _({}, this.options.requestHeaders, e.headers), i = (n = e.timeout) != null ? n : this.options.timeout, s = new AbortController(), { signal: r } = s;
-  e = _({}, e, { headers: o, signal: r });
+  const { visit: a = this.visit } = e, o = A({}, this.options.requestHeaders, e.headers), i = (n = e.timeout) != null ? n : this.options.timeout, s = new AbortController(), { signal: r } = s;
+  e = A({}, e, { headers: o, signal: r });
   let d, c = !1, f = null;
   i && i > 0 && (f = setTimeout(() => {
     c = !0, s.abort("timeout");
   }, i));
   try {
-    d = await this.hooks.call("fetch:request", a, { url: t, options: e }, (T, { url: l, options: y }) => fetch(l, y)), f && clearTimeout(f);
+    d = await this.hooks.call("fetch:request", a, { url: t, options: e }, (T, { url: l, options: E }) => fetch(l, E)), f && clearTimeout(f);
   } catch (T) {
     throw c ? (this.hooks.call("fetch:timeout", a, { url: t }), new K(`Request timed out: ${t}`, { url: t, timedOut: c })) : T?.name === "AbortError" || r.aborted ? new K(`Request aborted: ${t}`, { url: t, aborted: !0 }) : T;
   }
-  const { status: p, url: m } = d, E = await d.text();
-  if (p === 500) throw this.hooks.call("fetch:error", a, { status: p, response: d, url: m }), new K(`Server error: ${m}`, { status: p, url: m });
-  if (!E) throw new K(`Empty response: ${m}`, { status: p, url: m });
-  const { url: h } = G.fromUrl(m), b = { url: h, html: E };
-  return !a.cache.write || e.method && e.method !== "GET" || t !== h || this.cache.set(b.url, b), b;
+  const { status: p, url: b } = d, y = await d.text();
+  if (p === 500) throw this.hooks.call("fetch:error", a, { status: p, response: d, url: b }), new K(`Server error: ${b}`, { status: p, url: b });
+  if (!y) throw new K(`Empty response: ${b}`, { status: p, url: b });
+  const { url: v } = G.fromUrl(b), m = { url: v, html: y };
+  return !a.cache.write || e.method && e.method !== "GET" || t !== v || this.cache.set(m.url, m), m;
 }
 class en {
   constructor(e) {
@@ -370,7 +370,7 @@ class en {
   get all() {
     const e = /* @__PURE__ */ new Map();
     return this.pages.forEach((n, a) => {
-      e.set(a, _({}, n));
+      e.set(a, A({}, n));
     }), e;
   }
   has(e) {
@@ -378,14 +378,14 @@ class en {
   }
   get(e) {
     const n = this.pages.get(this.resolve(e));
-    return n && _({}, n);
+    return n && A({}, n);
   }
   set(e, n) {
-    n = _({}, n, { url: e = this.resolve(e) }), this.pages.set(e, n), this.swup.hooks.callSync("cache:set", void 0, { page: n });
+    n = A({}, n, { url: e = this.resolve(e) }), this.pages.set(e, n), this.swup.hooks.callSync("cache:set", void 0, { page: n });
   }
   update(e, n) {
     e = this.resolve(e);
-    const a = _({}, this.get(e), n, { url: e });
+    const a = A({}, this.get(e), n, { url: e });
     this.pages.set(e, a);
   }
   delete(e) {
@@ -504,17 +504,17 @@ class on {
     const o = this.get(e);
     if (!o) return console.warn(`Hook '${e}' not found.`), () => {
     };
-    const i = _({}, a, { id: ++this.nextHookId, hook: e, handler: n });
+    const i = A({}, a, { id: ++this.nextHookId, hook: e, handler: n });
     return o.set(n, i), () => this.off(e, n);
   }
   before(e, n, a = {}) {
-    return this.on(e, n, _({}, a, { before: !0 }));
+    return this.on(e, n, A({}, a, { before: !0 }));
   }
   replace(e, n, a = {}) {
-    return this.on(e, n, _({}, a, { replace: !0 }));
+    return this.on(e, n, A({}, a, { replace: !0 }));
   }
   once(e, n, a = {}) {
-    return this.on(e, n, _({}, a, { once: !0 }));
+    return this.on(e, n, A({}, a, { once: !0 }));
   }
   off(e, n) {
     const a = this.get(e);
@@ -566,14 +566,14 @@ class on {
   getHandlers(e, n) {
     const a = this.get(e);
     if (!a) return { found: !1, before: [], handler: [], after: [], replaced: !1 };
-    const o = Array.from(a.values()), i = this.sortRegistrations, s = o.filter(({ before: p, replace: m }) => p && !m).sort(i), r = o.filter(({ replace: p }) => p).filter((p) => !0).sort(i), d = o.filter(({ before: p, replace: m }) => !p && !m).sort(i), c = r.length > 0;
+    const o = Array.from(a.values()), i = this.sortRegistrations, s = o.filter(({ before: p, replace: b }) => p && !b).sort(i), r = o.filter(({ replace: p }) => p).filter((p) => !0).sort(i), d = o.filter(({ before: p, replace: b }) => !p && !b).sort(i), c = r.length > 0;
     let f = [];
     if (n && (f = [{ id: 0, hook: e, handler: n }], c)) {
-      const p = r.length - 1, { handler: m, once: E } = r[p], h = (b) => {
-        const T = r[b - 1];
-        return T ? (l, y) => T.handler(l, y, h(b - 1)) : n;
+      const p = r.length - 1, { handler: b, once: y } = r[p], v = (m) => {
+        const T = r[m - 1];
+        return T ? (l, E) => T.handler(l, E, v(m - 1)) : n;
       };
-      f = [{ id: 0, hook: e, once: E, handler: m, defaultHandler: h(p) }];
+      f = [{ id: 0, hook: e, once: y, handler: b, defaultHandler: v(p) }];
     }
     return { found: !0, before: s, handler: f, after: d, replaced: c };
   }
@@ -588,7 +588,7 @@ class on {
   }
   parseName(e) {
     const [n, ...a] = e.split(".");
-    return [n, a.reduce((o, i) => _({}, o, { [i]: !0 }), {})];
+    return [n, a.reduce((o, i) => A({}, o, { [i]: !0 }), {})];
   }
 }
 const sn = (t) => {
@@ -604,20 +604,20 @@ async function ln({ selector: t, elements: e }) {
   else if (t && (n = ye(t, document.body), !n.length)) return void console.warn(`[swup] No elements found matching animationSelector \`${t}\``);
   const a = n.map((o) => (function(i) {
     const { type: s, timeout: r, propCount: d } = (function(c) {
-      const f = window.getComputedStyle(c), p = J(f, `${Z}Delay`), m = J(f, `${Z}Duration`), E = we(p, m), h = J(f, `${de}Delay`), b = J(f, `${de}Duration`), T = we(h, b), l = Math.max(E, T), y = l > 0 ? E > T ? Z : de : null;
-      return { type: y, timeout: l, propCount: y ? y === Z ? m.length : b.length : 0 };
+      const f = window.getComputedStyle(c), p = J(f, `${Z}Delay`), b = J(f, `${Z}Duration`), y = we(p, b), v = J(f, `${de}Delay`), m = J(f, `${de}Duration`), T = we(v, m), l = Math.max(y, T), E = l > 0 ? y > T ? Z : de : null;
+      return { type: E, timeout: l, propCount: E ? E === Z ? b.length : m.length : 0 };
     })(i);
     return !(!s || !r) && new Promise((c) => {
       const f = `${s}end`, p = performance.now();
-      let m = 0;
-      const E = () => {
-        i.removeEventListener(f, h), c();
-      }, h = (b) => {
-        b.target === i && ((performance.now() - p) / 1e3 < b.elapsedTime || ++m >= d && E());
+      let b = 0;
+      const y = () => {
+        i.removeEventListener(f, v), c();
+      }, v = (m) => {
+        m.target === i && ((performance.now() - p) / 1e3 < m.elapsedTime || ++b >= d && y());
       };
       setTimeout(() => {
-        m < d && E();
-      }, r + 1), i.addEventListener(f, h);
+        b < d && y();
+      }, r + 1), i.addEventListener(f, v);
     });
   })(o)).filter((o) => o !== !1);
   a.length ? await Promise.all(a) : t && console.warn(`[swup] No CSS animation duration defined on elements matching \`${t}\``);
@@ -635,7 +635,7 @@ function Oe(t) {
 function rn(t, e = {}, n = {}) {
   if (typeof t != "string") throw new Error("swup.navigate() requires a URL parameter");
   if (this.shouldIgnoreVisit(t, { el: n.el, event: n.event })) return void window.location.assign(t);
-  const { url: a, hash: o } = G.fromUrl(t), i = this.createVisit(_({}, n, { to: a, hash: o }));
+  const { url: a, hash: o } = G.fromUrl(t), i = this.createVisit(A({}, n, { to: a, hash: o }));
   this.performNavigation(i, e);
 }
 async function dn(t, e = {}) {
@@ -707,7 +707,7 @@ const cn = async function(t) {
   return o && (i = this.hooks.callSync("scroll:anchor", t, { hash: o, options: e }, (s, { hash: r, options: d }) => {
     const c = this.getAnchorElement(r);
     return c && c.scrollIntoView(d), !!c;
-  })), a && !i && (i = this.hooks.callSync("scroll:top", t, { options: e }, (s, { options: r }) => (window.scrollTo(_({ top: 0, left: 0 }, r)), !0))), i;
+  })), a && !i && (i = this.hooks.callSync("scroll:top", t, { options: e }, (s, { options: r }) => (window.scrollTo(A({ top: 0, left: 0 }, r)), !0))), i;
 }, pn = async function(t) {
   if (t.done) return;
   const e = this.hooks.call("animation:in:await", t, { skip: !1 }, (n, { skip: a }) => {
@@ -757,7 +757,7 @@ class vn {
   constructor(e = {}) {
     var n, a;
     this.version = "4.10.0", this.options = void 0, this.defaults = In, this.plugins = [], this.visit = void 0, this.cache = void 0, this.hooks = void 0, this.classes = void 0, this.location = G.fromUrl(window.location.href), this.currentHistoryIndex = void 0, this.clickDelegate = void 0, this.navigating = !1, this.onVisitEnd = void 0, this.use = mn, this.unuse = gn, this.findPlugin = yn, this.log = () => {
-    }, this.navigate = rn, this.performNavigation = dn, this.createVisit = an, this.delegateEvent = Ze, this.fetchPage = Je, this.awaitAnimations = ln, this.renderPage = bn, this.replaceContent = fn, this.animatePageIn = pn, this.animatePageOut = cn, this.scrollToContent = un, this.getAnchorElement = sn, this.getCurrentUrl = Y, this.resolveUrl = En, this.isSameResolvedUrl = Tn, this.options = _({}, this.defaults, e), this.handleLinkClick = this.handleLinkClick.bind(this), this.handlePopState = this.handlePopState.bind(this), this.cache = new en(this), this.classes = new tn(this), this.hooks = new on(this), this.visit = this.createVisit({ to: "" }), this.currentHistoryIndex = (n = (a = window.history.state) == null ? void 0 : a.index) != null ? n : 1, this.enable();
+    }, this.navigate = rn, this.performNavigation = dn, this.createVisit = an, this.delegateEvent = Ze, this.fetchPage = Je, this.awaitAnimations = ln, this.renderPage = bn, this.replaceContent = fn, this.animatePageIn = pn, this.animatePageOut = cn, this.scrollToContent = un, this.getAnchorElement = sn, this.getCurrentUrl = Y, this.resolveUrl = En, this.isSameResolvedUrl = Tn, this.options = A({}, this.defaults, e), this.handleLinkClick = this.handleLinkClick.bind(this), this.handlePopState = this.handlePopState.bind(this), this.cache = new en(this), this.classes = new tn(this), this.hooks = new on(this), this.visit = this.createVisit({ to: "" }), this.currentHistoryIndex = (n = (a = window.history.state) == null ? void 0 : a.index) != null ? n : 1, this.enable();
   }
   async enable() {
     var e;
@@ -814,38 +814,38 @@ class vn {
 }
 function hn(t, { doc: e = document, win: n = window, fetchHTML: a = fetch, now: o = Date.now, ttl: i = 3e5, limit: s = 8, delay: r = 1200, warmPage: d } = {}) {
   const c = /* @__PURE__ */ new Map(), f = /* @__PURE__ */ new Map(), p = new AbortController();
-  let m, E = !1, h = !1;
-  const b = n.navigator.connection, T = () => b?.saveData || /(^|-)2g$/.test(b?.effectiveType || "");
+  let b, y = !1, v = !1;
+  const m = n.navigator.connection, T = () => m?.saveData || /(^|-)2g$/.test(m?.effectiveType || "");
   function l() {
-    for (const [u, v] of c) o() - v >= i && (t.cache.delete(u), c.delete(u));
+    for (const [u, w] of c) o() - w >= i && (t.cache.delete(u), c.delete(u));
     for (; c.size > s; ) {
       const u = c.keys().next().value;
       t.cache.delete(u), c.delete(u);
     }
   }
-  const y = (u, { page: v }) => {
-    c.delete(v.url), c.set(v.url, o()), l();
+  const E = (u, { page: w }) => {
+    c.delete(w.url), c.set(w.url, o()), l();
   };
-  t.hooks.on("cache:set", y);
+  t.hooks.on("cache:set", E);
   for (const [u] of t.cache.all || []) c.set(u, o());
   l();
-  function w(u) {
+  function O(u) {
     if (!u || u.closest("[data-no-swup]") || u.hasAttribute("download") || u.hasAttribute("target")) return;
-    const v = new URL(u.getAttribute("href"), n.location.href);
-    if (!(v.origin !== n.location.origin || v.search || v.hash || v.pathname === n.location.pathname || /\.[a-z0-9]+$/i.test(v.pathname)))
-      return v.pathname;
+    const w = new URL(u.getAttribute("href"), n.location.href);
+    if (!(w.origin !== n.location.origin || w.search || w.hash || w.pathname === n.location.pathname || /\.[a-z0-9]+$/i.test(w.pathname)))
+      return w.pathname;
   }
-  async function O(u) {
-    if (l(), h || T() || t.cache.has(u)) return;
+  async function I(u) {
+    if (l(), v || T() || t.cache.has(u)) return;
     if (f.has(u)) return f.get(u);
-    const v = new AbortController(), M = n.setTimeout(() => v.abort(), 4e3), C = (async () => {
+    const w = new AbortController(), M = n.setTimeout(() => w.abort(), 4e3), C = (async () => {
       try {
-        const L = await a(u, { headers: { "X-Requested-With": "swup", Accept: "text/html" }, credentials: "same-origin", signal: v.signal, priority: "low" });
+        const L = await a(u, { headers: { "X-Requested-With": "swup", Accept: "text/html" }, credentials: "same-origin", signal: w.signal, priority: "low" });
         if (!L.ok || !L.headers.get("content-type")?.includes("text/html")) return;
-        const S = new URL(L.url || u, n.location.href);
-        if (S.origin !== n.location.origin || S.pathname !== u || S.search) return;
+        const R = new URL(L.url || u, n.location.href);
+        if (R.origin !== n.location.origin || R.pathname !== u || R.search) return;
         const x = await L.text();
-        !h && x && x.length < 1e6 && (t.cache.set(u, { url: u, html: x }), d && Promise.resolve().then(() => d(x)).catch(() => {
+        !v && x && x.length < 1e6 && (t.cache.set(u, { url: u, html: x }), d && Promise.resolve().then(() => d(x)).catch(() => {
         }));
       } catch {
       } finally {
@@ -854,34 +854,34 @@ function hn(t, { doc: e = document, win: n = window, fetchHTML: a = fetch, now: 
     })();
     return f.set(u, C), C;
   }
-  function A() {
-    n.clearTimeout(m), !(h || T()) && (m = n.setTimeout(async () => {
-      if (E || e.hidden || h) return;
-      const u = [...new Set([...e.querySelectorAll(".navbar-logo-center .nav-link-sd[href], .navbar-logo-center .link-menu-overlay[href]")].map(w).filter(Boolean))].slice(0, 3);
-      for (const v of u) {
-        if (E || h || e.hidden) break;
-        await O(v);
+  function N() {
+    n.clearTimeout(b), !(v || T()) && (b = n.setTimeout(async () => {
+      if (y || e.hidden || v) return;
+      const u = [...new Set([...e.querySelectorAll(".navbar-logo-center .nav-link-sd[href], .navbar-logo-center .link-menu-overlay[href]")].map(O).filter(Boolean))].slice(0, 3);
+      for (const w of u) {
+        if (y || v || e.hidden) break;
+        await I(w);
       }
     }, r));
   }
-  const k = () => {
-    E = !0, n.clearTimeout(m);
-  }, N = () => {
-    E = !1, A();
+  const _ = () => {
+    y = !0, n.clearTimeout(b);
+  }, S = () => {
+    y = !1, N();
   }, g = async (u) => {
     l(), u.cache.read && f.has(u.to.url) && await f.get(u.to.url);
   };
-  t.hooks.on("visit:start", k), t.hooks.before("page:load", g);
-  for (const u of ["page:view", "visit:fail", "visit:abort"]) t.hooks.on(u, N);
-  const I = (u) => {
-    if (!E && !e.hidden) {
-      const v = w(u.target.closest?.(".navbar-logo-center a[href]"));
-      v && O(v);
+  t.hooks.on("visit:start", _), t.hooks.before("page:load", g);
+  for (const u of ["page:view", "visit:fail", "visit:abort"]) t.hooks.on(u, S);
+  const h = (u) => {
+    if (!y && !e.hidden) {
+      const w = O(u.target.closest?.(".navbar-logo-center a[href]"));
+      w && I(w);
     }
   };
-  return e.addEventListener("pointerover", I, { passive: !0, signal: p.signal }), e.addEventListener("focusin", I, { signal: p.signal }), A(), () => {
-    h = !0, n.clearTimeout(m), p.abort(), t.hooks.off("cache:set", y), t.hooks.off("visit:start", k), t.hooks.off("page:load", g);
-    for (const u of ["page:view", "visit:fail", "visit:abort"]) t.hooks.off(u, N);
+  return e.addEventListener("pointerover", h, { passive: !0, signal: p.signal }), e.addEventListener("focusin", h, { signal: p.signal }), N(), () => {
+    v = !0, n.clearTimeout(b), p.abort(), t.hooks.off("cache:set", E), t.hooks.off("visit:start", _), t.hooks.off("page:load", g);
+    for (const u of ["page:view", "visit:fail", "visit:abort"]) t.hooks.off(u, S);
   };
 }
 function wn({ doc: t = document, win: e = window } = {}) {
@@ -892,8 +892,8 @@ function wn({ doc: t = document, win: e = window } = {}) {
   let o, i, s, r, d = !1;
   const c = () => {
     if (!o?.isConnected) return;
-    const E = o.getBoundingClientRect();
-    a.style.top = `${E.top + e.scrollY}px`, a.style.left = `${E.left + e.scrollX}px`, a.style.width = `${E.width}px`, a.style.height = `${E.height}px`;
+    const y = o.getBoundingClientRect();
+    a.style.top = `${y.top + e.scrollY}px`, a.style.left = `${y.left + e.scrollX}px`, a.style.width = `${y.width}px`, a.style.height = `${y.height}px`;
   }, f = () => {
     r || (r = e.requestAnimationFrame(() => {
       r = 0, c();
@@ -902,18 +902,18 @@ function wn({ doc: t = document, win: e = window } = {}) {
   function p() {
     if (s?.disconnect(), o?.removeAttribute("data-env-sd-gradient-source"), i?.removeAttribute("data-env-sd-gradient-page"), i = t.querySelector("#env-sd-page"), o = i?.querySelector(".hero-wrapper.gradient-blue"), d = !!o, !o) return;
     o.removeAttribute("data-env-sd-gradient-source");
-    const E = e.getComputedStyle(o);
-    for (const h of ["backgroundImage", "backgroundColor", "backgroundSize", "backgroundPosition", "backgroundRepeat", "backgroundAttachment", "backgroundBlendMode"]) a.style[h] = E[h];
+    const y = e.getComputedStyle(o);
+    for (const v of ["backgroundImage", "backgroundColor", "backgroundSize", "backgroundPosition", "backgroundRepeat", "backgroundAttachment", "backgroundBlendMode"]) a.style[v] = y[v];
     i.setAttribute("data-env-sd-gradient-page", ""), o.setAttribute("data-env-sd-gradient-source", ""), c(), e.ResizeObserver && (s = new e.ResizeObserver(f), s.observe(o));
   }
-  const m = () => {
+  const b = () => {
     c(), a.style.opacity = d ? "1" : "0";
   };
-  return e.addEventListener("resize", f, { passive: !0 }), p(), m(), {
+  return e.addEventListener("resize", f, { passive: !0 }), p(), b(), {
     prepare: p,
-    commit: m,
+    commit: b,
     refresh() {
-      p(), m();
+      p(), b();
     },
     destroy() {
       s?.disconnect(), e.cancelAnimationFrame(r), e.removeEventListener("resize", f), o?.removeAttribute("data-env-sd-gradient-source"), i?.removeAttribute("data-env-sd-gradient-page"), n.remove(), a.remove();
@@ -958,11 +958,11 @@ let On = class {
         })(a, i);
         return !!s && ((r, d) => d.every((c) => {
           const [, f, p] = c.match(/^([\D]+)?(.*)$/) || [];
-          var m, E;
-          return ((h, b) => {
+          var b, y;
+          return ((v, m) => {
             const T = { "": (l) => l === 0, ">": (l) => l > 0, ">=": (l) => l >= 0, "<": (l) => l < 0, "<=": (l) => l <= 0 };
-            return (T[b] || T[""])(h);
-          })((E = p, m = Ne(m = r), E = Ne(E), m.localeCompare(E, void 0, { numeric: !0 })), f || ">=");
+            return (T[m] || T[""])(v);
+          })((y = p, b = Ne(b = r), y = Ne(y), b.localeCompare(y, void 0, { numeric: !0 })), f || ">=");
         }))(s, o);
       })(e, n = Array.isArray(n) ? n : [n], this.swup)) {
         const a = `${e} ${n.join(", ")}`;
@@ -1011,7 +1011,7 @@ const Se = (t) => typeof t == "object" && t != null && t.nodeType === 1, Re = (t
 }, Nn = (t, e) => {
   var n, a, o, i;
   if (typeof document > "u") return [];
-  const { boundary: s, skipOverflowHiddenElements: r } = e, d = typeof s == "function" ? s : (I) => I !== s;
+  const { boundary: s, skipOverflowHiddenElements: r } = e, d = typeof s == "function" ? s : (h) => h !== s;
   if (!Se(t)) throw new TypeError("Invalid target");
   const c = document.scrollingElement || document.documentElement, f = [];
   let p = t;
@@ -1023,23 +1023,23 @@ const Se = (t) => typeof t == "object" && t != null && t.nodeType === 1, Re = (t
     p != null && p === document.body && ce(p) && !ce(document.documentElement) || p != null && ce(p, r) && f.push(p);
   }
   (a = (n = window.visualViewport) == null ? void 0 : n.width) != null || innerWidth, (i = (o = window.visualViewport) == null ? void 0 : o.height) != null || innerHeight;
-  const { scrollX: m, scrollY: E } = window, { height: h, width: b, top: T, right: l, bottom: y, left: w } = t.getBoundingClientRect(), { top: O, left: A } = ((I) => {
-    const u = window.getComputedStyle(I);
+  const { scrollX: b, scrollY: y } = window, { height: v, width: m, top: T, right: l, bottom: E, left: O } = t.getBoundingClientRect(), { top: I, left: N } = ((h) => {
+    const u = window.getComputedStyle(h);
     return { top: parseFloat(u.scrollMarginTop) || 0, right: parseFloat(u.scrollMarginRight) || 0, bottom: parseFloat(u.scrollMarginBottom) || 0, left: parseFloat(u.scrollMarginLeft) || 0 };
   })(t);
-  let k = T - O, N = w - A;
+  let _ = T - I, S = O - N;
   const g = [];
-  for (let I = 0; I < f.length; I++) {
-    const u = f[I], { height: v, width: M, top: C, right: L, bottom: S, left: x } = u.getBoundingClientRect(), P = getComputedStyle(u), z = parseInt(P.borderLeftWidth, 10), B = parseInt(P.borderTopWidth, 10), W = parseInt(P.borderRightWidth, 10), U = parseInt(P.borderBottomWidth, 10);
-    let R = 0, V = 0;
-    const $ = "offsetWidth" in u ? u.offsetWidth - u.clientWidth - z - W : 0, De = "offsetHeight" in u ? u.offsetHeight - u.clientHeight - B - U : 0, oe = "offsetWidth" in u ? u.offsetWidth === 0 ? 0 : M / u.offsetWidth : 0, se = "offsetHeight" in u ? u.offsetHeight === 0 ? 0 : v / u.offsetHeight : 0;
-    if (c === u) R = k, V = N, R = Math.max(0, R + E), V = Math.max(0, V + m);
+  for (let h = 0; h < f.length; h++) {
+    const u = f[h], { height: w, width: M, top: C, right: L, bottom: R, left: x } = u.getBoundingClientRect(), P = getComputedStyle(u), z = parseInt(P.borderLeftWidth, 10), B = parseInt(P.borderTopWidth, 10), W = parseInt(P.borderRightWidth, 10), U = parseInt(P.borderBottomWidth, 10);
+    let k = 0, V = 0;
+    const $ = "offsetWidth" in u ? u.offsetWidth - u.clientWidth - z - W : 0, De = "offsetHeight" in u ? u.offsetHeight - u.clientHeight - B - U : 0, oe = "offsetWidth" in u ? u.offsetWidth === 0 ? 0 : M / u.offsetWidth : 0, se = "offsetHeight" in u ? u.offsetHeight === 0 ? 0 : w / u.offsetHeight : 0;
+    if (c === u) k = _, V = S, k = Math.max(0, k + y), V = Math.max(0, V + b);
     else {
-      R = k - C - B, V = N - x - z;
+      k = _ - C - B, V = S - x - z;
       const { scrollLeft: Ie, scrollTop: ve } = u;
-      R = se === 0 ? 0 : Math.max(0, Math.min(ve + R / se, u.scrollHeight - v / se + De)), V = oe === 0 ? 0 : Math.max(0, Math.min(Ie + V / oe, u.scrollWidth - M / oe + $)), k += ve - R, N += Ie - V;
+      k = se === 0 ? 0 : Math.max(0, Math.min(ve + k / se, u.scrollHeight - w / se + De)), V = oe === 0 ? 0 : Math.max(0, Math.min(Ie + V / oe, u.scrollWidth - M / oe + $)), _ += ve - k, S += Ie - V;
     }
-    g.push({ el: u, top: R, left: V });
+    g.push({ el: u, top: k, left: V });
   }
   return g;
 };
@@ -4423,12 +4423,26 @@ function Pn(t, e = !1) {
 function Bn(t) {
   return [t?.querySelector(".main-picto") || t?.querySelector(".nav-link-sd"), t?.querySelector(".logo-nav")];
 }
-function jn(t, e) {
+function jn(t, e, n, a, o = window) {
+  if (!t || !e?.matches(".main-picto")) return;
+  let i = !1, s = !1;
+  const r = () => n(i || s);
+  e.addEventListener("pointerenter", (d) => {
+    d.pointerType === "touch" || !o.matchMedia("(hover: hover) and (pointer: fine)").matches || (i = !0, r());
+  }, { signal: a }), t.addEventListener("pointerleave", () => {
+    i = !1, r();
+  }, { signal: a }), t.addEventListener("focusin", () => {
+    s = !0, r();
+  }, { signal: a }), t.addEventListener("focusout", (d) => {
+    d.relatedTarget && t.contains(d.relatedTarget) || (s = !1, r());
+  }, { signal: a });
+}
+function Yn(t, e) {
   t?.querySelectorAll(".navbar-brand-three img.main-picto, .logo-mobile img.logo-nav").forEach((n) => {
     !n.matches(".main-picto") && !/sd-picto(?:-blue)?\.svg(?:[?#]|$)/i.test(n.getAttribute("src") || "") || (n.classList.add("is-env-nav-picto"), n.removeAttribute("srcset"), n.src = e);
   });
 }
-function Yn(t, e, n) {
+function zn(t, e, n) {
   if (t.matches(".main-picto")) return [
     { transform: "none", opacity: 1 },
     { transform: `translateX(${n ? 0 : -10}px)`, opacity: n ? 1 : 0 }
@@ -4439,7 +4453,7 @@ function Yn(t, e, n) {
     { transform: `translate(${a.left - o.left}px,${a.top + a.height / 2 - o.top - o.height / 2 + (n ? 0 : a.height * 1.2)}px)`, opacity: n ? 1 : 0 }
   ];
 }
-function zn(t = document) {
+function Dn(t = document) {
   if (t.querySelector("style[data-env-sd-mobile-nav]")) return;
   const e = t.createElement("style");
   e.dataset.envSdMobileNav = "", e.textContent = `.navbar-logo-center .btn-sd.nav{transition:color 400ms ease,background-color 400ms ease,border-color 400ms ease,transform 400ms cubic-bezier(.23,1,.32,1)}
@@ -4480,28 +4494,28 @@ function _e(t) {
   return a && e.append(a), e;
 }
 function Ae(t, e, n, { refreshRuntime: a = !1, gsapScripts: o, profiles: i = pe, inlineScripts: s = [], persistentContact: r = !1, auditedCores: d = [], runtimeCompatible: c = !1 } = {}) {
-  const f = [...t.scripts].map((l) => l.getAttribute("src")).filter((l) => l?.includes("/js/webflow.")), p = i[e], m = p || Object.values(i).find((l) => JSON.stringify(l.scripts) === JSON.stringify(f)) || (a ? pe["/home-sd"] : void 0);
-  if (!m || t.documentElement.getAttribute("data-wf-site") !== m.site || !t.documentElement.getAttribute("data-wf-page") || p && t.documentElement.getAttribute("data-wf-page") !== p.page) throw Error("Uncertified page");
-  const E = JSON.stringify(f) !== JSON.stringify(m.scripts);
-  if (E && !a) throw Error("Webflow export changed; rebuild SD snapshots");
-  const h = [...Object.values(i).map((l) => l.scripts.slice(0, 2)), ...d].some((l) => l.length === 2 && l.every((y) => f.includes(y)));
-  if (E && !h) {
-    const l = f.slice(0, 2), y = l.length === 2 && l.every((w) => {
+  const f = [...t.scripts].map((l) => l.getAttribute("src")).filter((l) => l?.includes("/js/webflow.")), p = i[e], b = p || Object.values(i).find((l) => JSON.stringify(l.scripts) === JSON.stringify(f)) || (a ? pe["/home-sd"] : void 0);
+  if (!b || t.documentElement.getAttribute("data-wf-site") !== b.site || !t.documentElement.getAttribute("data-wf-page") || p && t.documentElement.getAttribute("data-wf-page") !== p.page) throw Error("Uncertified page");
+  const y = JSON.stringify(f) !== JSON.stringify(b.scripts);
+  if (y && !a) throw Error("Webflow export changed; rebuild SD snapshots");
+  const v = [...Object.values(i).map((l) => l.scripts.slice(0, 2)), ...d].some((l) => l.length === 2 && l.every((E) => f.includes(E)));
+  if (y && !v) {
+    const l = f.slice(0, 2), E = l.length === 2 && l.every((O) => {
       try {
-        const O = new URL(w);
-        return O.origin === "https://cdn.prod.website-files.com" && O.pathname.startsWith(`/${m.site}/js/webflow.schunk.`) && /\.[a-f0-9]{16}\.js$/.test(O.pathname) && !O.search && !O.hash && !O.username && !O.password;
+        const I = new URL(O);
+        return I.origin === "https://cdn.prod.website-files.com" && I.pathname.startsWith(`/${b.site}/js/webflow.schunk.`) && /\.[a-f0-9]{16}\.js$/.test(I.pathname) && !I.search && !I.hash && !I.username && !I.password;
       } catch {
         return !1;
       }
     });
-    if (!c || !y) throw Error("Webflow shared core changed");
+    if (!c || !E) throw Error("Webflow shared core changed");
   }
-  const b = f.find((l) => /\/js\/webflow\.(?![sa]chunk\.)[^/]+\.js$/.test(l));
-  if (E && !b) throw Error("Missing Webflow data bootstrap");
+  const m = f.find((l) => /\/js\/webflow\.(?![sa]chunk\.)[^/]+\.js$/.test(l));
+  if (y && !m) throw Error("Missing Webflow data bootstrap");
   if (o && [...t.scripts].map((l) => l.src).filter((l) => l.includes("/gsap/")).some((l) => !o.includes(l))) throw Error("New GSAP dependency requires native navigation");
   if (!t.querySelector(".navbar-logo-center") || !t.querySelector("body > main.main-wrapper, #env-sd-page > main.main-wrapper")) throw Error("Page needs the shared SD menu and main wrapper");
   const T = [...t.querySelectorAll('link[rel="stylesheet"]')].map((l) => l.getAttribute("href"));
-  if (!(n || m.sheets).every((l) => T.includes(l)) || n && T.length !== n.length) throw Error("Stylesheets changed");
+  if (!(n || b.sheets).every((l) => T.includes(l)) || n && T.length !== n.length) throw Error("Stylesheets changed");
   for (const l of t.scripts) {
     if (/env-motion-engine@.*\/dist\/env\.js/.test(l.src)) throw Error("Remove the legacy env.js loader on pilot routes");
     if (/const brand =/.test(l.textContent) && !/ENV SD/.test(l.textContent)) throw Error("Remove the legacy brand initializer on pilot routes");
@@ -4509,9 +4523,9 @@ function Ae(t, e, n, { refreshRuntime: a = !1, gsapScripts: o, profiles: i = pe,
       throw Error("Additional inline script needs an adapter");
   }
   if (t.querySelector('[data-animation-type="spline"]') || [...t.querySelectorAll(".w-form")].some((l) => !r || !l.closest(".navbar-logo-center .contact-modal-bloc"))) throw Error("Unsupported page widget");
-  return a ? { ...m, runtimeChanged: E, bootstrap: b, dataScripts: f.slice(2) } : m;
+  return a ? { ...b, runtimeChanged: y, bootstrap: m, dataScripts: f.slice(2) } : b;
 }
-function Dn(t, e) {
+function Qn(t, e) {
   const n = t.querySelector(".navbar-logo-center .link-box.mobile"), a = e.querySelector(".navbar-logo-center .link-box.mobile");
   if (n && a) {
     const o = n.querySelector(".dot-link"), i = a.querySelector(".dot-link");
@@ -4523,7 +4537,7 @@ function Dn(t, e) {
     s.forEach((d, c) => d.classList.toggle(i, r[c].classList.contains(i)));
   }
 }
-function Qn(t, e) {
+function Xn(t, e) {
   for (const n of [".navbar-brand-three", ".logo-mobile", ".menu-modal"]) {
     const a = t.querySelector(`.navbar-logo-center ${n}`), o = e.querySelector(`.navbar-logo-center ${n}`);
     if (!a && !o) continue;
@@ -4545,7 +4559,7 @@ function Qn(t, e) {
     });
   }
 }
-const be = { ...pe, ...Mn }, Xn = { profiles: be, inlineScripts: xn, persistentContact: !0, auditedCores: Cn }, Ee = document.createElement("style");
+const be = { ...pe, ...Mn }, Hn = { profiles: be, inlineScripts: xn, persistentContact: !0, auditedCores: Cn }, Ee = document.createElement("style");
 Ee.dataset.envAlternativeRevealGate = "";
 Ee.textContent = '.navbar-logo-center [data-modal="contact"]{pointer-events:auto!important}#env-sd-page[data-env-alt-reveal-wait] :is([data-env-reveal],[data-env-text]):not([data-env-ignore]):not([data-env-ignore] *):not(.w-slider *):not(.swiper-initialized *){visibility:hidden!important}';
 document.head.append(Ee);
@@ -4560,7 +4574,7 @@ Te.textContent = `
 document.head.append(Te);
 const ie = new URL(import.meta.url);
 ie.pathname = ie.pathname.replace(/[^/]*$/, "");
-const Hn = () => location.pathname.replace(/\/$/, "") || "/", F = matchMedia("(prefers-reduced-motion: reduce)"), Fn = () => document.querySelector("main.main-wrapper");
+const Fn = () => location.pathname.replace(/\/$/, "") || "/", F = matchMedia("(prefers-reduced-motion: reduce)"), qn = () => document.querySelector("main.main-wrapper");
 let me = () => {
 }, te, q, ee, ge = [];
 const Me = /* @__PURE__ */ new Set(), ae = () => {
@@ -4580,10 +4594,10 @@ function j(t, e = !1) {
     }, o.dataset.envSdModule = t, document.head.append(o);
   });
 }
-function qn(t) {
+function Wn(t) {
   const e = Fe();
   try {
-    Dn(document, t), Qn(document, t);
+    Qn(document, t), Xn(document, t);
     const n = [...document.querySelectorAll(".navbar-logo-center a[href]")], a = [...t.querySelectorAll(".navbar-logo-center a[href]")];
     n.forEach((i, s) => {
       a[s] && i.setAttribute("href", a[s].getAttribute("href"));
@@ -4605,37 +4619,42 @@ function qn(t) {
 function Ye() {
   me();
   const t = document.querySelector(".navbar-logo-center"), e = t?.querySelector(".navbar-brand-three");
-  jn(t, new URL("sd-picto-blue.svg", ie).href);
+  Yn(t, new URL("sd-picto-blue.svg", ie).href);
   const [n, a] = Bn(e);
   if (!t) return;
-  zn();
+  Dn();
   const o = new AbortController();
-  let i, s = [], r = !1;
-  function d(f = !1) {
-    const p = Pn(window.scrollY, i);
-    if (t.classList.toggle("is-past-hero", p), !f && p === i) return;
-    const m = i === void 0;
-    if (i = p, !n || !a || !n.getClientRects().length) {
-      s.forEach((l) => l.cancel()), s = [];
+  let i, s, r = !1, d = [], c = !1;
+  function f(b = !1) {
+    const y = Pn(window.scrollY, i);
+    t.classList.toggle("is-past-hero", y), i = y;
+    const v = y || r;
+    if (!b && v === s) return;
+    const m = s === void 0;
+    if (s = v, !n || !a || !n.getClientRects().length) {
+      d.forEach((I) => I.cancel()), d = [];
       return;
     }
-    const E = [n, a], h = E.map((l) => ({ transform: getComputedStyle(l).transform, opacity: getComputedStyle(l).opacity }));
-    s.forEach((l) => l.cancel());
-    const b = E.map((l) => l.style.transform);
-    E.forEach((l) => l.style.transform = "none");
-    const T = Yn(n, a, p);
-    E.forEach((l, y) => l.style.transform = b[y]), s = E.map((l, y) => l.animate([h[y], T[y]], { duration: m || F.matches ? 0 : 550, easing: "cubic-bezier(.22,1,.36,1)", fill: "forwards" }));
+    const T = [n, a], l = T.map((I) => ({ transform: getComputedStyle(I).transform, opacity: getComputedStyle(I).opacity }));
+    d.forEach((I) => I.cancel());
+    const E = T.map((I) => I.style.transform);
+    T.forEach((I) => I.style.transform = "none");
+    const O = zn(n, a, v);
+    T.forEach((I, N) => I.style.transform = E[N]), d = T.map((I, N) => I.animate([l[N], O[N]], { duration: m || F.matches ? 0 : 550, easing: "cubic-bezier(.22,1,.36,1)", fill: "forwards" }));
   }
-  function c() {
-    r || (r = !0, requestAnimationFrame(() => {
-      r = !1, d();
+  jn(e, n, (b) => {
+    r = b, f();
+  }, o.signal);
+  function p() {
+    c || (c = !0, requestAnimationFrame(() => {
+      c = !1, f();
     }));
   }
-  addEventListener("scroll", c, { passive: !0, signal: o.signal }), addEventListener("resize", () => d(!0), { signal: o.signal }), [n, a].forEach((f) => f?.addEventListener("load", () => d(!0), { signal: o.signal })), d(), document.querySelectorAll(".navbar-logo-center a[href]").forEach((f) => {
-    const p = new URL(f.href), m = p.origin === location.origin && p.pathname === location.pathname && !p.hash;
-    f.classList.toggle("w--current", m), m ? f.setAttribute("aria-current", "page") : f.removeAttribute("aria-current");
+  addEventListener("scroll", p, { passive: !0, signal: o.signal }), addEventListener("resize", () => f(!0), { signal: o.signal }), [n, a].forEach((b) => b?.addEventListener("load", () => f(!0), { signal: o.signal })), f(), document.querySelectorAll(".navbar-logo-center a[href]").forEach((b) => {
+    const y = new URL(b.href), v = y.origin === location.origin && y.pathname === location.pathname && !y.hash;
+    b.classList.toggle("w--current", v), v ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current");
   }), me = () => {
-    o.abort(), s.forEach((f) => f.cancel());
+    o.abort(), d.forEach((b) => b.cancel());
   };
 }
 async function ze() {
@@ -4665,7 +4684,7 @@ async function xe({ deferReveals: t = !1 } = {}) {
     n.some((a) => a.isIntersecting) && (te.disconnect(), j("news.js", !0).catch(console.error));
   }, { rootMargin: "600px" }), e.forEach((n) => te.observe(n)));
 }
-function Wn() {
+function $n() {
   window.ENVHeroShape?.destroy(), window.ENVOrganicBlob?.destroy(), window.ENVCTABlob?.destroy(), ge.forEach((e) => {
     e.scrollTrigger?.kill(), e.kill();
   }), ge = [], window.ScrollTrigger?.getAll().filter((e) => e.trigger?.matches?.("#env-sd-page .section.mask")).forEach((e) => e.kill()), me(), te?.disconnect(), document.querySelector(".hero-wrapper")?.__envHeroCleanup?.(), window.ENVAnimations?.destroy(), window.ENVNews?.destroy(), window.ENVNewsMarquee?.destroy();
@@ -4676,7 +4695,7 @@ async function Ce(t, e, n, a) {
   F.matches || (q = t.animate([{ opacity: e }, { opacity: n }], { duration: a, easing: "ease", fill: "forwards" }), await q.finished.catch(() => {
   }));
 }
-async function $n() {
+async function Kn() {
   if (window.ENVSD) {
     ae();
     return;
@@ -4684,105 +4703,105 @@ async function $n() {
   if (!window.ENVVideos?.stage || !window.ENVVideos?.release) throw Error("Install the matching SD head block before enabling navigation");
   const t = We(), e = window.ENVSDTransition === "mask";
   document.documentElement.dataset.envTransitionMode = e ? "mask" : "classic";
-  const n = window.Webflow, a = await Gn(n), { ix2: o, ix3: i } = a, s = { ...Xn, runtimeCompatible: a.compatible };
+  const n = window.Webflow, a = await Gn(n), { ix2: o, ix3: i } = a, s = { ...Hn, runtimeCompatible: a.compatible };
   let r;
-  const d = [...document.querySelectorAll('link[rel="stylesheet"]')].map((l) => l.getAttribute("href")), c = [...document.scripts].map((l) => l.src).filter((l) => l.includes("/gsap/")), f = Ae(document, Hn(), d, { refreshRuntime: !0, gsapScripts: c, ...s });
+  const d = [...document.querySelectorAll('link[rel="stylesheet"]')].map((l) => l.getAttribute("href")), c = [...document.scripts].map((l) => l.src).filter((l) => l.includes("/gsap/")), f = Ae(document, Fn(), d, { refreshRuntime: !0, gsapScripts: c, ...s });
   let p;
-  const m = async (l) => !l.runtimeChanged && !l.currentExport ? An : (p ||= import("./runtime-config-Dr6I2voi.js"), (await p).runtimeConfig(l.dataScripts || l.bootstrap, l.site)), E = (l) => {
-    const y = [...l.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["']/gi)].map((O) => O[1]), w = y.find((O) => /\/js\/webflow\.(?![sa]chunk\.)[^/]+\.js$/.test(O));
-    if (!(!w || Object.values(be).some((O) => !O.currentExport && O.scripts.includes(w))))
-      return m({ runtimeChanged: !0, bootstrap: w, dataScripts: y.filter((O) => O.includes("/js/webflow.")).slice(2), site: f.site });
-  }, h = async () => {
+  const b = async (l) => !l.runtimeChanged && !l.currentExport ? An : (p ||= import("./runtime-config-Dr6I2voi.js"), (await p).runtimeConfig(l.dataScripts || l.bootstrap, l.site)), y = (l) => {
+    const E = [...l.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["']/gi)].map((I) => I[1]), O = E.find((I) => /\/js\/webflow\.(?![sa]chunk\.)[^/]+\.js$/.test(I));
+    if (!(!O || Object.values(be).some((I) => !I.currentExport && I.scripts.includes(O))))
+      return b({ runtimeChanged: !0, bootstrap: O, dataScripts: E.filter((I) => I.includes("/js/webflow.")).slice(2), site: f.site });
+  }, v = async () => {
     if (n.require("slider")?.ready) return;
     const l = f.slider || be["/home-sd"].slider;
     await j(l.script);
-    let y = !1;
-    if (window.webpackChunk.push([[`env-sd-slider-${Date.now()}`], {}, (w) => {
-      w(l.factory), y = !0;
-    }]), !y || !n.require("slider")?.ready) throw Error("Audited slider factory unavailable");
+    let E = !1;
+    if (window.webpackChunk.push([[`env-sd-slider-${Date.now()}`], {}, (O) => {
+      O(l.factory), E = !0;
+    }]), !E || !n.require("slider")?.ready) throw Error("Audited slider factory unavailable");
   };
   r = a.native, _e(document), ee = e ? null : wn(), document.head.querySelectorAll("style").forEach((l) => {
     f.styles.includes(l.textContent) && (l.dataset.envSdPageStyle = "");
   }), await window.ENVSDLoader?.prepare?.(), await xe(), document.querySelector(".navbar-logo-center")?.setAttribute("data-env-ignore", "");
-  const b = new vn({
+  const m = new vn({
     containers: ["#env-sd-page"],
     animationSelector: !1,
     cache: window.ENVSDPreload === !0,
     plugins: [new Sn({ animateScroll: { betweenPages: !1, samePageWithHash: !F.matches, samePage: !F.matches } })],
     linkSelector: "a[href]:not([download]):not([target]):not([data-no-swup])",
-    ignoreVisit: (l, { el: y } = {}) => {
-      const w = new URL(l, location.href);
-      return w.origin !== location.origin || /\.(?:pdf|zip|png|jpe?g|webp|svg|mp4|webm|css|js)$/i.test(w.pathname) || !!y?.closest("[data-no-swup]");
+    ignoreVisit: (l, { el: E } = {}) => {
+      const O = new URL(l, location.href);
+      return O.origin !== location.origin || /\.(?:pdf|zip|png|jpe?g|webp|svg|mp4|webm|css|js)$/i.test(O.pathname) || !!E?.closest("[data-no-swup]");
     }
   });
-  window.ENVSD = { swup: b, status: "ready" }, window.ENVSDPreload === !0 && (window.ENVSD.stopPreload = hn(b, { warmPage: E }), m(f).catch(() => {
-  })), document.documentElement.setAttribute("data-env-sd-document", crypto.randomUUID()), b.replaceContent = (l) => {
-    const y = document.querySelector("#env-sd-page"), w = l.to.document?.querySelector("#env-sd-page");
-    return !y || !w ? !1 : (window.ENVVideos?.stage(w), y.replaceWith(w), document.title = l.to.document.querySelector("title")?.textContent || "", !0);
-  }, b.hooks.before("visit:start", (l) => {
+  window.ENVSD = { swup: m, status: "ready" }, window.ENVSDPreload === !0 && (window.ENVSD.stopPreload = hn(m, { warmPage: y }), b(f).catch(() => {
+  })), document.documentElement.setAttribute("data-env-sd-document", crypto.randomUUID()), m.replaceContent = (l) => {
+    const E = document.querySelector("#env-sd-page"), O = l.to.document?.querySelector("#env-sd-page");
+    return !E || !O ? !1 : (window.ENVVideos?.stage(O), E.replaceWith(O), document.title = l.to.document.querySelector("title")?.textContent || "", !0);
+  }, m.hooks.before("visit:start", (l) => {
     e && l.animation.animate && t.capture();
-  }), b.hooks.replace("animation:out:await", async () => {
+  }), m.hooks.replace("animation:out:await", async () => {
     e || await Ce(document.querySelector("#env-sd-page"), 1, 0, 200);
-  }), b.hooks.replace("content:replace", async (l, y, w) => {
-    const O = l.to.document;
-    if (!O || !w) throw Error("Missing incoming page");
-    const A = Ae(O, new URL(l.to.url, location.href).pathname, d, { refreshRuntime: !0, gsapScripts: c, ...s }), k = await m(A);
-    if (O.querySelectorAll(".navbar-logo-center a[href]").length !== document.querySelectorAll(".navbar-logo-center a[href]").length) throw Error("Menu structure changed");
-    const N = _e(O);
-    if (N.classList.add("env-sd-pending"), e && N.setAttribute("data-env-alt-reveal-wait", ""), N.querySelector(".w-slider") && !n.require("slider")?.ready) {
-      await h();
-      const I = n.require("slider");
-      r.includes(I) || r.push(I);
+  }), m.hooks.replace("content:replace", async (l, E, O) => {
+    const I = l.to.document;
+    if (!I || !O) throw Error("Missing incoming page");
+    const N = Ae(I, new URL(l.to.url, location.href).pathname, d, { refreshRuntime: !0, gsapScripts: c, ...s }), _ = await b(N);
+    if (I.querySelectorAll(".navbar-logo-center a[href]").length !== document.querySelectorAll(".navbar-logo-center a[href]").length) throw Error("Menu structure changed");
+    const S = _e(I);
+    if (S.classList.add("env-sd-pending"), e && S.setAttribute("data-env-alt-reveal-wait", ""), S.querySelector(".w-slider") && !n.require("slider")?.ready) {
+      await v();
+      const h = n.require("slider");
+      r.includes(h) || r.push(h);
     }
-    window.lenis?.stop(), Wn(), r.forEach((I) => I.destroy?.()), o.destroy(), i.destroy(), q?.cancel(), await w(l, y), qn(O), ee?.prepare(), D(l), await new Promise((I) => requestAnimationFrame(I)), D(l), e && t.prepare(document.querySelector("#env-sd-page")), r.forEach((I) => I.ready?.()), o.init(k.ix2), await Promise.race([i.ready(), je(4e3).then(() => {
+    window.lenis?.stop(), $n(), r.forEach((h) => h.destroy?.()), o.destroy(), i.destroy(), q?.cancel(), await O(l, E), Wn(I), ee?.prepare(), D(l), await new Promise((h) => requestAnimationFrame(h)), D(l), e && t.prepare(document.querySelector("#env-sd-page")), r.forEach((h) => h.ready?.()), o.init(_.ix2), await Promise.race([i.ready(), je(4e3).then(() => {
       throw Error("Webflow interaction restart timeout");
     })]);
     const g = i.getInstance();
     if (!g) throw Error("Webflow interactions did not restart");
-    g.setFeatures({ timelineGroups: !1 }), g.register(k.interactions, k.timelines), document.documentElement.classList.add("w-mod-ix3");
-  }), b.hooks.replace("animation:in:await", async (l) => {
+    g.setFeatures({ timelineGroups: !1 }), g.register(_.interactions, _.timelines), document.documentElement.classList.add("w-mod-ix3");
+  }), m.hooks.replace("animation:in:await", async (l) => {
     D(l);
-    const y = document.querySelector("#env-sd-page");
+    const E = document.querySelector("#env-sd-page");
     if (e) {
-      await t.reveal(y);
+      await t.reveal(E);
       try {
         await ze();
       } finally {
-        y.removeAttribute("data-env-alt-reveal-wait"), window.lenis?.start();
+        E.removeAttribute("data-env-alt-reveal-wait"), window.lenis?.start();
       }
     } else
-      await Ce(y, 0, 1, 350), q?.cancel();
-  }), b.hooks.on("page:view", async (l) => {
+      await Ce(E, 0, 1, 350), q?.cancel();
+  }), m.hooks.on("page:view", async (l) => {
     try {
-      await new Promise((w) => requestAnimationFrame(w)), D(l), await He({ visit: l, useMask: e, transition: t, root: document.querySelector("#env-sd-page"), lenis: window.lenis, mount: xe }), window.ScrollTrigger?.refresh(), D(l), document.querySelector("#env-sd-page")?.classList.remove("env-sd-pending"), ee?.commit(), !["localhost", "127.0.0.1"].includes(location.hostname) && typeof window.gtag == "function" && window.gtag("event", "page_view", { page_title: document.title, page_location: location.href });
-      const y = Fn();
-      if (y) {
-        const w = y.getAttribute("tabindex");
-        y.setAttribute("tabindex", "-1"), y.focus({ preventScroll: !0 }), w === null ? y.removeAttribute("tabindex") : y.setAttribute("tabindex", w);
+      await new Promise((O) => requestAnimationFrame(O)), D(l), await He({ visit: l, useMask: e, transition: t, root: document.querySelector("#env-sd-page"), lenis: window.lenis, mount: xe }), window.ScrollTrigger?.refresh(), D(l), document.querySelector("#env-sd-page")?.classList.remove("env-sd-pending"), ee?.commit(), !["localhost", "127.0.0.1"].includes(location.hostname) && typeof window.gtag == "function" && window.gtag("event", "page_view", { page_title: document.title, page_location: location.href });
+      const E = qn();
+      if (E) {
+        const O = E.getAttribute("tabindex");
+        E.setAttribute("tabindex", "-1"), E.focus({ preventScroll: !0 }), O === null ? E.removeAttribute("tabindex") : E.setAttribute("tabindex", O);
       }
-    } catch (y) {
-      document.querySelector("#env-sd-page")?.classList.remove("env-sd-pending"), console.error("[ENV SD] Page initialization failed; native fallback", y), window.location.assign(l.to.url);
+    } catch (E) {
+      document.querySelector("#env-sd-page")?.classList.remove("env-sd-pending"), console.error("[ENV SD] Page initialization failed; native fallback", E), window.location.assign(l.to.url);
     }
   });
   const T = () => {
     document.querySelector("#env-sd-page")?.removeAttribute("data-env-alt-reveal-wait"), t.cleanup(), ee?.refresh(), ae(), window.lenis?.start(), q?.cancel(), document.querySelector("#env-sd-page")?.classList.remove("env-sd-pending");
   };
-  b.hooks.on("visit:fail", T), b.hooks.on("visit:abort", T), ae(), (async () => {
+  m.hooks.on("visit:fail", T), m.hooks.on("visit:abort", T), ae(), (async () => {
     if (!window.lenis && !F.matches)
       try {
-        await j("https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js"), window.lenis = new window.Lenis({ duration: 1.2, smoothWheel: !0, easing: (l) => Math.min(1, 1.001 - Math.pow(2, -10 * l)) }), requestAnimationFrame(function l(y) {
-          window.lenis?.raf(y), requestAnimationFrame(l);
+        await j("https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js"), window.lenis = new window.Lenis({ duration: 1.2, smoothWheel: !0, easing: (l) => Math.min(1, 1.001 - Math.pow(2, -10 * l)) }), requestAnimationFrame(function l(E) {
+          window.lenis?.raf(E), requestAnimationFrame(l);
         });
       } catch (l) {
         console.warn("[ENV SD] Native scroll retained", l);
       }
   })();
 }
-const Kn = () => $n().catch((t) => {
+const Zn = () => Kn().catch((t) => {
   console.error("[ENV SD] Native navigation retained", t), Un(() => j("env.js"), () => {
     [...document.scripts].some((e) => /const brand =/.test(e.textContent) && !/ENV SD/.test(e.textContent)) || Ye();
   }).catch((e) => console.error("[ENV SD] Widget fallback failed", e)).finally(ae);
 });
 window.Webflow = window.Webflow || [];
-window.Webflow.push(Kn);
+window.Webflow.push(Zn);
 //# sourceMappingURL=sd-navigation-alternative.js.map

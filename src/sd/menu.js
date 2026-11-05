@@ -5,6 +5,22 @@ export function menuHasScrolled(scroll, previous = false) {
 export function menuBrandElements(brand) {
   return [brand?.querySelector('.main-picto') || brand?.querySelector('.nav-link-sd'), brand?.querySelector('.logo-nav')];
 }
+// Enter through the visible picto, then keep the reveal while crossing the letters.
+export function bindMenuBrandPreview(brand, picto, change, signal, win = window) {
+  if (!brand || !picto?.matches('.main-picto')) return;
+  let hover = false, focus = false;
+  const emit = () => change(hover || focus);
+  picto.addEventListener('pointerenter', event => {
+    if (event.pointerType === 'touch' || !win.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    hover = true; emit();
+  }, { signal });
+  brand.addEventListener('pointerleave', () => { hover = false; emit(); }, { signal });
+  brand.addEventListener('focusin', () => { focus = true; emit(); }, { signal });
+  brand.addEventListener('focusout', event => {
+    if (event.relatedTarget && brand.contains(event.relatedTarget)) return;
+    focus = false; emit();
+  }, { signal });
+}
 export function prepareMenuPictoImages(nav, darkSrc) {
   nav?.querySelectorAll('.navbar-brand-three img.main-picto, .logo-mobile img.logo-nav').forEach(image => {
     if (!image.matches('.main-picto') && !/sd-picto(?:-blue)?\.svg(?:[?#]|$)/i.test(image.getAttribute('src') || '')) return;

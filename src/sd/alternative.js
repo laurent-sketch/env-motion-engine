@@ -17,7 +17,7 @@ const routes = { ...legacyRoutes, ...testRoutes };
 const validation = { profiles: routes, inlineScripts: testInline, persistentContact: true, auditedCores };
 import { runFallback } from './boot.js';
 import { waitForWebflowRuntime } from './webflow-runtime.js';
-import { installMobileMenuStyles, menuHasScrolled, menuBrandElements, menuBrandFrames, prepareMenuPictoImages } from './menu.js';
+import { installMobileMenuStyles, menuHasScrolled, menuBrandElements, menuBrandFrames, prepareMenuPictoImages, bindMenuBrandPreview } from './menu.js';
 import { wrap, validate, syncMenuVariants, syncMenuImages } from './layout.js';
 
 // Keep authored reveal targets hidden until the page mask has cleared.
@@ -89,12 +89,14 @@ function menu() {
   if (!nav) return;
   installMobileMenuStyles();
   const abort = new AbortController();
-  let state, animations = [], pending = false;
+  let state, shown, preview = false, animations = [], pending = false;
   function update(force = false) {
     const show = menuHasScrolled(window.scrollY, state);
     nav.classList.toggle('is-past-hero', show);
-    if (!force && show === state) return;
-    const initial = state === undefined; state = show;
+    state = show;
+    const visible = show || preview;
+    if (!force && visible === shown) return;
+    const initial = shown === undefined; shown = visible;
     if (!text || !logo || !text.getClientRects().length) {
       animations.forEach(a => a.cancel()); animations = []; return;
     }
@@ -103,10 +105,11 @@ function menu() {
     animations.forEach(a => a.cancel());
     const before = elements.map(el => el.style.transform);
     elements.forEach(el => el.style.transform = 'none');
-    const ends = menuBrandFrames(text, logo, show);
+    const ends = menuBrandFrames(text, logo, visible);
     elements.forEach((el, i) => el.style.transform = before[i]);
     animations = elements.map((el, i) => el.animate([starts[i], ends[i]], { duration: initial || reduced.matches ? 0 : 550, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'forwards' }));
   }
+  bindMenuBrandPreview(brand, text, value => { preview = value; update(); }, abort.signal);
   function schedule() { if (pending) return; pending = true; requestAnimationFrame(() => { pending = false; update(); }); }
   addEventListener('scroll', schedule, { passive: true, signal: abort.signal });
   addEventListener('resize', () => update(true), { signal: abort.signal });

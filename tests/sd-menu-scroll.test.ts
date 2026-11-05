@@ -1,5 +1,5 @@
-import { expect, it } from 'vitest';
-import { menuHasScrolled, menuBrandElements, menuBrandFrames, installMobileMenuStyles, prepareMenuPictoImages } from '../src/sd/menu.js';
+import { expect, it, vi } from 'vitest';
+import { menuHasScrolled, menuBrandElements, menuBrandFrames, installMobileMenuStyles, prepareMenuPictoImages, bindMenuBrandPreview } from '../src/sd/menu.js';
 it('activates the menu near the top and avoids flicker on small scroll reversals', () => {
   let active = false;
   const values = [0, 7, 9, 6, 3, 2, 5, 9, 0, -15];
@@ -59,4 +59,33 @@ it('colors the single mobile picto without replacing unrelated mobile wordmarks'
   expect(mobile.getAttribute('src')).toBe('https://cdn.example.com/SD.svg');
   expect(mobile.classList.contains('is-env-nav-picto')).toBe(false);
   document.body.innerHTML='';
+});
+
+it('previews the wordmark from the picto, keeps it across the brand and cleans listeners', () => {
+  document.body.innerHTML = '<a class="navbar-brand-three"><img class="main-picto"><img class="logo-nav"></a>';
+  const brand = document.querySelector('a')!, picto = brand.querySelector('.main-picto')!;
+  const change = vi.fn(), controller = new AbortController();
+  bindMenuBrandPreview(brand, picto, change, controller.signal, { matchMedia: () => ({ matches: true }) } as any);
+  brand.dispatchEvent(new Event('pointerenter'));
+  expect(change).not.toHaveBeenCalled();
+  picto.dispatchEvent(new Event('pointerenter'));
+  expect(change).toHaveBeenLastCalledWith(true);
+  brand.dispatchEvent(new FocusEvent('focusin'));
+  brand.dispatchEvent(new Event('pointerleave'));
+  expect(change).toHaveBeenLastCalledWith(true);
+  brand.dispatchEvent(new FocusEvent('focusout'));
+  expect(change).toHaveBeenLastCalledWith(false);
+  controller.abort(); change.mockClear();
+  picto.dispatchEvent(new Event('pointerenter'));
+  expect(change).not.toHaveBeenCalled();
+  document.body.innerHTML = '';
+});
+
+it('does not turn touch taps into a sticky hover preview', () => {
+  document.body.innerHTML = '<a><img class="main-picto"></a>';
+  const picto = document.querySelector('img')!, change = vi.fn(), controller = new AbortController();
+  bindMenuBrandPreview(document.querySelector('a'), picto, change, controller.signal, { matchMedia: () => ({ matches: true }) } as any);
+  const touch = new Event('pointerenter'); Object.defineProperty(touch, 'pointerType', { value: 'touch' });
+  picto.dispatchEvent(touch);
+  expect(change).not.toHaveBeenCalled(); controller.abort(); document.body.innerHTML = '';
 });
