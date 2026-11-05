@@ -236,9 +236,13 @@ async function start() {
     document.title = visit.to.document.querySelector('title')?.textContent || '';
     return true;
   };
+  // Capture before Swup's scroll/class hooks can change the outgoing page.
+  // In-page anchors never start a visit and retain their ordinary smooth scroll.
+  swup.hooks.before('visit:start', visit => {
+    if (useMask && visit.animation.animate) transition.capture();
+  });
   swup.hooks.replace('animation:out:await', async () => {
-    if (useMask) transition.capture();
-    else await fade(document.querySelector('#env-sd-page'), 1, 0, 200);
+    if (!useMask) await fade(document.querySelector('#env-sd-page'), 1, 0, 200);
   });
   swup.hooks.replace('content:replace', async (visit, args, replace) => {
     const doc = visit.to.document;

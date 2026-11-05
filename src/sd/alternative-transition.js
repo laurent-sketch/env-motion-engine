@@ -1,12 +1,47 @@
+// Pause only the outgoing page: menu and transition animations remain independent.
+export function freezePageMotion(root, win = window) {
+  const browserAnimations = (root.getAnimations?.({ subtree: true }) || [])
+    .filter(animation => animation.playState === 'running');
+  browserAnimations.forEach(animation => animation.pause());
+  const triggers = (win.ScrollTrigger?.getAll() || []).filter(trigger =>
+    trigger.enabled !== false && trigger.trigger && root.contains(trigger.trigger));
+  const tweens = new Set(win.gsap?.getTweensOf([root, ...root.querySelectorAll('*')]) || []);
+  triggers.forEach(trigger => {
+    if (trigger.animation) tweens.add(trigger.animation);
+    const scrub = trigger.getTween?.();
+    if (scrub) tweens.add(scrub);
+  });
+  const playing = [...tweens].filter(tween => !tween.paused());
+  // Read pause states before disabling: ScrollTrigger can pause its scrub tween.
+  // Never revert transforms or pin positions when navigation starts.
+  triggers.forEach(trigger => trigger.disable(false, false));
+  playing.forEach(tween => tween.pause());
+  const lenis = win.lenis;
+  const resumeScroll = lenis && !lenis.isStopped;
+  if (resumeScroll) lenis.stop();
+  return () => {
+    // A failed/aborted visit restores the same page. Removed pages stay stopped.
+    if (!root.isConnected) return;
+    const current = win.ScrollTrigger?.getAll() || [];
+    triggers.forEach(trigger => { if (current.includes(trigger)) trigger.enable(false, false); });
+    playing.forEach(tween => tween.resume());
+    browserAnimations.forEach(animation => {
+      if (animation.playState === 'paused') animation.play();
+    });
+    if (resumeScroll) lenis.start();
+  };
+}
+
 // Temporary visual experiment. Keeps the stable navigation entry unchanged.
 export function createAlternativeTransition({ doc = document, win = window } = {}) {
-  let overlay, shade, incoming, originalStyle, animations = [], generation = 0;
+  let overlay, shade, incoming, originalStyle, releaseMotion, animations = [], generation = 0;
   const reduced = () => win.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const blockScroll = event => event.preventDefault();
   function cleanup() {
     generation++;
     animations.forEach(animation => animation.cancel()); animations = [];
     overlay?.remove(); overlay = null; shade = null;
+    releaseMotion?.(); releaseMotion = null;
     if (incoming) {
       if (originalStyle === null) incoming.removeAttribute('style');
       else incoming.setAttribute('style', originalStyle);
@@ -20,6 +55,7 @@ export function createAlternativeTransition({ doc = document, win = window } = {
     cleanup();
     const root = doc.querySelector('#env-sd-page');
     if (!root || reduced()) return;
+    releaseMotion = freezePageMotion(root, win);
     const copy = root.cloneNode(true);
     // Destination sheets, page IDs and native slider reinitialization must not
     // change the outgoing visual. Resolve its styles before sanitizing IDs.

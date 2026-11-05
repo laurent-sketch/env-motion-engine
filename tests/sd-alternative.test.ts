@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from 'vitest';
-import { createAlternativeTransition } from '../src/sd/alternative-transition.js';
+import { createAlternativeTransition, freezePageMotion } from '../src/sd/alternative-transition.js';
 afterEach(() => { document.body.innerHTML = ''; vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 function fixture(reduced = false) {
   document.body.innerHTML = '<nav id="menu"></nav><div id="env-sd-page"><main class="main-wrapper"><h1 id="title" data-env-reveal="fade-up">Work</h1><script>example()</script></main></div>';
@@ -158,4 +158,47 @@ it('isolates Work parallax cards while preserving their captured transforms', ()
   expect(cards[1].style.transform).toContain('4px');
   expect(document.querySelectorAll('#env-sd-page .project-item.work')).toHaveLength(2);
   runtime.cleanup();
+});
+
+it('freezes only outgoing motion without reverting and resumes it on an aborted visit', () => {
+  fixture();
+  const root = document.querySelector('#env-sd-page')!;
+  const running = { playState: 'running', pause: vi.fn(), play: vi.fn() };
+  const alreadyPaused = { playState: 'paused', pause: vi.fn(), play: vi.fn() };
+  const getAnimations = vi.fn(() => [running, alreadyPaused]);
+  Object.assign(root, { getAnimations });
+  const tween = { paused: () => false, pause: vi.fn(), resume: vi.fn() };
+  const idle = { paused: () => true, pause: vi.fn(), resume: vi.fn() };
+  const trigger = { trigger: root.querySelector('h1'), enabled: true, disable: vi.fn(), enable: vi.fn(), animation: tween };
+  const menuTrigger = { trigger: document.querySelector('nav'), enabled: true, disable: vi.fn() };
+  const lenis = { isStopped: false, stop: vi.fn(), start: vi.fn() };
+  const win = { ScrollTrigger: { getAll: () => [trigger, menuTrigger] }, gsap: { getTweensOf: vi.fn(() => [tween, idle]) }, lenis };
+  const release = freezePageMotion(root, win as any);
+  expect(getAnimations).toHaveBeenCalledWith({ subtree: true });
+  expect(running.pause).toHaveBeenCalledOnce();
+  expect(alreadyPaused.pause).not.toHaveBeenCalled();
+  expect(trigger.disable).toHaveBeenCalledWith(false, false);
+  expect(menuTrigger.disable).not.toHaveBeenCalled();
+  expect(tween.pause).toHaveBeenCalledOnce();
+  expect(idle.pause).not.toHaveBeenCalled();
+  expect(lenis.stop).toHaveBeenCalledOnce();
+  running.playState = 'paused';
+  release();
+  expect(trigger.enable).toHaveBeenCalledWith(false, false);
+  expect(tween.resume).toHaveBeenCalledOnce();
+  expect(idle.resume).not.toHaveBeenCalled();
+  expect(running.play).toHaveBeenCalledOnce();
+  expect(lenis.start).toHaveBeenCalledOnce();
+});
+
+it('never resumes motion belonging to an outgoing page that has been removed', () => {
+  fixture();
+  const root = document.querySelector('#env-sd-page')!;
+  const tween = { paused: () => false, pause: vi.fn(), resume: vi.fn() };
+  const lenis = { isStopped: false, stop: vi.fn(), start: vi.fn() };
+  const release = freezePageMotion(root, { gsap: { getTweensOf: () => [tween] }, lenis } as any);
+  root.remove(); release();
+  expect(tween.pause).toHaveBeenCalledOnce();
+  expect(tween.resume).not.toHaveBeenCalled();
+  expect(lenis.start).not.toHaveBeenCalled();
 });
