@@ -12,7 +12,14 @@ export function wrap(doc) {
 }
 export function validate(doc, pathname, expectedSheets, { refreshRuntime = false, gsapScripts, profiles = routes, inlineScripts = [], persistentContact = false, auditedCores = [], runtimeCompatible = false } = {}) {
   const scripts = [...doc.scripts].map(s => s.getAttribute('src')).filter(s => s?.includes('/js/webflow.'));
-  const known = profiles[pathname];
+  const requested = profiles[pathname];
+  const page = doc.documentElement.getAttribute('data-wf-page');
+  const site = doc.documentElement.getAttribute('data-wf-site');
+  // Webflow can move an already audited page to another slug or make it Home.
+  // Keep all export/layout checks, but resolve that page's profile by identity.
+  const known = refreshRuntime && requested?.page !== page
+    ? Object.values(profiles).find(profile => profile.page === page && profile.site === site) || requested
+    : requested;
   const record = known || Object.values(profiles).find(r => JSON.stringify(r.scripts) === JSON.stringify(scripts)) || (refreshRuntime ? routes['/home-sd'] : undefined);
   if (!record || doc.documentElement.getAttribute('data-wf-site') !== record.site || !doc.documentElement.getAttribute('data-wf-page') || (known && doc.documentElement.getAttribute('data-wf-page') !== known.page)) throw Error('Uncertified page');
   const runtimeChanged = JSON.stringify(scripts) !== JSON.stringify(record.scripts);

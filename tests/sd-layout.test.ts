@@ -193,3 +193,15 @@ it('allows rotated official core names only with a verified compatible live runt
   scripts[1].setAttribute('src',scripts[1].getAttribute('src')!.replace('cdn.prod.website-files.com','untrusted.example'));
   expect(()=>validate(doc,'/home-sd',undefined,{refreshRuntime:true,runtimeCompatible:true})).toThrow('shared core changed');
 });
+
+
+it('recognizes a certified page moved to the root without accepting unknown identities', () => {
+  const doc = fixture('/work-v2');
+  const profiles = { ...routes, '/': routes['/home-sd'] };
+  expect(validate(doc, '/', undefined, { profiles, refreshRuntime: true }).page).toBe(routes['/work-v2'].page);
+  doc.documentElement.setAttribute('data-wf-page', 'uncertified-home');
+  expect(() => validate(doc, '/', undefined, { profiles, refreshRuntime: true })).toThrow('Uncertified');
+  doc.documentElement.setAttribute('data-wf-page', routes['/work-v2'].page);
+  doc.documentElement.setAttribute('data-wf-site', 'other-site');
+  expect(() => validate(doc, '/', undefined, { profiles, refreshRuntime: true })).toThrow('Uncertified');
+});

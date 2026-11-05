@@ -208,3 +208,7 @@ The outgoing snapshot now resolves full visual styles only for elements within a
 Local Webflow-export checks (fixture video substituted): About-at-top capture measured 645 ms before the viewport optimization and 41 ms afterward; this is capture preparation only, not a claim about total public-site latency. Work footer → About retained the outgoing footer top exactly at −0.143229 px in the first snapshot, with the same document identity. Menu HTML cache reuse was verified via the local server request counter. The current public Webflow site continues to use its previous immutable pin until installation.
 
 The hero controller and its page-mount condition now select only inside the live `#env-sd-page` (with standalone fallback when there is no navigation root). An outgoing Home snapshot can no longer trigger a redundant hero script or be mistaken for the incoming slider during About/Work mounting.
+
+## Promoting an audited page to Home — November 5
+
+Alternative navigation resolves an audited Webflow page by its same-site data-wf-page identity when its new pathname conflicts with a historical route profile (for example Home VF moved to `/`). All native runtime, CSS, widget and inline adapter checks remain active. An unknown page identity replacing a known route still falls back to native navigation. This avoids the previous `Uncertified page` on the new Home without disabling validation.
