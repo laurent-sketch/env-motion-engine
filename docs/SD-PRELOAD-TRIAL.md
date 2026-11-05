@@ -1,5 +1,7 @@
 # SD loader and HTML cache trial
 
+**November 5 update:** the alternative mask/classic engine now enables HTML preloading by default, with an explicit false opt-out. The opt-in description below remains the historical behavior of the stable classic-only build. See `SD-TRANSITION-ALTERNATIVE.md` for current queue and click-wait settings.
+
 This opt-in trial lives on `feature/sd-preload-loader`. Stable rollback version: `0b28f2994c37e34557b78dd2ee4fec67b9213059`. Existing pinned scripts remain unchanged.
 
 ## Install

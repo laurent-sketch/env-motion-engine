@@ -302,3 +302,47 @@ it('restores incoming hero positioning on an aborted mask and leaves the menu fi
   expect((root.querySelector('.hero-about') as HTMLElement).style.position).toBe('fixed');
   expect(menu.style.position).toBe('fixed');
 });
+
+it('starts a departure before incoming content is ready and continues from its visible position', async () => {
+  const { runtime, cancel } = fixture();
+  runtime.capture(); runtime.depart(); runtime.depart();
+  const overlay = document.querySelector('[data-env-transition-snapshot]') as HTMLElement;
+  const shade = document.querySelector('[data-env-transition-shade]') as HTMLElement;
+  expect(vi.mocked(Element.prototype.animate).mock.calls).toHaveLength(2);
+  expect(document.querySelector('#env-sd-page')!.getAttribute('style')).toBeNull();
+  overlay.style.transform = 'translateY(-10px) scale(1.003)'; shade.style.opacity = '.04';
+  const root = document.querySelector('#env-sd-page') as HTMLElement;
+  runtime.prepare(root); await runtime.reveal(root);
+  const calls = vi.mocked(Element.prototype.animate).mock.calls;
+  expect(calls).toHaveLength(5);
+  expect(calls[2][0][0].transform).toBe('translateY(-10px) scale(1.003)');
+  expect(calls[4][0][0].opacity).toBe(.04);
+  expect(cancel).toHaveBeenCalledTimes(5);
+  expect(document.querySelector('[data-env-transition-snapshot]')).toBeNull();
+});
+it('cleans early departure effects and releases scroll on failed navigation', () => {
+  const { runtime, cancel } = fixture();
+  runtime.capture(); runtime.depart(); runtime.cleanup();
+  expect(cancel).toHaveBeenCalledTimes(2);
+  expect(document.querySelector('[data-env-transition-snapshot]')).toBeNull();
+  expect(document.documentElement.hasAttribute('data-env-transition-active')).toBe(false);
+});
+
+it('captures a viewport-fixed descendant even when its parent is far offscreen, without resolving distant text', () => {
+  const { runtime } = fixture();
+  document.querySelector('.main-wrapper')!.innerHTML = '<section class="hero-host"><div class="fixed-hero">Hero</div></section><section class="far"><p class="far-text">Many split words below the viewport</p></section>';
+  const sheet = document.createElement('style');
+  sheet.textContent = '.fixed-hero{position:fixed;color:red}.far-text{color:blue}';
+  document.head.append(sheet);
+  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function () {
+    const top = this.matches('.hero-host') ? -3000 : this.matches('.far,.far-text') ? 5000 : 0;
+    const height = this.matches('#env-sd-page,main') ? 9000 : 500;
+    return { top, left: 0, bottom: top + height, right: 1200, width: 1200, height, x: 0, y: top, toJSON() {} };
+  });
+  runtime.capture();
+  const snapshot = document.querySelector('[data-env-transition-snapshot]')!;
+  expect((snapshot.querySelector('.fixed-hero') as HTMLElement).style.color).toBe('rgb(255, 0, 0)');
+  expect((snapshot.querySelector('.far-text') as HTMLElement).style.color).toBe('');
+  expect(snapshot.querySelector('.hero-host')).not.toBeNull();
+  runtime.cleanup(); sheet.remove();
+});

@@ -1,9 +1,10 @@
 
 window.Webflow = window.Webflow || [];
 window.Webflow.push(function () {
-  const hero = document.querySelector('.hero-wrapper');
-  const slider = hero?.querySelector('.sd-slider');
-  if (!slider) return;
+  const page = document.querySelector('#env-sd-page') || document;
+  const slider = page.querySelector('.hero-wrapper .sd-slider');
+  const hero = slider?.closest('.hero-wrapper');
+  if (!slider || !hero) return;
 
   // Setting this attribute after Webflow initialization cannot stop its existing timer.
   // Disable native Autoplay in the Designer before installing this replacement.

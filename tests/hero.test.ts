@@ -1,7 +1,7 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 const source = readFileSync('public/hero.js', 'utf8');
-afterEach(() => { (document.querySelector('.hero-wrapper') as any)?.__envHeroCleanup?.(); vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(); document.body.innerHTML = ''; });
+afterEach(() => { document.querySelectorAll('.hero-wrapper').forEach((hero: any) => hero.__envHeroCleanup?.()); vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(); document.body.innerHTML = ''; });
 function fixture(links = 0) {
   vi.useFakeTimers(); vi.stubGlobal('matchMedia', () => ({ matches: false }));
   Object.defineProperty(document, 'hidden', { configurable: true, value: false });
@@ -27,4 +27,18 @@ it('clears the autoplay timer on page cleanup', async () => {
   const dots = fixture();
   (document.querySelector('.hero-wrapper') as any).__envHeroCleanup();
   await vi.advanceTimersByTimeAsync(12000); expect(dots[0].classList.contains('w-active')).toBe(true);
+});
+
+it('mounts only the live incoming hero while an outgoing snapshot is still present', async () => {
+  const dots = fixture();
+  const hero = document.querySelector('.hero-wrapper') as any;
+  hero.__envHeroCleanup();
+  const page = document.createElement('div'); page.id = 'env-sd-page';
+  hero.before(page); page.append(hero);
+  page.insertAdjacentHTML('beforebegin', '<div data-env-transition-snapshot><div class="hero-wrapper"><div class="sd-slider"></div></div></div>');
+  const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+  (window as any).Webflow[0]();
+  await vi.advanceTimersByTimeAsync(6000);
+  expect(dots[1].classList.contains('w-active')).toBe(true);
+  expect(error).not.toHaveBeenCalled();
 });

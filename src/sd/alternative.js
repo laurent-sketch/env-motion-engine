@@ -161,7 +161,7 @@ async function mount({ deferReveals = false } = {}) {
     });
   }
   await Promise.all([
-    document.querySelector('.hero-wrapper .sd-slider') ? script('hero.js', true) : Promise.resolve(),
+    document.querySelector('#env-sd-page .hero-wrapper .sd-slider') ? script('hero.js', true) : Promise.resolve(),
     document.querySelector('#env-sd-page [data-env-hero-shape]') ? script('hero-shape.js', true) : Promise.resolve(),
     deferReveals ? Promise.resolve() : animations()
   ]);
@@ -200,6 +200,7 @@ async function start() {
   if (!window.ENVVideos?.stage || !window.ENVVideos?.release) throw Error('Install the matching SD head block before enabling navigation');
   const transition = createAlternativeTransition();
   const useMask = window.ENVSDTransition === 'mask';
+  const preloadEnabled = window.ENVSDPreload !== false;
   document.documentElement.dataset.envTransitionMode = useMask ? 'mask' : 'classic';
   const runtime = window.Webflow;
   const compatibility = await waitForWebflowRuntime(runtime);
@@ -221,9 +222,26 @@ async function start() {
   const configuration = async record => {
     if (!record.runtimeChanged && !record.currentExport) return config;
     configModule ||= import('./runtime-config.js');
-    return (await configModule).runtimeConfig(record.dataScripts || record.bootstrap, record.site);
+    return (await configModule).runtimeConfig([...new Set([record.bootstrap, ...(record.dataScripts || [])].filter(Boolean))], record.site);
+  };
+  const warmedModules = new Set();
+  const warmModules = html => {
+    const names = [];
+    if (/data-env-(?:reveal|text)=/.test(html)) names.push('animations.js');
+    if (/class=["'][^"']*\bsd-slider\b/.test(html)) names.push('hero.js');
+    if (/data-env-hero-shape/.test(html)) names.push('hero-shape.js');
+    if (/data-env-page-animation=["']about["']/.test(html)) names.push('about-page.js');
+    names.forEach(name => {
+      if (warmedModules.has(name)) return;
+      warmedModules.add(name);
+      const link = document.createElement('link');
+      link.rel = 'prefetch'; link.as = 'script'; link.href = new URL(name, base).href;
+      link.dataset.envSdPrefetch = '';
+      document.head.append(link);
+    });
   };
   const warmPage = html => {
+    warmModules(html);
     const urls = [...html.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["']/gi)].map(match => match[1]);
     const bootstrap = urls.find(url => /\/js\/webflow\.(?![sa]chunk\.)[^/]+\.js$/.test(url));
     if (!bootstrap || Object.values(routes).some(record => !record.currentExport && record.scripts.includes(bootstrap))) return;
@@ -247,14 +265,14 @@ async function start() {
   await mount();
   // Keep the menu DOM and do not replay its initial reveal on later visits.
   document.querySelector('.navbar-logo-center')?.setAttribute('data-env-ignore', '');
-  const swup = new Swup({ containers: ['#env-sd-page'], animationSelector: false, cache: window.ENVSDPreload === true,
+  const swup = new Swup({ containers: ['#env-sd-page'], animationSelector: false, cache: preloadEnabled,
     plugins: [new ScrollPlugin({ animateScroll: { betweenPages: false, samePageWithHash: !reduced.matches, samePage: !reduced.matches } })],
     linkSelector: 'a[href]:not([download]):not([target]):not([data-no-swup])',
     ignoreVisit: (url, { el } = {}) => { const u = new URL(url, location.href); return u.origin !== location.origin || /\.(?:pdf|zip|png|jpe?g|webp|svg|mp4|webm|css|js)$/i.test(u.pathname) || !!el?.closest('[data-no-swup]'); }
   });
   window.ENVSD = { swup, status: 'ready' };
-  if (window.ENVSDPreload === true) {
-    window.ENVSD.stopPreload = installPreload(swup, { warmPage });
+  if (preloadEnabled) {
+    window.ENVSD.stopPreload = installPreload(swup, { warmPage, delay: 400, concurrency: 2 });
     // Warm the already-loaded entry export too; sibling pages often share its data chunk.
     void configuration(profile).catch(() => {});
   }
@@ -272,7 +290,7 @@ async function start() {
   // Capture before Swup's scroll/class hooks can change the outgoing page.
   // In-page anchors never start a visit and retain their ordinary smooth scroll.
   swup.hooks.before('visit:start', visit => {
-    if (useMask && visit.animation.animate) transition.capture();
+    if (useMask && visit.animation.animate) { transition.capture(); transition.depart(); }
   });
   swup.hooks.replace('animation:out:await', async () => {
     if (!useMask) await fade(document.querySelector('#env-sd-page'), 1, 0, 200);

@@ -61,6 +61,7 @@ export function createAlternativeTransition({ doc = document, win = window } = {
     cleanup();
     const root = doc.querySelector('#env-sd-page');
     if (!root || reduced()) return;
+    const capturedAt = win.performance.now();
     releaseMotion = freezePageMotion(root, win);
     const copy = root.cloneNode(true);
     // Destination sheets, page IDs and native slider reinitialization must not
@@ -69,16 +70,32 @@ export function createAlternativeTransition({ doc = document, win = window } = {
     const copies = [copy, ...copy.querySelectorAll('*')];
     const stickies = [];
     const rows = [];
+    const rects = originals.map(element => element.getBoundingClientRect());
+    const measured = rects[0].width > 0;
+    // The snapshot travels only 12vh: resolve visible pixels plus a generous
+    // buffer, not every split character several screens below the viewport.
+    const inView = rect => rect.width > 0 && rect.height > 0 && rect.bottom > -win.innerHeight * .25 && rect.top < win.innerHeight * 1.35 && rect.right > -win.innerWidth * .1 && rect.left < win.innerWidth * 1.1;
+    const resolved = new Set([root]);
+    originals.forEach((element, index) => {
+      if (!measured || inView(rects[index]) || element.matches('.main-row') || element.parentElement === root || element.parentElement?.matches('main.main-wrapper')) {
+        for (let parent = element; parent && root.contains(parent); parent = parent.parentElement) resolved.add(parent);
+      }
+    });
     copies.forEach((element, index) => {
       const css = win.getComputedStyle(originals[index]);
-      for (let i = 0; i < css.length; i++) { const property = css[i]; element.style.setProperty(property, css.getPropertyValue(property)); }
+      // One CSSOM assignment avoids reserializing hundreds of declarations for every property.
+      if (resolved.has(originals[index])) {
+        const declarations = [];
+        for (let i = 0; i < css.length; i++) { const property = css[i]; declarations.push(`${property}:${css.getPropertyValue(property)}`); }
+        element.style.cssText = declarations.join(';');
+      }
       if (css.position === 'sticky') {
-        stickies.push({ element, rect: originals[index].getBoundingClientRect() });
+        if (!measured || inView(rects[index])) stickies.push({ element, rect: rects[index] });
         element.style.position = 'relative';
         element.style.inset = 'auto';
       }
-      if (originals[index].matches('.main-row')) {
-        rows.push({ element, rect: originals[index].getBoundingClientRect() });
+      if (originals[index].matches('.main-row') && (!measured || inView(rects[index]))) {
+        rows.push({ element, rect: rects[index] });
       }
       element.style.setProperty('animation', 'none', 'important');
       element.style.setProperty('transition', 'none', 'important');
@@ -101,7 +118,7 @@ export function createAlternativeTransition({ doc = document, win = window } = {
     const sections = originals.map((element, index) => ({ element, copy: copies[index] }))
       .filter(({ element }) => element.parentElement === root || element.parentElement?.matches('main.main-wrapper'))
       .filter(({ element }) => !element.matches('main.main-wrapper'))
-      .map(({ element, copy }) => ({ copy, rect: element.getBoundingClientRect() }));
+      .map(({ element, copy }) => ({ copy, rect: rects[originals.indexOf(element)] }));
     // This is a non-interactive visual snapshot, never a second Webflow runtime.
     copy.querySelectorAll('script').forEach(el => el.remove());
     [copy, ...copy.querySelectorAll('*')].forEach(el => {
@@ -173,9 +190,20 @@ export function createAlternativeTransition({ doc = document, win = window } = {
       const transform = element.style.transform;
       element.style.transform = `translate(${x}px,${y}px) ${transform === 'none' ? '' : transform}`;
     });
+    overlay.dataset.envCaptureMs = String(Math.round(win.performance.now() - capturedAt));
     doc.documentElement.setAttribute('data-env-transition-active', '');
     win.addEventListener('wheel', blockScroll, { capture: true, passive: false });
     win.addEventListener('touchmove', blockScroll, { capture: true, passive: false });
+  }
+  // Give a cold visit immediate feedback while HTML/native data prepare.
+  // Continue from the currently rendered position when the real mask is ready.
+  function depart() {
+    if (!overlay || reduced() || animations.length) return;
+    const options = { duration: 1200, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'both' };
+    animations = [
+      overlay.animate([{ transform: 'translateY(0) scale(1)' }, { transform: 'translateY(-2vh) scale(1.006)' }], options),
+      shade.animate([{ opacity: 0 }, { opacity: 0.08 }], options)
+    ];
   }
   function prepare(root) {
     if (!overlay || reduced() || incoming === root) return;
@@ -207,15 +235,18 @@ export function createAlternativeTransition({ doc = document, win = window } = {
     const startClip = `polygon(0 ${top + height}px,100% ${top + height}px,100% 100%,0 100%)`;
     const endClip = `polygon(0 ${top}px,100% ${top}px,100% 100%,0 100%)`;
     const options = { duration: 850, easing: 'cubic-bezier(.76,0,.24,1)', fill: 'both' };
+    const departureTransform = animations.length ? win.getComputedStyle(overlay).transform : 'translateY(0) scale(1)';
+    const departureShade = animations.length ? Number(win.getComputedStyle(shade).opacity) : 0;
+    animations.forEach(animation => animation.cancel());
     animations = [
-      overlay.animate([{ transform: 'translateY(0) scale(1)' }, { transform: 'translateY(-12vh) scale(1.04)' }], options),
+      overlay.animate([{ transform: departureTransform }, { transform: 'translateY(-12vh) scale(1.04)' }], options),
       root.animate([{ clipPath: startClip }, { clipPath: endClip }], options),
-      shade.animate([{ opacity: 0 }, { opacity: 0.35 }], options)
+      shade.animate([{ opacity: departureShade }, { opacity: 0.35 }], options)
     ];
     const startTime = doc.timeline?.currentTime;
     if (startTime != null) animations.forEach(animation => { animation.startTime = startTime; });
     await Promise.all(animations.map(animation => animation.finished.catch(() => {})));
     if (revision === generation) cleanup();
   }
-  return { capture, prepare, reveal, cleanup };
+  return { capture, depart, prepare, reveal, cleanup };
 }

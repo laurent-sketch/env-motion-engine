@@ -186,3 +186,25 @@ Verification: 36 targeted transition/history/inline-adapter tests pass, includin
 The managed hero release also checks the following flow section reaching the viewport top and the actual `footer` / `.section.footer` entering the viewport. This covers a short sticky `.about-second` whose top remains positive on mobile. Nested footer class names on text and links are excluded. Returning above all three boundaries restores the hero. The existing page-inline script remains recognized and requires no edits; replace only the global Footer module URL.
 
 Verification: 31 hero/adapter/transition tests pass, including the positive sticky-top case and release reversal. The local published-page mirror confirms a hidden absolute hero at the footer. Physical iPhone verification remains to be done after publishing.
+
+
+## Navigation responsiveness — 5 November 2026
+
+The alternative entry now enables its bounded, document-local HTML cache by default. An explicit `window.ENVSDPreload = false` still disables speculative work. The stable classic-only entry keeps its previous opt-in policy. Existing Webflow Head/video code does not need replacing for this release.
+
+- After current-page setup, the menu queue starts after 400 ms and fetches at most three unique destinations, with at most two HTML requests at once. It includes the brand/Home link and skips the current page. Hover, focus and pointer-down can anticipate a destination. Data Saver and reported 2G still suppress speculative fetches.
+- Cached HTML expires after five minutes, with at most eight pages retained for the current document. Nothing is stored across reloads. No project video or image is prefetched by this queue.
+- Native interaction data is prepared from the official immutable bootstrap first, then checked shared chunks if required. This avoids downloading several non-data chunks in sequence before finding current-page timelines. All origin/site checks and static data parsing remain intact; fetched JavaScript is never executed.
+- Destination-specific ENV scripts may be fetched through `rel=prefetch` before a real visit. They execute only through the existing validated page mount.
+- A click reuses a pending preload for at most 180 ms. A slower speculative request is aborted and Swup continues with its normal navigation request, rather than waiting up to the preloader’s four-second timeout. Late aborted responses cannot populate the HTML cache.
+- In mask mode, the frozen outgoing snapshot starts a small upward departure (up to 2vh / scale 1.006) and a subtle shade (up to 8%) during preparation. The 850 ms incoming horizontal mask continues from the snapshot’s actual rendered transform/shade, without resetting it to the start. Cold network visits can still wait for destination readiness; this is responsive feedback rather than a promise of zero network latency.
+- Failures/aborts cancel both early effects and the main mask, restore incoming styles and release scroll locks. Reduced motion skips both. The menu remains persistent.
+
+Targeted regression coverage includes bounded parallelism, reuse of fast pending fetches, stalled fetch promotion, late-response suppression, disposal cancellation, early departure continuity and recovery. Browser checks are recorded with this release separately from public-site installation: installing still requires replacing the Footer pin and publishing Webflow.
+
+
+The outgoing snapshot now resolves full visual styles only for elements within a buffered viewport, their ancestors, and the page’s structural boxes. Offscreen split words remain outside the painting region; fixed descendants are included using their own rendered bounds even when their parent is offscreen. Each full style is written as one CSSOM assignment rather than hundreds of individual mutations. Visible sections/rows/sticky boxes retain position correction.
+
+Local Webflow-export checks (fixture video substituted): About-at-top capture measured 645 ms before the viewport optimization and 41 ms afterward; this is capture preparation only, not a claim about total public-site latency. Work footer → About retained the outgoing footer top exactly at −0.143229 px in the first snapshot, with the same document identity. Menu HTML cache reuse was verified via the local server request counter. The current public Webflow site continues to use its previous immutable pin until installation.
+
+The hero controller and its page-mount condition now select only inside the live `#env-sd-page` (with standalone fallback when there is no navigation root). An outgoing Home snapshot can no longer trigger a redundant hero script or be mistaken for the incoming slider during About/Work mounting.
