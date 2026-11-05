@@ -109,3 +109,7 @@ Home's native IX2 scroll targets `.project-row.grid-8` and `.project-work.grid.i
 ### Preview the desktop wordmark before scrolling
 
 On fine-pointer devices, entering `.navbar-brand-three .main-picto` previews the same letter reveal used on scroll. It stays open while the pointer crosses into the wordmark and closes when leaving the brand. Keyboard focus previews it too. Only the letter visibility changes: the white background is still controlled exclusively by scroll. After scrolling, letters remain visible on pointer leave. Touch taps and legacy text-brand menus are unchanged. Event listeners are removed on page unmount.
+
+### Read-more arrow hover
+
+The shared injected stylesheet animates images inside `.see-more-bloc` once per hover: 10px up/right with fade out, then re-entry from 10px down/left, over 450ms. Keyboard focus inside the block or on an enclosing link triggers the same effect. Text does not move. Reduced motion disables it. The persistent stylesheet covers fetched CMS items and later page visits without listeners or per-page code.
