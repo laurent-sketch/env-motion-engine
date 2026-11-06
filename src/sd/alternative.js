@@ -1,3 +1,4 @@
+import { installProjectImageSizes } from './project-images.js';
 import { installOrganicBlob } from './organic-blob.js';
 import { normalizeAboutComponent } from './about-component.js';
 import { syncPageAnimation } from './page-animation.js';
@@ -51,6 +52,14 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const main = () => document.querySelector('main.main-wrapper');
 let cleanMenu = () => {}, newsObserver, busyAnimation, gradient;
 let pageMasks = [];
+let imageSizesRoot, cleanProjectImages = () => {};
+function projectImages() {
+  const root = document.querySelector('#env-sd-page');
+  if (root === imageSizesRoot) return;
+  cleanProjectImages();
+  imageSizesRoot = root;
+  cleanProjectImages = installProjectImageSizes(root);
+}
 let inlinePage = { sources: [], story: null, hero: false, mask: false };
 let releaseInlineLogo = () => {};
 const loaded = new Set();
@@ -148,6 +157,7 @@ async function animations() {
   finally { window.removeEventListener('env:animations-ready', done); }
 }
 async function mount({ deferReveals = false } = {}) {
+  projectImages();
   menu();
   if (inlinePage.hero) mountInlineHeroRelease();
   installCTABlob();
@@ -173,6 +183,7 @@ async function mount({ deferReveals = false } = {}) {
   }
 }
 function unmount() {
+  cleanProjectImages(); imageSizesRoot = null;
   // Cancel entrance effects before removing their component-owned layers.
   window.ENVAnimations?.destroy();
   window.ENVAboutPageTest?.destroy();
@@ -259,6 +270,7 @@ async function start() {
   };
   native = compatibility.native;
   wrap(document);
+  projectImages();
   gradient = useMask ? null : installGradient();
   document.head.querySelectorAll('style').forEach(el => { if (profile.styles.includes(el.textContent)) el.dataset.envSdPageStyle = ''; });
   await window.ENVSDLoader?.prepare?.();
@@ -312,6 +324,7 @@ async function start() {
     unmount(); native.forEach(module => module.destroy?.()); ix2.destroy(); ix3.destroy();
     busyAnimation?.cancel();
     await replace(visit, args);
+    projectImages();
     inlinePage = nextInline;
     metadata(doc);
     gradient?.prepare();
