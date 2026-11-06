@@ -75,9 +75,10 @@ export function createAlternativeTransition({ doc = document, win = window } = {
     // The snapshot travels only 12vh: resolve visible pixels plus a generous
     // buffer, not every split character several screens below the viewport.
     const inView = rect => rect.width > 0 && rect.height > 0 && rect.bottom > -win.innerHeight * .25 && rect.top < win.innerHeight * 1.35 && rect.right > -win.innerWidth * .1 && rect.left < win.innerWidth * 1.1;
+    const structural = '.main-row, .project-work, .project-row, .project-item.work.left, .project-item.work.right';
     const resolved = new Set([root]);
     originals.forEach((element, index) => {
-      if (!measured || inView(rects[index]) || element.matches('.main-row') || element.parentElement === root || element.parentElement?.matches('main.main-wrapper')) {
+      if (!measured || inView(rects[index]) || element.matches(structural) || element.parentElement === root || element.parentElement?.matches('main.main-wrapper')) {
         for (let parent = element; parent && root.contains(parent); parent = parent.parentElement) resolved.add(parent);
       }
     });
@@ -94,7 +95,7 @@ export function createAlternativeTransition({ doc = document, win = window } = {
         element.style.position = 'relative';
         element.style.inset = 'auto';
       }
-      if (originals[index].matches('.main-row') && (!measured || inView(rects[index]))) {
+      if (originals[index].matches('.main-row, .project-work, .project-row') && (!measured || inView(rects[index]))) {
         rows.push({ element, rect: rects[index] });
       }
       element.style.setProperty('animation', 'none', 'important');
@@ -134,6 +135,7 @@ export function createAlternativeTransition({ doc = document, win = window } = {
       canvas.width = source.width; canvas.height = source.height;
       try { canvas.getContext('2d')?.drawImage(source, 0, 0); } catch (_) { /* Unavailable WebGL buffer. */ }
     });
+    const videoRects = new Map(originals.filter(element => element.tagName === 'VIDEO').map(element => [element, rects[originals.indexOf(element)]]));
     const sources = root.querySelectorAll('video');
     copy.querySelectorAll('video').forEach((video, index) => {
       const source = sources[index], canvas = doc.createElement('canvas');
@@ -141,6 +143,15 @@ export function createAlternativeTransition({ doc = document, win = window } = {
       canvas.className = video.className;
       const css = win.getComputedStyle(source);
       for (const property of ['position', 'top', 'left', 'right', 'bottom', 'width', 'height', 'minWidth', 'minHeight', 'maxWidth', 'maxHeight', 'objectFit', 'objectPosition', 'transform', 'zIndex', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft', 'display', 'boxSizing', 'borderRadius']) canvas.style[property] = css[property];
+      // Distant video frames cannot enter the 12vh departure. Keep their box,
+      // but never paint their poster/frame into the frozen page: an offscreen
+      // auto-sized media element must not become a huge visible replacement.
+      if (measured && !inView(videoRects.get(source))) {
+        const placeholder = doc.createElement('div');
+        placeholder.style.cssText = canvas.style.cssText;
+        video.replaceWith(placeholder);
+        return;
+      }
       canvas.width = source.videoWidth || 320; canvas.height = source.videoHeight || 180;
       try {
         if (source.readyState < 2) throw Error('Video frame unavailable');

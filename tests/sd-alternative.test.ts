@@ -350,3 +350,44 @@ it('captures a viewport-fixed descendant even when its parent is far offscreen, 
   expect(snapshot.querySelector('.hero-host')).not.toBeNull();
   runtime.cleanup(); sheet.remove();
 });
+
+it('preserves offscreen Work grid geometry before removing native selector classes', () => {
+  const { runtime } = fixture();
+  document.querySelector('.main-wrapper')!.innerHTML = '<section><div class="project-work grid" data-row="above"><a class="project-item work left">Above</a></div><div class="project-work right" data-row="visible"><a>DXC</a></div></section>';
+  const sheet = document.createElement('style');
+  sheet.textContent = '.project-work{display:grid;row-gap:112px;height:400px}.project-item.work{height:300px}';
+  document.head.append(sheet);
+  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function () {
+    const outside = this.closest('[data-row="above"]');
+    const cloned = this.closest('[data-env-transition-snapshot]');
+    const top = outside ? -1400 : this.getAttribute('data-row') === 'visible' && cloned ? 8 : 120;
+    return { top, left: 48, bottom: top + 400, right: 648, width: 600, height: 400, x: 48, y: top, toJSON() {} };
+  });
+  runtime.capture();
+  const snapshot = document.querySelector('[data-env-transition-snapshot]')!;
+  const above = snapshot.querySelector('[data-row="above"]') as HTMLElement;
+  expect(above.className).toBe('');
+  expect(above.style.display).toBe('grid');
+  expect(above.style.rowGap).toBe('112px');
+  expect(above.style.height).toBe('400px');
+  expect((above.firstElementChild as HTMLElement).style.height).toBe('300px');
+  const visible = snapshot.querySelector('[data-row="visible"]') as HTMLElement;
+  expect(visible.style.transform).toContain('translate(0px,112px)');
+  runtime.cleanup(); sheet.remove();
+});
+
+it('keeps a distant video box without painting an oversized frame or loading its poster', () => {
+  const { runtime } = fixture();
+  document.querySelector('.main-wrapper')!.innerHTML = '<div class="w-background-video"><video poster="distant.jpg" style="width:1920px;height:1080px;position:absolute"><source src="distant.mp4"></video></div><h1>Visible</h1>';
+  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function () {
+    const top = this.tagName === 'VIDEO' ? -3000 : 0;
+    return { top, left: 0, bottom: top + 1080, right: 1920, width: 1920, height: 1080, x: 0, y: top, toJSON() {} };
+  });
+  runtime.capture();
+  const snapshot = document.querySelector('[data-env-transition-snapshot]')!;
+  expect(snapshot.querySelector('video,canvas,img')).toBeNull();
+  const box = snapshot.querySelector('.w-background-video > div') as HTMLElement;
+  expect(box.style.width).toBe('1920px');
+  expect(box.style.height).toBe('1080px');
+  runtime.cleanup();
+});

@@ -212,3 +212,9 @@ The hero controller and its page-mount condition now select only inside the live
 ## Promoting an audited page to Home — November 5
 
 Alternative navigation resolves an audited Webflow page by its same-site data-wf-page identity when its new pathname conflicts with a historical route profile (for example Home VF moved to `/`). All native runtime, CSS, widget and inline adapter checks remain active. An unknown page identity replacing a known route still falls back to native navigation. This avoids the previous `Uncertified page` on the new Home without disabling validation.
+
+## Lower Work rows — November 6
+
+At deeper scroll positions, the frozen outgoing page could lose a row gap (observed about 112px on DXC), while the first project rows remained aligned. Snapshot preparation now resolves styles for all structural Work/Home project rows and native-targeted Work cards even outside the viewport before removing their interaction classes. Visible `.project-work` and `.project-row` containers receive the same outer-first position correction as `.main-row`. Distant video elements keep a sized inert box without drawing/loading an irrelevant frame or poster; the viewport buffer still includes the 12vh departure travel. Live page markup, hover playback and incoming project media remain unchanged.
+
+Regression checks cover offscreen grid geometry, visible row alignment and distant video placeholders. Local browser check on the current Work/DXC HTML: clicked DXC card y=-372.385px, frozen y=-372.406px before departure (about 0.02px drift). Source videos use local control MP4s in this copy; verify the installed release on Webflow after republishing.
