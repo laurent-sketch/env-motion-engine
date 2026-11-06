@@ -1,4 +1,6 @@
 import { installMobileMenu } from './mobile-menu.js';
+import { installAboutLayout } from './about-layout.js';
+import { installAboutScroll } from './about-scroll.js';
 import { installProjectImageSizes } from './project-images.js';
 import { installOrganicBlob } from './organic-blob.js';
 import { normalizeAboutComponent } from './about-component.js';
@@ -54,12 +56,18 @@ const main = () => document.querySelector('main.main-wrapper');
 let cleanMenu = () => {}, newsObserver, busyAnimation, gradient;
 let pageMasks = [];
 let imageSizesRoot, cleanProjectImages = () => {};
+let aboutLayout;
+let aboutScroll;
 function projectImages() {
   const root = document.querySelector('#env-sd-page');
   if (root === imageSizesRoot) return;
   cleanProjectImages();
+  aboutLayout?.destroy();
+  aboutScroll?.destroy();
   imageSizesRoot = root;
   cleanProjectImages = installProjectImageSizes(root);
+  aboutLayout = installAboutLayout(root);
+  aboutScroll = installAboutScroll(root);
 }
 let inlinePage = { sources: [], story: null, hero: false, mask: false };
 let releaseInlineLogo = () => {};
@@ -167,6 +175,7 @@ async function mount({ deferReveals = false } = {}) {
   window.ENVVideos?.refresh();
   if (window.gsap && window.ScrollTrigger) {
     document.querySelectorAll('#env-sd-page .section.mask').forEach(section => {
+      if (section.hasAttribute('data-env-about-mask')) return;
       if (section.dataset.maskInitialized) return;
       section.dataset.maskInitialized = 'true';
       pageMasks.push(window.gsap.fromTo(section, { clipPath: inlinePage.mask ? 'inset(15%)' : 'inset(10%)' }, { clipPath: 'inset(0%)', ease: 'none', scrollTrigger: { trigger: section, start: 'top bottom', end: 'top 15%', scrub: .6, invalidateOnRefresh: true } }));
@@ -177,6 +186,7 @@ async function mount({ deferReveals = false } = {}) {
     document.querySelector('#env-sd-page [data-env-hero-shape]') ? script('hero-shape.js', true) : Promise.resolve(),
     deferReveals ? Promise.resolve() : animations()
   ]);
+  aboutLayout?.refresh();
   const roots = [...document.querySelectorAll('.swiper-news[data-env-news]')];
   if (roots.length) {
     newsObserver = new IntersectionObserver(entries => {
@@ -185,6 +195,8 @@ async function mount({ deferReveals = false } = {}) {
   }
 }
 function unmount() {
+  aboutScroll?.destroy(); aboutScroll = null;
+  aboutLayout?.destroy(); aboutLayout = null;
   cleanProjectImages(); imageSizesRoot = null;
   // Cancel entrance effects before removing their component-owned layers.
   window.ENVAnimations?.destroy();
