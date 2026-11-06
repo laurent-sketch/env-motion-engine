@@ -75,7 +75,6 @@ export function installMobileMenuStyles(doc = document) {
 .navbar-logo-center.is-env-menu-open .burger-menu-wrap .line-burger{background-color:#fff!important}
 .navbar-logo-center.is-env-menu-open .logo-mobile>.logo-nav{filter:brightness(0) invert(1)!important}
 .navbar-logo-center.is-env-menu-open::before{opacity:0!important}
-.navbar-logo-center.is-env-menu-open :is(.btn-primary,.btn-sd.nav):not(:hover):not(:focus-visible){color:#fff!important}
 .navbar-logo-center.is-env-burger-managed:not(.is-env-menu-open) .menu-modal{pointer-events:none!important}
 .navbar-logo-center.is-past-hero .burger-menu-wrap .line-burger{background-color:var(--_colors---dark-blue,var(--nav-dark-blue,#11263a))}
 .navbar-logo-center .logo-mobile>.logo-nav{transition:opacity 400ms ease}
