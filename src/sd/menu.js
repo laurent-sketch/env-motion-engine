@@ -68,6 +68,15 @@ export function installMobileMenuStyles(doc = document) {
 @media(prefers-reduced-motion:reduce){.navbar-logo-center .btn-sd.nav{transition:none}}
 @media(max-width:991px){
 .navbar-logo-center .burger-menu-wrap .line-burger{transition:background-color 400ms ease}
+.navbar-logo-center.is-env-burger-managed .burger-menu-wrap{position:relative;z-index:5;cursor:pointer}
+.navbar-logo-center.is-env-burger-managed .burger-menu-wrap .line-burger{transform:none!important;transform-origin:center;transition:transform 450ms cubic-bezier(.22,1,.36,1),background-color 300ms ease}
+.navbar-logo-center.is-env-burger-managed.is-env-menu-open .burger-menu-wrap .line-burger.top{transform:translateY(var(--env-burger-shift,4.5px)) rotate(45deg)!important}
+.navbar-logo-center.is-env-burger-managed.is-env-menu-open .burger-menu-wrap .line-burger.bottom{transform:translateY(calc(-1 * var(--env-burger-shift,4.5px))) rotate(-45deg)!important}
+.navbar-logo-center.is-env-menu-open .burger-menu-wrap .line-burger{background-color:#fff!important}
+.navbar-logo-center.is-env-menu-open .logo-mobile>.logo-nav{filter:brightness(0) invert(1)!important}
+.navbar-logo-center.is-env-menu-open::before{opacity:0!important}
+.navbar-logo-center.is-env-menu-open :is(.btn-primary,.btn-sd.nav):not(:hover):not(:focus-visible){color:#fff!important}
+.navbar-logo-center.is-env-burger-managed:not(.is-env-menu-open) .menu-modal{pointer-events:none!important}
 .navbar-logo-center.is-past-hero .burger-menu-wrap .line-burger{background-color:var(--_colors---dark-blue,var(--nav-dark-blue,#11263a))}
 .navbar-logo-center .logo-mobile>.logo-nav{transition:opacity 400ms ease}
 .navbar-logo-center .logo-mobile>.logo-nav.is-env-nav-picto{filter:brightness(1) invert(0);transition:opacity 400ms ease,filter 400ms ease}
@@ -76,6 +85,6 @@ export function installMobileMenuStyles(doc = document) {
 .navbar-logo-center.is-past-hero .logo-mobile:has(>.logo-nav.bis)>.logo-nav:not(.bis){opacity:0}
 .navbar-logo-center.is-past-hero .logo-mobile>.logo-nav.bis{opacity:1}
 }
-@media(prefers-reduced-motion:reduce){.navbar-logo-center .logo-mobile>.logo-nav,.navbar-logo-center .logo-mobile>.logo-nav.is-env-nav-picto,.navbar-logo-center .burger-menu-wrap .line-burger{transition:none}}`;
+@media(prefers-reduced-motion:reduce){.navbar-logo-center .logo-mobile>.logo-nav,.navbar-logo-center .logo-mobile>.logo-nav.is-env-nav-picto,.navbar-logo-center.is-env-burger-managed .burger-menu-wrap .line-burger{transition:none!important}}`;
   doc.head.append(style);
 }
