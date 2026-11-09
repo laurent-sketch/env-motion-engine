@@ -7,7 +7,13 @@ export function wrap(doc) {
   root = doc.createElement('div'); root.id = 'env-sd-page';
   content.before(root); root.append(content);
   const footer = doc.querySelector('body > .section.footer');
-  if (footer) root.append(footer);
+  if (footer) {
+    // Cookie Policy includes a published media block after the footer. Preserve
+    // its authored order and keep it in the replaceable page, not persistent DOM.
+    const trailing = content.hasAttribute('data-env-legal-main') && footer.nextElementSibling?.matches('.uplaod--video.w-background-video') ? footer.nextElementSibling : null;
+    root.append(footer);
+    if (trailing) root.append(trailing);
+  }
   return root;
 }
 export function validate(doc, pathname, expectedSheets, { refreshRuntime = false, gsapScripts, profiles = routes, inlineScripts = [], persistentContact = false, auditedCores = [], runtimeCompatible = false } = {}) {

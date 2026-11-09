@@ -1,3 +1,5 @@
+import { normalizeLegalLayout } from './legal-layout.js';
+import { installFooterReveal } from './footer-reveal.js';
 import { installMobileWorkAnchor } from './mobile-work-anchor.js';
 import { installMobileMenu } from './mobile-menu.js';
 import { installMobileContact } from './mobile-contact.js';
@@ -59,6 +61,7 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const main = () => document.querySelector('main.main-wrapper');
 let cleanMenu = () => {}, newsObserver, busyAnimation, gradient;
 let pageMasks = [];
+let cleanFooter = () => {};
 let imageSizesRoot, cleanProjectImages = () => {};
 let aboutLayout;
 let aboutScroll;
@@ -176,6 +179,7 @@ async function animations() {
 async function mount({ deferReveals = false } = {}) {
   projectImages();
   menu();
+  cleanFooter(); cleanFooter = installFooterReveal(document.querySelector('#env-sd-page'));
   if (inlinePage.hero) mountInlineHeroRelease();
   installCTABlob();
   installOrganicBlob();
@@ -202,6 +206,7 @@ async function mount({ deferReveals = false } = {}) {
   }
 }
 function unmount() {
+  cleanFooter(); cleanFooter = () => {};
   aboutScroll?.destroy(); aboutScroll = null;
   aboutLayout?.destroy(); aboutLayout = null;
   cleanProjectImages(); imageSizesRoot = null;
@@ -244,6 +249,7 @@ async function start() {
   let activeSheets = [...document.querySelectorAll('link[rel="stylesheet"]')].map(el => el.getAttribute('href'));
   const pendingStyleUpdates = new Map();
   const gsapScripts = [...document.scripts].map(el => el.src).filter(url => url.includes('/gsap/'));
+  normalizeLegalLayout(document);
   normalizeAboutComponent(document);
   inlinePage = inspectInlineAbout(document);
   const profile = validate(document, path(), activeSheets, { refreshRuntime: true, gsapScripts, ...compatibleValidation, inlineScripts: [...testInline, ...inlinePage.sources] });
@@ -333,6 +339,7 @@ async function start() {
   swup.hooks.replace('content:replace', async (visit, args, replace) => {
     const doc = visit.to.document;
     if (!doc || !replace) throw Error('Missing incoming page');
+    normalizeLegalLayout(doc);
     normalizeAboutComponent(doc);
     const nextInline = inspectInlineAbout(doc);
     const stylePlan = planStylesheetUpdate(doc, activeSheets, profile.site);
