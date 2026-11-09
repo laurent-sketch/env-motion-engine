@@ -289,3 +289,13 @@ Validation: 209 tests pass. Local browser previews at 390px and 834px cover Work
 ### Anchor experiment withdrawn — November 9, 2026
 
 At the user's request, the anchor offset experiment above is withdrawn. Removed the root scroll-padding injection, ResizeObserver, capture-phase hash interception and Swup offset. Anchor behavior is restored to its pre-experiment implementation. Mobile menu mask snapshots and deferred closing remain installed. The footer navigation bundle must be loaded with `type="module"` (not a classic deferred script).
+
+### Integrated mobile-only Work anchor fix — November 9, 2026
+
+The standalone footer helper previously supplied for mobile `#work` was an unrecognized inline script and caused validation to retain native page navigation, disabling the mask. Remove that standalone script. This release integrates the same narrow behavior into the certified navigation bundle instead of allowing arbitrary inline code.
+
+`mobile-work-anchor.js` installs one persistent capture listener after successful navigation initialization. It owns only same-origin/path/query `#work` clicks at widths <=767px, with a real target; desktop, other hashes, modal triggers, new-page links, modified clicks and transition-in-progress clicks retain their previous behavior. It stops competing delegated handlers only for that action and sends one scroll to the existing Lenis instance. Stopped/missing Lenis falls back to native coordinate scroll without restarting the instance. Reduced motion is immediate. No history writes, CSS injection, resize observer, new Lenis instance or broad native-anchor migration are introduced.
+
+Default mobile spacing is **90px**. If the site's existing root `scroll-padding-top` computes to a numeric pixel value, that value is used instead. No CSS addition is required. Head scripts and desktop navigation stay unchanged; replace only the Footer navigation module pin.
+
+Verified on a freshly fetched copy of the published Home/About: viewport390, header78px, initial #work top620px; after click target top90px and page scroll530px. Opening the burger from that position and choosing About retains document ID `ce69bf61-ae05-44a6-89d4-365c174735e4`; during the mask the menu snapshot exists/live modal is hidden, then menu closes and scroll unlocks at destination top0. No console errors. The 41 mobile anchor/menu/mask/history tests and alternative build pass. Browser proof: task output `outputs/mobile-work-integrated/anchor.png`.
