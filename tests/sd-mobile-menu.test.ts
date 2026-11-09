@@ -71,3 +71,22 @@ it('keeps native behavior without stagger for reduced motion and avoids desktop 
   expect(f.nav.classList.contains('is-env-menu-open')).toBe(false);
   f.dispose();
 });
+
+it('keeps the mobile menu open for an intercepted mask visit, but closes for same-page anchors', async () => {
+  const f = fixture();
+  vi.stubGlobal('ENVSD', { status: 'ready' });
+  vi.stubGlobal('ENVSDTransition', 'mask');
+  const link = f.modal.querySelector('a')!;
+  link.href = '/press';
+  f.burger.click(); await Promise.resolve();
+  document.addEventListener('click', event => event.preventDefault(), { once: true });
+  link.click(); await Promise.resolve();
+  expect(f.native).toHaveBeenCalledTimes(1);
+  expect(f.burger.getAttribute('aria-expanded')).toBe('true');
+  // Simulate content replacement: the navigation adapter closes behind its copy.
+  f.burger.click(); await Promise.resolve();
+  expect(f.burger.getAttribute('aria-expanded')).toBe('false');
+  link.href = '#work'; f.burger.click(); link.click(); await Promise.resolve();
+  expect(f.burger.getAttribute('aria-expanded')).toBe('false');
+  f.dispose();
+});

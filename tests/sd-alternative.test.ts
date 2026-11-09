@@ -391,3 +391,24 @@ it('keeps a distant video box without painting an oversized frame or loading its
   expect(box.style.height).toBe('1080px');
   runtime.cleanup();
 });
+
+it('keeps the open mobile menu in the outgoing mask and restores live visibility on abort', () => {
+  const { runtime } = fixture();
+  vi.stubGlobal('matchMedia', (query: string) => ({ matches: query.includes('991') }));
+  const nav = document.querySelector('nav')!;
+  nav.className = 'navbar-logo-center is-env-menu-open';
+  nav.innerHTML = '<div class="menu-modal" style="display:block;opacity:1;background:rgb(18,40,57)"><a id="mobile-work" class="link-menu-overlay" data-w-id="native-menu-link" href="/work">Work</a></div>';
+  const menu = nav.querySelector('.menu-modal') as HTMLElement;
+  runtime.capture();
+  const copy = document.querySelector('[data-env-transition-menu]') as HTMLElement;
+  expect(copy).not.toBeNull();
+  expect(copy.textContent).toBe('Work');
+  expect(copy.style.backgroundColor).toBe('rgb(18, 40, 57)');
+  expect(copy.querySelector('[id],[class],[data-w-id]')).toBeNull();
+  expect(menu.style.visibility).toBe('hidden');
+  expect(menu.style.getPropertyPriority('visibility')).toBe('important');
+  expect(nav.classList.contains('is-env-menu-open')).toBe(true);
+  runtime.cleanup();
+  expect(copy.isConnected).toBe(false);
+  expect(menu.style.visibility).toBe('');
+});

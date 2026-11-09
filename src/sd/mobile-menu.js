@@ -1,5 +1,13 @@
 // Webflow retains ownership of modal opening/closing. This adapter follows its
 // click/state changes, adds a cross/color state and animates only child links.
+export function deferMobileMenuLink(link, event, win = window) {
+  if (!link || event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button > 0) return false;
+  if (link.hasAttribute('target') || link.hasAttribute('download') || link.closest('[data-no-swup]')) return false;
+  if (win.ENVSD?.status !== 'ready' || win.ENVSDTransition !== 'mask' || win.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+  const url = new URL(link.href, win.location.href);
+  return url.origin === win.location.origin && (url.pathname !== win.location.pathname || url.search !== win.location.search) && !/\.(?:pdf|zip|png|jpe?g|webp|svg|mp4|webm|css|js)$/i.test(url.pathname);
+}
+
 export function installMobileMenu(nav, win = window) {
   const burger = nav?.querySelector('.burger-menu-wrap');
   const modal = nav?.querySelector('.menu-modal');
@@ -78,7 +86,8 @@ export function installMobileMenu(nav, win = window) {
     event.preventDefault(); burger.click();
   }, { signal: abort.signal });
   modal.addEventListener('click', event => {
-    if (open && mobile.matches && event.target.closest?.('a[href]')) burger.click();
+    const link = event.target.closest?.('a[href]');
+    if (open && mobile.matches && link && !deferMobileMenuLink(link, event, win)) burger.click();
   }, { signal: abort.signal });
   nav.ownerDocument.addEventListener('keydown', event => {
     if (event.key === 'Escape' && open && mobile.matches) { event.preventDefault(); burger.click(); }

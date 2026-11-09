@@ -36,12 +36,14 @@ export function freezePageMotion(root, win = window) {
 export function createAlternativeTransition({ doc = document, win = window } = {}) {
   let overlay, shade, incoming, originalStyle, releaseMotion, animations = [], generation = 0;
   let fixedHeroes = [];
+  let restoreMenu = () => {};
   const reduced = () => win.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const blockScroll = event => event.preventDefault();
   function cleanup() {
     generation++;
     animations.forEach(animation => animation.cancel()); animations = [];
     overlay?.remove(); overlay = null; shade = null;
+    restoreMenu(); restoreMenu = () => {};
     releaseMotion?.(); releaseMotion = null;
     fixedHeroes.forEach(({ element, style }) => {
       if (style === null) element.removeAttribute('style');
@@ -171,7 +173,39 @@ export function createAlternativeTransition({ doc = document, win = window } = {
     shade = doc.createElement('div');
     shade.dataset.envTransitionShade = '';
     shade.style.cssText = 'position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;z-index:1;';
-    overlay.append(copy, shade); doc.body.append(overlay);
+    overlay.append(copy, shade);
+    // The persistent navigation sits above the page mask. Move only its open
+    // modal's rendered appearance into the outgoing layer before hiding it.
+    const menuScroll = [];
+    const menu = doc.querySelector('.navbar-logo-center.is-env-menu-open .menu-modal');
+    if (menu && win.matchMedia('(max-width: 991px)').matches) {
+      const menuCopy = menu.cloneNode(true);
+      const sources = [menu, ...menu.querySelectorAll('*')];
+      const targets = [menuCopy, ...menuCopy.querySelectorAll('*')];
+      sources.forEach((source, index) => {
+        const css = win.getComputedStyle(source), target = targets[index];
+        if (source.scrollTop || source.scrollLeft) menuScroll.push({ source, target });
+        for (let i = 0; i < css.length; i++) { const property = css.item(i); target.style.setProperty(property, css.getPropertyValue(property), 'important'); }
+        target.removeAttribute('id'); target.removeAttribute('class');
+        for (const attr of [...target.attributes]) if (attr.name.startsWith('data-w-id')) target.removeAttribute(attr.name);
+        for (const attr of [...target.attributes]) if (attr.name.startsWith('data-env-')) target.removeAttribute(attr.name);
+        target.style.setProperty('animation', 'none', 'important');
+        target.style.setProperty('transition', 'none', 'important');
+      });
+      const rect = menu.getBoundingClientRect();
+      for (const [property, value] of Object.entries({ position: 'absolute', top: `${rect.top}px`, left: `${rect.left}px`, right: 'auto', bottom: 'auto', width: `${rect.width}px`, height: `${rect.height}px`, margin: '0', transform: 'none', zIndex: '0', pointerEvents: 'none' })) {
+        menuCopy.style.setProperty(property.replace(/[A-Z]/g, char => `-${char.toLowerCase()}`), value, 'important');
+      }
+      menuCopy.querySelectorAll('script').forEach(element => element.remove());
+      menuCopy.dataset.envTransitionMenu = '';
+      menuCopy.inert = true; menuCopy.setAttribute('aria-hidden', 'true');
+      overlay.insertBefore(menuCopy, shade);
+      const visibility = menu.style.getPropertyValue('visibility'), priority = menu.style.getPropertyPriority('visibility');
+      menu.style.setProperty('visibility', 'hidden', 'important');
+      restoreMenu = () => { if (visibility) menu.style.setProperty('visibility', visibility, priority); else menu.style.removeProperty('visibility'); };
+    }
+    doc.body.append(overlay);
+    menuScroll.forEach(({ source, target }) => { target.scrollTop = source.scrollTop; target.scrollLeft = source.scrollLeft; });
     // Read before writing to avoid layout work for each individual section.
     const corrections = sections.map(({ copy: element, rect }) => {
       const captured = element.getBoundingClientRect();

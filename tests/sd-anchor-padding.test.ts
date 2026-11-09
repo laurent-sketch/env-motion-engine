@@ -1,0 +1,36 @@
+import { afterEach, expect, it, vi } from 'vitest';
+import { anchorOffset, installAnchorPadding } from '../src/sd/anchor-padding.js';
+afterEach(() => { document.body.replaceChildren(); document.documentElement.removeAttribute('style'); vi.restoreAllMocks(); });
+it('measures the header without counting the open menu and restores authored padding on cleanup', () => {
+  document.body.innerHTML = '<nav><div class="navbar-logo-center-container"></div><div class="menu-modal"></div></nav>';
+  const nav = document.querySelector('nav')!, header = nav.firstElementChild!;
+  let height = 78;
+  vi.spyOn(header, 'getBoundingClientRect').mockImplementation(() => ({ height } as DOMRect));
+  document.documentElement.style.setProperty('scroll-padding-top', '12px', 'important');
+  const cleanup = installAnchorPadding(nav);
+  expect(anchorOffset()).toBe(102);
+  expect(document.documentElement.style.scrollPaddingTop).toBe('102px');
+  height = 94; window.dispatchEvent(new Event('resize'));
+  expect(anchorOffset()).toBe(118);
+  cleanup();
+  expect(document.documentElement.style.scrollPaddingTop).toBe('12px');
+  expect(document.documentElement.style.getPropertyPriority('scroll-padding-top')).toBe('important');
+  expect(anchorOffset()).toBe(0);
+});
+it('intercepts only a real same-page anchor before Webflow and offsets Lenis coordinates', () => {
+  document.body.innerHTML = '<nav><a href="#work">Work</a><a href="#" data-modal="contact">Contact</a></nav><section id="work"></section>';
+  const nav = document.querySelector('nav')!, target = document.querySelector('#work')!;
+  vi.spyOn(nav, 'getBoundingClientRect').mockReturnValue({ height: 78 } as DOMRect);
+  vi.spyOn(target, 'getBoundingClientRect').mockReturnValue({ top: 620 } as DOMRect);
+  vi.spyOn(window.history, 'pushState').mockImplementation(() => {});
+  vi.stubGlobal('matchMedia', () => ({ matches: false }));
+  const scrollTo = vi.fn(); vi.stubGlobal('lenis', { scrollTo });
+  const native = vi.fn(); nav.addEventListener('click', native);
+  const cleanup = installAnchorPadding(nav);
+  nav.querySelector('a')!.click();
+  expect(scrollTo).toHaveBeenCalledWith(518, { force: true });
+  expect(native).not.toHaveBeenCalled();
+  nav.querySelectorAll('a')[1].click();
+  expect(native).toHaveBeenCalledTimes(1);
+  cleanup(); vi.unstubAllGlobals();
+});

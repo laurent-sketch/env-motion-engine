@@ -1,3 +1,4 @@
+import { installAnchorPadding, anchorOffset } from './anchor-padding.js';
 import { installMobileMenu } from './mobile-menu.js';
 import { installMobileContact } from './mobile-contact.js';
 import { installModalScroll } from './modal-scroll.js';
@@ -291,6 +292,9 @@ async function start() {
   };
   native = compatibility.native;
   wrap(document);
+  // The header and anchor handler persist across content replacement, including
+  // destination hashes scrolled before the next page's widgets are mounted.
+  installAnchorPadding(document.querySelector('.navbar-logo-center'));
   projectImages();
   gradient = useMask ? null : installGradient();
   document.head.querySelectorAll('style').forEach(el => { if (profile.styles.includes(el.textContent)) el.dataset.envSdPageStyle = ''; });
@@ -299,7 +303,7 @@ async function start() {
   // Keep the menu DOM and do not replay its initial reveal on later visits.
   document.querySelector('.navbar-logo-center')?.setAttribute('data-env-ignore', '');
   const swup = new Swup({ containers: ['#env-sd-page'], animationSelector: false, cache: preloadEnabled,
-    plugins: [new ScrollPlugin({ animateScroll: { betweenPages: false, samePageWithHash: !reduced.matches, samePage: !reduced.matches } })],
+    plugins: [new ScrollPlugin({ offset: (_target, container) => container === document.documentElement || container === document.body ? anchorOffset() : 0, animateScroll: { betweenPages: false, samePageWithHash: !reduced.matches, samePage: !reduced.matches } })],
     linkSelector: 'a[href]:not([download]):not([target]):not([data-no-swup])',
     ignoreVisit: (url, { el } = {}) => { const u = new URL(url, location.href); return u.origin !== location.origin || /\.(?:pdf|zip|png|jpe?g|webp|svg|mp4|webm|css|js)$/i.test(u.pathname) || !!el?.closest('[data-no-swup]'); }
   });
@@ -349,6 +353,8 @@ async function start() {
     if (visit.done) { styleUpdate.rollback(); return; }
     pendingStyleUpdates.set(visit, styleUpdate);
     window.lenis?.stop();
+    // Its visual copy remains under the mask; close the live menu only now.
+    document.querySelector('.navbar-logo-center.is-env-menu-open .burger-menu-wrap')?.click();
     unmount(); native.forEach(module => module.destroy?.()); ix2.destroy(); ix3.destroy();
     busyAnimation?.cancel();
     await replace(visit, args);
