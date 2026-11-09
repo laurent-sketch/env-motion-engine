@@ -265,4 +265,14 @@ Browser checks on the latest Home copy at 667x375: form scrollTop moved to 261px
 
 The <=767px contact header color rules require `:not(.is-env-menu-open)`. An open burger menu takes precedence, restoring its transparent header, white cross and white picto above the dark menu overlay. Closing only the menu returns to the contact dialog's white header/dark icons, while the shared scroll lock remains active. Verified in a 390px published-page copy: contact → menu → contact, with both modal states preserved and the document lock still true. No timing or JavaScript modal handler changes; only the five contact theme selectors are restricted.
 
+## CSS publication handover and intermittent Press fallback — November 9
+
+Normal desktop Home→Press and About→Press used the mask. A confirmed fallback was reproduced by keeping an older Home export (shared CSS hash `068141109`) and fetching the current Press export (`42419dded`): the strict stylesheet comparison threw `Stylesheets changed` and Swup performed native navigation. This can happen to an existing tab after a Webflow republish or with older preloaded HTML.
+
+`stylesheet-update.js` permits only hash-version replacements of the same shared Webflow stylesheet family on the same official CDN/site path. It rejects additional dependencies, changed families/sites/hosts and query/hash URLs. All other layout, page identity, runtime, widget and inline-script checks still run before loading the replacement CSS. New styles load with `media="not all"` while the outgoing view is frozen. They are activated inside the menu color handover after content replacement; only the superseded stylesheet is removed. The active validation baseline is updated and Swup's old HTML cache is cleared. No stylesheet load or cache clear is added to same-publication visits.
+
+Failures/timeouts keep the previous CSS and use the existing native fallback. Cancelled visits discard staged sheets without changing the live page. Pending updates are rolled back on failed/aborted content replacement.
+
+Verified on the reproduced old-Home/current-Press scenario: the same document identity remained (`9ec870c3-0cc4-4a02-bed8-62265fb3246a`), the outgoing mask snapshot existed during navigation, and only the new active stylesheet remained afterward. Return navigation and a second Press visit also worked. Four regression tests cover trusted stylesheet planning, deferred activation, rollback/failure and no-op visits; all 227 project tests and the alternative build pass.
+
 Validation: 209 tests pass. Local browser previews at 390px and 834px cover Work's dark icon, Home's light icon, opening/closing, child cascade and Home → Work → reopening, without a second native modal click per tap. Public Webflow remains unchanged until its immutable Footer pin is replaced and republished. Head and native Designer interactions stay installed.

@@ -1,6 +1,7 @@
 import { installMobileMenu } from './mobile-menu.js';
 import { installMobileContact } from './mobile-contact.js';
 import { installModalScroll } from './modal-scroll.js';
+import { planStylesheetUpdate, stageStylesheetUpdate } from './stylesheet-update.js';
 import { installAboutLayout } from './about-layout.js';
 import { installAboutScroll } from './about-scroll.js';
 import { installProjectImageSizes } from './project-images.js';
@@ -86,9 +87,10 @@ function script(name, again = false) {
     el.dataset.envSdModule = name; document.head.append(el);
   });
 }
-function metadata(doc) {
+function metadata(doc, applyStyles = () => {}) {
   const finishColors = beginMenuColors();
   try {
+  applyStyles();
   syncPageAnimation(document, doc);
   syncMenuVariants(document, doc);
   syncMenuImages(document, doc);
@@ -238,7 +240,8 @@ async function start() {
   let native;
   // A CSS-only Webflow publish changes the URL without changing the audited JS runtime.
   // Use the styles actually loaded in this document as the navigation compatibility baseline.
-  const activeSheets = [...document.querySelectorAll('link[rel="stylesheet"]')].map(el => el.getAttribute('href'));
+  let activeSheets = [...document.querySelectorAll('link[rel="stylesheet"]')].map(el => el.getAttribute('href'));
+  const pendingStyleUpdates = new Map();
   const gsapScripts = [...document.scripts].map(el => el.src).filter(url => url.includes('/gsap/'));
   normalizeAboutComponent(document);
   inlinePage = inspectInlineAbout(document);
@@ -330,21 +333,31 @@ async function start() {
     if (!doc || !replace) throw Error('Missing incoming page');
     normalizeAboutComponent(doc);
     const nextInline = inspectInlineAbout(doc);
-    const record = validate(doc, new URL(visit.to.url, location.href).pathname, activeSheets, { refreshRuntime: true, gsapScripts, ...compatibleValidation, inlineScripts: [...testInline, ...nextInline.sources] });
+    const stylePlan = planStylesheetUpdate(doc, activeSheets, profile.site);
+    const record = validate(doc, new URL(visit.to.url, location.href).pathname, stylePlan.sheets, { refreshRuntime: true, gsapScripts, ...compatibleValidation, inlineScripts: [...testInline, ...nextInline.sources] });
     const incomingConfig = await configuration(record);
+    if (visit.done) return;
     if (doc.querySelectorAll('.navbar-logo-center a[href]').length !== document.querySelectorAll('.navbar-logo-center a[href]').length) throw Error('Menu structure changed');
     const next = wrap(doc); next.classList.add('env-sd-pending'); if (useMask) next.setAttribute('data-env-alt-reveal-wait', '');
     if (next.querySelector('.w-slider') && !runtime.require('slider')?.ready) {
       await ensureSlider();
       const slider = runtime.require('slider'); if (!native.includes(slider)) native.push(slider);
     }
+    let styleUpdate;
+    try { styleUpdate = await stageStylesheetUpdate(document, stylePlan); }
+    catch (error) { if (visit.done) return; throw error; }
+    if (visit.done) { styleUpdate.rollback(); return; }
+    pendingStyleUpdates.set(visit, styleUpdate);
     window.lenis?.stop();
     unmount(); native.forEach(module => module.destroy?.()); ix2.destroy(); ix3.destroy();
     busyAnimation?.cancel();
     await replace(visit, args);
     projectImages();
     inlinePage = nextInline;
-    metadata(doc);
+    metadata(doc, () => {
+      styleUpdate.commit(); activeSheets = stylePlan.sheets; pendingStyleUpdates.delete(visit);
+      if (stylePlan.replacements.length) swup.cache.clear();
+    });
     gradient?.prepare();
     syncDestinationScroll(visit);
     await new Promise(resolve => requestAnimationFrame(resolve));
@@ -389,7 +402,7 @@ async function start() {
       window.location.assign(visit.to.url);
     }
   });
-  const recover = () => { document.querySelector('#env-sd-page')?.removeAttribute('data-env-alt-reveal-wait'); transition.cleanup(); gradient?.refresh(); releaseBoot(); window.lenis?.start(); busyAnimation?.cancel(); document.querySelector('#env-sd-page')?.classList.remove('env-sd-pending'); };
+  const recover = visit => { pendingStyleUpdates.get(visit)?.rollback(); pendingStyleUpdates.delete(visit); document.querySelector('#env-sd-page')?.removeAttribute('data-env-alt-reveal-wait'); transition.cleanup(); gradient?.refresh(); releaseBoot(); window.lenis?.start(); busyAnimation?.cancel(); document.querySelector('#env-sd-page')?.classList.remove('env-sd-pending'); };
   swup.hooks.on('visit:fail', recover);
   swup.hooks.on('visit:abort', recover);
   releaseBoot();
