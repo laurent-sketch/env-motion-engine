@@ -91,11 +91,11 @@ export function installMobileMenuStyles(doc = document) {
 @media(max-width:767px){
 .navbar-logo-center .contact-modal-bloc{top:var(--env-modal-header-height,78px)!important;bottom:0!important;height:calc(100vh - var(--env-modal-header-height,78px))!important;height:calc(100dvh - var(--env-modal-header-height,78px))!important;max-height:calc(100vh - var(--env-modal-header-height,78px))!important;max-height:calc(100dvh - var(--env-modal-header-height,78px))!important}
 .navbar-logo-center .contact-modal-bloc .contact-form-wrapper{box-sizing:border-box;height:100%!important;max-height:100%!important;padding-top:24px!important}
-.navbar-logo-center.is-env-contact-open{background:#fff!important}
-.navbar-logo-center.is-env-contact-open::before{opacity:1!important}
-.navbar-logo-center.is-env-contact-open .burger-menu-wrap .line-burger{background-color:var(--_colors---dark-blue,var(--nav-dark-blue,#11263a))!important}
-.navbar-logo-center.is-env-contact-open :is(.navbar-brand-three .main-picto,.navbar-brand-three .logo-nav,.logo-mobile>.logo-nav){filter:brightness(1) invert(0)!important}
-.navbar-logo-center.is-env-contact-open .nav-link-sd{color:var(--_colors---dark-blue,var(--nav-dark-blue,#11263a))!important}
+.navbar-logo-center.is-env-contact-open:not(.is-env-menu-open){background:#fff!important}
+.navbar-logo-center.is-env-contact-open:not(.is-env-menu-open)::before{opacity:1!important}
+.navbar-logo-center.is-env-contact-open:not(.is-env-menu-open) .burger-menu-wrap .line-burger{background-color:var(--_colors---dark-blue,var(--nav-dark-blue,#11263a))!important}
+.navbar-logo-center.is-env-contact-open:not(.is-env-menu-open) :is(.navbar-brand-three .main-picto,.navbar-brand-three .logo-nav,.logo-mobile>.logo-nav){filter:brightness(1) invert(0)!important}
+.navbar-logo-center.is-env-contact-open:not(.is-env-menu-open) .nav-link-sd{color:var(--_colors---dark-blue,var(--nav-dark-blue,#11263a))!important}
 .navbar-logo-center .contact-modal-bloc .close-bloc{cursor:pointer}
 }
 @media(prefers-reduced-motion:reduce){.navbar-logo-center .logo-mobile>.logo-nav,.navbar-logo-center .logo-mobile>.logo-nav.is-env-nav-picto,.navbar-logo-center.is-env-burger-managed .burger-menu-wrap .line-burger{transition:none!important}}`;

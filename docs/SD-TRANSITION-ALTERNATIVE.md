@@ -261,4 +261,8 @@ The published form wrapper had `overflow:hidden`, clipping content on short scre
 
 Browser checks on the latest Home copy at 667x375: form scrollTop moved to 261px and Send became visible, while the document remained at its locked offset. At a separate nonzero offset, the background stayed at 1166px while the form scrolled. The burger menu also scrolled internally (about 303px) without moving the document. Closing restores scrolling, and Home→Press through a burger link releases the lock after the mask; the destination then scrolls normally. Four regression tests cover nested scrolling/boundaries, overlapping overlays, existing Lenis ownership/transition cleanup and desktop menu release.
 
+### Color priority when both overlays are open
+
+The <=767px contact header color rules require `:not(.is-env-menu-open)`. An open burger menu takes precedence, restoring its transparent header, white cross and white picto above the dark menu overlay. Closing only the menu returns to the contact dialog's white header/dark icons, while the shared scroll lock remains active. Verified in a 390px published-page copy: contact → menu → contact, with both modal states preserved and the document lock still true. No timing or JavaScript modal handler changes; only the five contact theme selectors are restricted.
+
 Validation: 209 tests pass. Local browser previews at 390px and 834px cover Work's dark icon, Home's light icon, opening/closing, child cascade and Home → Work → reopening, without a second native modal click per tap. Public Webflow remains unchanged until its immutable Footer pin is replaced and republished. Head and native Designer interactions stay installed.
