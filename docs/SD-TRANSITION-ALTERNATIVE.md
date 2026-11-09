@@ -289,11 +289,3 @@ Validation: 209 tests pass. Local browser previews at 390px and 834px cover Work
 ### Anchor experiment withdrawn — November 9, 2026
 
 At the user's request, the anchor offset experiment above is withdrawn. Removed the root scroll-padding injection, ResizeObserver, capture-phase hash interception and Swup offset. Anchor behavior is restored to its pre-experiment implementation. Mobile menu mask snapshots and deferred closing remain installed. The footer navigation bundle must be loaded with `type="module"` (not a classic deferred script).
-
-### Native same-page anchors controlled by CSS — November 9, 2026
-
-The user approved a new approach after withdrawing calculated offsets. `native-anchors.js` leaves the browser's default action enabled for valid same-origin/path/query hash targets. Capture blocks delegated Webflow/Swup handlers for those clicks; Swup's ignoreVisit also excludes valid same-page targets. There is no preventDefault, coordinate calculation, custom history push or anchor scrollTo. Empty modal triggers, tabs, missing targets, external/new-page links and modified clicks remain untouched. Menu anchors close through the native burger. An unfinished Lenis wheel tween is stopped/restarted only if Lenis is running; locked/stopped instances remain stopped.
-
-Install `docs/snippets/sd-native-anchors.html` in the global Head. CSS owns `scroll-padding-top` (102px initially, including an independently editable mobile <=767 rule), smooth behavior and reduced-motion behavior. The `html.lenis.lenis-smooth` selector intentionally overrides the site's existing `.lenis.lenis-smooth {scroll-behavior:auto!important}`. Lenis wheel updates already use `behavior:instant`, so wheel smoothing stays controlled by Lenis. No generated offsets or inline root padding are installed by this module.
-
-Browser verification on a local copy of the latest Home/About: native Home `#work` settles at 102px on desktop and 390px mobile; changing only the served CSS to 144px produces exactly 144px. Desktop logo opacity is 1 after anchor scrolling. Home → About retains the same document ID and has no console errors. Five new unit tests cover default action, delegated handler bypass, target classification, opt-outs, Lenis and mobile menu closing; the 42 relevant anchor/menu/mask/history tests pass. Load the updated footer with `type="module"`.

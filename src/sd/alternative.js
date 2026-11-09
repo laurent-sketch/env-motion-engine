@@ -1,4 +1,3 @@
-import { installNativeAnchors, nativeAnchorTarget } from './native-anchors.js';
 import { installMobileMenu } from './mobile-menu.js';
 import { installMobileContact } from './mobile-contact.js';
 import { installModalScroll } from './modal-scroll.js';
@@ -302,9 +301,8 @@ async function start() {
   const swup = new Swup({ containers: ['#env-sd-page'], animationSelector: false, cache: preloadEnabled,
     plugins: [new ScrollPlugin({ animateScroll: { betweenPages: false, samePageWithHash: !reduced.matches, samePage: !reduced.matches } })],
     linkSelector: 'a[href]:not([download]):not([target]):not([data-no-swup])',
-    ignoreVisit: (url, { el } = {}) => { const u = new URL(url, location.href); return !!nativeAnchorTarget(u.href) || u.origin !== location.origin || /\.(?:pdf|zip|png|jpe?g|webp|svg|mp4|webm|css|js)$/i.test(u.pathname) || !!el?.closest('[data-no-swup]'); }
+    ignoreVisit: (url, { el } = {}) => { const u = new URL(url, location.href); return u.origin !== location.origin || /\.(?:pdf|zip|png|jpe?g|webp|svg|mp4|webm|css|js)$/i.test(u.pathname) || !!el?.closest('[data-no-swup]'); }
   });
-  installNativeAnchors();
   window.ENVSD = { swup, status: 'ready' };
   if (preloadEnabled) {
     window.ENVSD.stopPreload = installPreload(swup, { warmPage, delay: 400, concurrency: 2 });
