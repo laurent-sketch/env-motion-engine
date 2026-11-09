@@ -243,4 +243,12 @@ The current About story uses Webflow IX2 to move its parent section and SVG head
 
 Verified on a local copy of the latest published About: rapid down/up/re-entry, About→Work→About without a reload, and no owned word markers left on Work. A partially open mask at y=498.719px in a 960px viewport rendered inset(4.347%), matching its actual visible range. Seven regression tests cover image sizing, refresh coalescing, transition suspension, reverse scroll, native resplitting and cleanup. Full suite: 216 tests passing.
 
+## Contact Back wrapper and white mobile header — November 9
+
+`mobile-contact.js` follows the existing `.contact-modal-bloc` within the persistent navigation. At `(max-width: 767px)` only, clicking `.close-bloc` or its Back text delegates exactly one click to the existing `.close-btn`; clicking the icon itself keeps the original handler. The wrapper receives keyboard button semantics when needed, with Enter/Space delegation and teardown restoring its authored attributes. The existing modal fade, Escape behavior and focus restoration stay in the page's contact script.
+
+While the contact dialog is displayed, `.is-env-contact-open` makes the navigation background white and its burger, logo and picto dark, including a light Home and an already-open burger menu. It does not change logo visibility or the Let's Talk button's authored blue style. The state lasts through the original close fade and is removed when display/aria-hidden confirms closure; the prior page/scroll theme then applies. Media-query changes and page lifecycle cleanup remove this state, with no new visual or wrapper behavior above 767px.
+
+Browser checks on copies of the latest published Home and Work: Back text closes in 390px portrait and 667px landscape, white header and dark picto during opening, transparent/light Home restored after closing, and the original non-mobile form behavior at 768px. Three added tests plus the existing burger/menu suites pass (16 checks); alternative build passes. No Webflow interaction or contact inline script replacement is required.
+
 Validation: 209 tests pass. Local browser previews at 390px and 834px cover Work's dark icon, Home's light icon, opening/closing, child cascade and Home → Work → reopening, without a second native modal click per tap. Public Webflow remains unchanged until its immutable Footer pin is replaced and republished. Head and native Designer interactions stay installed.

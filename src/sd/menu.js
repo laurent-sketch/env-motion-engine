@@ -84,6 +84,14 @@ export function installMobileMenuStyles(doc = document) {
 .navbar-logo-center.is-past-hero .logo-mobile:has(>.logo-nav.bis)>.logo-nav:not(.bis){opacity:0}
 .navbar-logo-center.is-past-hero .logo-mobile>.logo-nav.bis{opacity:1}
 }
+@media(max-width:767px){
+.navbar-logo-center.is-env-contact-open{background:#fff!important}
+.navbar-logo-center.is-env-contact-open::before{opacity:1!important}
+.navbar-logo-center.is-env-contact-open .burger-menu-wrap .line-burger{background-color:var(--_colors---dark-blue,var(--nav-dark-blue,#11263a))!important}
+.navbar-logo-center.is-env-contact-open :is(.navbar-brand-three .main-picto,.navbar-brand-three .logo-nav,.logo-mobile>.logo-nav){filter:brightness(1) invert(0)!important}
+.navbar-logo-center.is-env-contact-open .nav-link-sd{color:var(--_colors---dark-blue,var(--nav-dark-blue,#11263a))!important}
+.navbar-logo-center .contact-modal-bloc .close-bloc{cursor:pointer}
+}
 @media(prefers-reduced-motion:reduce){.navbar-logo-center .logo-mobile>.logo-nav,.navbar-logo-center .logo-mobile>.logo-nav.is-env-nav-picto,.navbar-logo-center.is-env-burger-managed .burger-menu-wrap .line-burger{transition:none!important}}`;
   doc.head.append(style);
 }

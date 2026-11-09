@@ -1,4 +1,5 @@
 import { installMobileMenu } from './mobile-menu.js';
+import { installMobileContact } from './mobile-contact.js';
 import { installAboutLayout } from './about-layout.js';
 import { installAboutScroll } from './about-scroll.js';
 import { installProjectImageSizes } from './project-images.js';
@@ -136,6 +137,7 @@ function menu() {
     animations = elements.map((el, i) => el.animate([starts[i], ends[i]], { duration: initial || reduced.matches ? 0 : 550, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'forwards' }));
   }
   const cleanMobile = installMobileMenu(nav);
+  const cleanContact = installMobileContact(nav);
   bindMenuBrandPreview(brand, text, value => { preview = value; update(); }, abort.signal);
   function schedule() { if (pending) return; pending = true; requestAnimationFrame(() => { pending = false; update(); }); }
   addEventListener('scroll', schedule, { passive: true, signal: abort.signal });
@@ -147,7 +149,7 @@ function menu() {
     a.classList.toggle('w--current', current);
     if (current) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
   });
-  cleanMenu = () => { cleanMobile(); abort.abort(); animations.forEach(a => a.cancel()); };
+  cleanMenu = () => { cleanContact(); cleanMobile(); abort.abort(); animations.forEach(a => a.cancel()); };
 }
 async function animations() {
   if (inlinePage.story) {
