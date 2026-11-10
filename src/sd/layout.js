@@ -1,3 +1,4 @@
+import { isNotFoundPage } from './utility-layout.js';
 import routes from './routes.json';
 export function wrap(doc) {
   let root = doc.querySelector('#env-sd-page');
@@ -46,7 +47,7 @@ export function validate(doc, pathname, expectedSheets, { refreshRuntime = false
   const bootstrap = scripts.find(url => /\/js\/webflow\.(?![sa]chunk\.)[^/]+\.js$/.test(url));
   if (runtimeChanged && !bootstrap) throw Error('Missing Webflow data bootstrap');
   if (gsapScripts && [...doc.scripts].map(s => s.src).filter(url => url.includes('/gsap/')).some(url => !gsapScripts.includes(url))) throw Error('New GSAP dependency requires native navigation');
-  if (!doc.querySelector('.navbar-logo-center') || !doc.querySelector('body > main.main-wrapper, #env-sd-page > main.main-wrapper')) throw Error('Page needs the shared SD menu and main wrapper');
+  if ((!doc.querySelector('.navbar-logo-center') && !isNotFoundPage(doc)) || !doc.querySelector('body > main.main-wrapper, #env-sd-page > main.main-wrapper')) throw Error('Page needs the shared SD menu and main wrapper');
   const sheets = [...doc.querySelectorAll('link[rel="stylesheet"]')].map(e => e.getAttribute('href'));
   if (!(expectedSheets || record.sheets).every(s => sheets.includes(s)) || (expectedSheets && sheets.length !== expectedSheets.length)) throw Error('Stylesheets changed');
   // Unknown inline scripts need a lifecycle adapter rather than blind execution.

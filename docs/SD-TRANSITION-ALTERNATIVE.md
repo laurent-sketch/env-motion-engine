@@ -311,3 +311,22 @@ The controller uses scroll/resize/load/font notifications with coalesced RAF and
 Browser proof on fresh published exports: direct Cookie entry boots without errors; Cookie→Privacy→Home→Cookie retains document `feb0429f-79aa-4f1c-8989-2f0b7712e500`; snapshots exist during legal mask visits. Footer geometry at the same entry point: Privacy layoutTop639.490px/y-199.840px at document scroll4779.33 of5419px; Home layoutTop639.760px/y-199.925px at8425.33 of9065px. Thus nearly identical local motion despite different global percentages (~88.2% vs92.9%). Big logo is opacity1/identity transform at the bottom. Cookie's trailing video remains published; remove it in Designer if it is unintentional.
 
 Validation: full238-test suite passed, followed by all6 focused legal/footer tests including the added mobile-static case, and the alternative build. Screenshot proofs in task outputs `outputs/legal-footer-fix/footer-home.png` and `cookie-mask.png`. Update only the immutable Footer module URL with `type="module"`; preserve Head modules and existing mobile anchor fix.
+
+### Published 404 support (2026-11-10)
+
+The SD 404 (`6af2216acddf96f8782c12c8`) intentionally has a single
+`.section.full-dark-blue` and no shared menu/main/footer. Previously this failed
+layout validation and disabled enhanced navigation, including Back Home.
+
+The alternative normalizes only that known section into the replaceable main.
+A persistent menu is hidden and made inert on 404, then restored exactly on the
+next normal page. A direct 404 load imports the destination menu on Back Home
+and initializes its Webflow form. Unknown missing-menu layouts remain rejected.
+The real HTTP response status is unchanged; Swup can render a nonempty 404 HTML
+response. This does not add a visible menu or footer to the 404 design.
+
+Verified against current published Home/404 HTML in the local proxy (which
+returns HTTP 404): direct 404 → Home, Home → 404 → Home retain the same document,
+mask state is active, menu is absent on 404 and restored on Home, contact opens.
+242 tests pass. Classic transition remains available. Roll back the navigation
+footer URL to commit `248476e3afdd6b65b83c0b0ba859bffd6a13753c` if needed.

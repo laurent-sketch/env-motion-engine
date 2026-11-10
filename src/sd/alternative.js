@@ -1,3 +1,4 @@
+import { isNotFoundPage, normalizeUtilityLayout, syncOptionalNavigation } from './utility-layout.js';
 import { normalizeLegalLayout } from './legal-layout.js';
 import { installFooterReveal } from './footer-reveal.js';
 import { installMobileWorkAnchor } from './mobile-work-anchor.js';
@@ -96,11 +97,15 @@ function metadata(doc, applyStyles = () => {}) {
   try {
   applyStyles();
   syncPageAnimation(document, doc);
+  const navigationAdded = syncOptionalNavigation(document, doc);
+  if (doc.querySelector('.navbar-logo-center')) {
   syncMenuVariants(document, doc);
   syncMenuImages(document, doc);
   const liveLinks = [...document.querySelectorAll('.navbar-logo-center a[href]')];
   const nextLinks = [...doc.querySelectorAll('.navbar-logo-center a[href]')];
   liveLinks.forEach((link, i) => { if (nextLinks[i]) link.setAttribute('href', nextLinks[i].getAttribute('href')); });
+  }
+  if (navigationAdded) window.Webflow?.require('forms')?.ready?.();
   for (const attr of ['lang', 'dir']) {
     const value = doc.documentElement.getAttribute(attr);
     if (value === null) document.documentElement.removeAttribute(attr); else document.documentElement.setAttribute(attr, value);
@@ -249,6 +254,7 @@ async function start() {
   let activeSheets = [...document.querySelectorAll('link[rel="stylesheet"]')].map(el => el.getAttribute('href'));
   const pendingStyleUpdates = new Map();
   const gsapScripts = [...document.scripts].map(el => el.src).filter(url => url.includes('/gsap/'));
+  normalizeUtilityLayout(document);
   normalizeLegalLayout(document);
   normalizeAboutComponent(document);
   inlinePage = inspectInlineAbout(document);
@@ -339,6 +345,7 @@ async function start() {
   swup.hooks.replace('content:replace', async (visit, args, replace) => {
     const doc = visit.to.document;
     if (!doc || !replace) throw Error('Missing incoming page');
+    normalizeUtilityLayout(doc);
     normalizeLegalLayout(doc);
     normalizeAboutComponent(doc);
     const nextInline = inspectInlineAbout(doc);
@@ -346,7 +353,7 @@ async function start() {
     const record = validate(doc, new URL(visit.to.url, location.href).pathname, stylePlan.sheets, { refreshRuntime: true, gsapScripts, ...compatibleValidation, inlineScripts: [...testInline, ...nextInline.sources] });
     const incomingConfig = await configuration(record);
     if (visit.done) return;
-    if (doc.querySelectorAll('.navbar-logo-center a[href]').length !== document.querySelectorAll('.navbar-logo-center a[href]').length) throw Error('Menu structure changed');
+    if (!isNotFoundPage(doc) && !isNotFoundPage(document) && doc.querySelectorAll('.navbar-logo-center a[href]').length !== document.querySelectorAll('.navbar-logo-center a[href]').length) throw Error('Menu structure changed');
     const next = wrap(doc); next.classList.add('env-sd-pending'); if (useMask) next.setAttribute('data-env-alt-reveal-wait', '');
     if (next.querySelector('.w-slider') && !runtime.require('slider')?.ready) {
       await ensureSlider();
